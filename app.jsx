@@ -39,8 +39,13 @@ function App() {
   const [dockVisible, setDockVisible] = useState(false);
   const [theme, setTheme] = useState(() => {
     if (typeof window === 'undefined') return 'dark';
-    return localStorage.getItem('roadmap-theme') || document.documentElement.dataset.theme || 'dark';
+    const stored = localStorage.getItem('roadmap-theme');
+    if (stored) return stored;
+    if (document.documentElement.dataset.theme) return document.documentElement.dataset.theme;
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) return 'light';
+    return 'dark';
   });
+  const toggleTheme = () => setTheme(t => (t === 'light' ? 'dark' : 'light'));
   const phaseRefs = useRef([]);
   const capstoneRefs = useRef([]);
   const agendaRef = useRef(null);
@@ -62,11 +67,14 @@ function App() {
         const firstPhaseTop = firstPhase
           ? firstPhase.getBoundingClientRect().top + window.scrollY
           : winH;
-        setDockVisible(scrollTop > firstPhaseTop - winH * 0.35);
+        setDockVisible(scrollTop > firstPhaseTop - winH * 0.15);
 
         const phasePositions = phaseRefs.current
           .filter(Boolean)
-          .map(el => el.getBoundingClientRect().top + window.scrollY);
+          .map(el => {
+            const pt = parseFloat(window.getComputedStyle(el).paddingTop) || 0;
+            return el.getBoundingClientRect().top + window.scrollY + pt;
+          });
 
         if (phasePositions.length > 1) {
           const navOffset = window.innerWidth <= 700 ? 24 : 56;
@@ -77,12 +85,13 @@ function App() {
           setScrollProgress(Math.min(1, Math.max(0, phaseProgress)));
         }
 
-        const probeLine = window.innerWidth <= 700 ? 72 : 120;
+        const probeLine = window.innerWidth <= 700 ? 96 : 160;
         let active = 0;
         phaseRefs.current.forEach((el, i) => {
           if (!el) return;
           const rect = el.getBoundingClientRect();
-          if (rect.top <= probeLine) {
+          const pt = parseFloat(window.getComputedStyle(el).paddingTop) || 0;
+          if (rect.top + pt <= probeLine) {
             active = i;
           }
         });
@@ -107,33 +116,30 @@ function App() {
     return () => io.disconnect();
   }, []);
 
+  const scrollToElement = (el, mobileOffset = 24, desktopOffset = 72, includePadding = false) => {
+    if (!el) return;
+    const navOffset = window.innerWidth <= 700 ? mobileOffset : desktopOffset;
+    const pt = includePadding
+      ? parseFloat(window.getComputedStyle(el).paddingTop) || 0
+      : 0;
+    const top = el.getBoundingClientRect().top + window.scrollY + pt - navOffset;
+    const prefersReduced = window.matchMedia
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isMobile = window.innerWidth <= 700;
+    window.scrollTo({
+      top: Math.max(0, top),
+      behavior: prefersReduced || isMobile ? 'auto' : 'smooth'
+    });
+  };
+
   const scrollToPhase = (i) => {
     const el = phaseRefs.current[i];
     if (!el) return;
-
     setActivePhase(i);
-    const navOffset = window.innerWidth <= 700 ? 24 : 56;
-    const top = el.getBoundingClientRect().top + window.scrollY - navOffset;
-    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    scrollToElement(el, 24, 56, true);
   };
-
-  const scrollToCapstone = (i) => {
-    const el = capstoneRefs.current[i];
-    if (!el) return;
-
-    const navOffset = window.innerWidth <= 700 ? 24 : 72;
-    const top = el.getBoundingClientRect().top + window.scrollY - navOffset;
-    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-  };
-
-  const scrollToAgenda = () => {
-    const el = agendaRef.current;
-    if (!el) return;
-
-    const navOffset = window.innerWidth <= 700 ? 24 : 72;
-    const top = el.getBoundingClientRect().top + window.scrollY - navOffset;
-    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
-  };
+  const scrollToCapstone = (i) => scrollToElement(capstoneRefs.current[i], 24, 72, false);
+  const scrollToAgenda = () => scrollToElement(agendaRef.current, 24, 72, false);
 
   const totalSections = window.ROADMAP.reduce((a, p) => a + p.sections.length, 0);
 
@@ -159,7 +165,7 @@ function App() {
           </div>
           <button
             className="theme-toggle"
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            onClick={toggleTheme}
             aria-label="Toggle theme">
             <span className="theme-toggle__track">
               <span className="theme-toggle__thumb">
