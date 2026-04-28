@@ -33,8 +33,157 @@ function PhaseTabBox({ phase }) {
   );
 }
 
+const isMac = typeof navigator !== 'undefined'
+  && /Mac|iPhone|iPad|iPod/i.test(navigator.platform || navigator.userAgent || '');
+
+function CommandPalette({ open, onClose, onJumpPhase, onJumpCapstone }) {
+  const [query, setQuery] = useState('');
+  const [highlight, setHighlight] = useState(0);
+  const inputRef = useRef(null);
+  const listRef = useRef(null);
+
+  const items = React.useMemo(() => {
+    const out = [];
+    window.ROADMAP.forEach((phase, pi) => {
+      out.push({
+        kind: 'phase',
+        label: phase.title,
+        sub: `Phase ${String(phase.id).padStart(2, '0')} · ${phase.weeks}`,
+        haystack: `${phase.title} ${phase.short} ${phase.summary}`.toLowerCase(),
+        action: () => onJumpPhase(pi)
+      });
+      phase.sections.forEach((s) => {
+        out.push({
+          kind: 'module',
+          label: s.title,
+          sub: `Module ${s.n} · ${phase.title}`,
+          haystack: `${s.title} ${s.n} ${(s.items || []).join(' ')}`.toLowerCase(),
+          action: () => onJumpPhase(pi)
+        });
+      });
+    });
+    window.CAPSTONES.forEach((c, ci) => {
+      out.push({
+        kind: 'capstone',
+        label: c.title,
+        sub: `Capstone ${c.n} · ${c.domain}`,
+        haystack: `${c.title} ${c.domain} ${(c.build || []).join(' ')}`.toLowerCase(),
+        action: () => onJumpCapstone(ci)
+      });
+    });
+    return out;
+  }, []);
+
+  const q = query.trim().toLowerCase();
+  const results = React.useMemo(() => {
+    if (!q) return items.slice(0, 30);
+    const tokens = q.split(/\s+/).filter(Boolean);
+    return items
+      .map(item => {
+        const allMatch = tokens.every(t => item.haystack.includes(t));
+        if (!allMatch) return null;
+        let score = 0;
+        if (item.label.toLowerCase().includes(q)) score += 50;
+        if (item.label.toLowerCase().startsWith(q)) score += 30;
+        if (item.kind === 'phase') score += 5;
+        return { item, score };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 30)
+      .map(x => x.item);
+  }, [q, items]);
+
+  useEffect(() => {
+    if (!open) return;
+    setQuery('');
+    setHighlight(0);
+    const t = setTimeout(() => inputRef.current && inputRef.current.focus(), 30);
+    return () => clearTimeout(t);
+  }, [open]);
+
+  useEffect(() => { setHighlight(0); }, [q]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); onClose(); return; }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setHighlight(h => Math.min(results.length - 1, h + 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setHighlight(h => Math.max(0, h - 1));
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const r = results[highlight];
+        if (r) { r.action(); onClose(); }
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, results, highlight, onClose]);
+
+  useEffect(() => {
+    if (!open || !listRef.current) return;
+    const el = listRef.current.querySelector(`[data-idx="${highlight}"]`);
+    if (el) el.scrollIntoView({ block: 'nearest' });
+  }, [highlight, open]);
+
+  if (!open) return null;
+  return (
+    <div className="cmdk" role="dialog" aria-modal="true" aria-label="Search modules" onClick={onClose}>
+      <div className="cmdk__panel" onClick={e => e.stopPropagation()}>
+        <div className="cmdk__input-row">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" /><path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
+            ref={inputRef}
+            className="cmdk__input"
+            type="text"
+            placeholder="Search phases, modules, capstones…"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            aria-label="Search"
+            aria-controls="cmdk-list"
+            aria-activedescendant={results[highlight] ? `cmdk-item-${highlight}` : undefined} />
+          <kbd className="cmdk__esc">esc</kbd>
+        </div>
+        <div className="cmdk__list" ref={listRef} id="cmdk-list" role="listbox">
+          {results.length === 0 ? (
+            <div className="cmdk__empty">No matches for "{query}"</div>
+          ) : (
+            results.map((r, i) => (
+              <button
+                key={i}
+                id={`cmdk-item-${i}`}
+                data-idx={i}
+                role="option"
+                aria-selected={i === highlight}
+                className={`cmdk__item ${i === highlight ? 'is-active' : ''}`}
+                onMouseMove={() => setHighlight(i)}
+                onClick={() => { r.action(); onClose(); }}>
+                <span className={`cmdk__kind cmdk__kind--${r.kind}`}>{r.kind}</span>
+                <span className="cmdk__label">{r.label}</span>
+                <span className="cmdk__sub">{r.sub}</span>
+              </button>
+            ))
+          )}
+        </div>
+        <div className="cmdk__hint">
+          <span><kbd>↑↓</kbd> navigate</span>
+          <span><kbd>↵</kbd> jump</span>
+          <span><kbd>esc</kbd> close</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [dockVisible, setDockVisible] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [theme, setTheme] = useState(() => {
     if (typeof window === 'undefined') return 'dark';
     const stored = localStorage.getItem('roadmap-theme');
@@ -59,6 +208,22 @@ function App() {
     document.documentElement.dataset.theme = theme;
     localStorage.setItem('roadmap-theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchOpen(o => !o);
+      } else if (e.key === '/' && !searchOpen) {
+        const tag = (e.target && e.target.tagName) || '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [searchOpen]);
 
   useEffect(() => {
     const recomputeMetrics = () => {
@@ -99,12 +264,14 @@ function App() {
         if (rect.top + metrics[i].paddingTop <= probeLine) active = i;
       }
       if (active !== lastActiveIdx.current) {
-        const prev = lastActiveIdx.current;
         lastActiveIdx.current = active;
         dockNodeRefs.current.forEach((node, i) => {
           if (!node) return;
-          node.classList.toggle('active', i === active);
+          const isActive = i === active;
+          node.classList.toggle('active', isActive);
           node.classList.toggle('passed', i < active);
+          if (isActive) node.setAttribute('aria-current', 'true');
+          else node.removeAttribute('aria-current');
         });
       }
     };
@@ -173,23 +340,36 @@ function App() {
 
   return (
     <React.Fragment>
-      <nav className="nav">
+      <nav className="nav" aria-label="Primary">
         <div className="nav__brand">
-          <span className="nav__brand-mark">A</span>
+          <span className="nav__brand-mark" aria-hidden="true">A</span>
           <span><b>Agent Engineer</b> · 2026 Roadmap</span>
         </div>
         <div className="nav__right">
-          <div className="nav__meta">
+          <div className="nav__meta" aria-hidden="true">
             <span><b>26</b> weeks</span>
             <span><b>9</b> phases</span>
             <span><b>3</b> capstones</span>
           </div>
           <button
+            type="button"
+            className="search-trigger"
+            onClick={() => setSearchOpen(true)}
+            aria-label="Open search (Cmd+K)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" /><path d="m21 21-4.35-4.35" />
+            </svg>
+            <span>Search</span>
+            <kbd>{isMac ? '⌘' : 'Ctrl'}K</kbd>
+          </button>
+          <button
+            type="button"
             className="theme-toggle"
             onClick={toggleTheme}
-            aria-label="Toggle theme">
+            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+            aria-pressed={theme === 'dark'}>
             <span className="theme-toggle__track">
-              <span className="theme-toggle__thumb">
+              <span className="theme-toggle__thumb" aria-hidden="true">
                 {theme === 'light' ? '☀' : '☾'}
               </span>
             </span>
@@ -197,6 +377,7 @@ function App() {
         </div>
       </nav>
 
+      <main id="main">
       {/* HERO */}
       <header className="hero" data-screen-label="01 Hero">
         <div className="hero__blob" />
@@ -446,6 +627,14 @@ function App() {
           ))}
         </div>
       </section>
+
+      </main>
+
+      <CommandPalette
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onJumpPhase={scrollToPhase}
+        onJumpCapstone={scrollToCapstone} />
 
       <footer className="footer reveal">
         <h2 className="footer__title">
