@@ -343,7 +343,7 @@ function App() {
       <nav className="nav" aria-label="Primary">
         <div className="nav__brand">
           <span className="nav__brand-mark" aria-hidden="true">A</span>
-          <span><b>Agent Engineer</b> · 2026 Roadmap</span>
+          <span><b>Agent Engineer</b> · by Harish Mondepu</span>
         </div>
         <div className="nav__right">
           <div className="nav__meta" aria-hidden="true">
@@ -475,46 +475,46 @@ function App() {
       <section className="instructor reveal" data-screen-label="03 Instructor">
         <div className="instructor__card">
           <div className="instructor__photo">
-            <img src="uploads/balaji-chippada.png" alt="Balaji Chippada" />
+            <img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onError={(e) => { e.target.style.display='none'; }} />
           </div>
           <div className="instructor__body">
             <div className="instructor__label">Your Instructor</div>
-            <h3 className="instructor__name">Balaji Chippada</h3>
-            <div className="instructor__role">AI/ML practitioner · Production-scale agentic AI builder</div>
+            <h3 className="instructor__name">Harish Mondepu</h3>
+            <div className="instructor__role">Salesforce Engineer · AI Enthusiast · Enterprise Architect</div>
             <p className="instructor__bio">
-              I have spent <span>8 years in the AI/ML industry</span> and watched the field move from traditional
-              machine learning into agentic AI. Along the way, I have built <span>production-scale agentic
-              applications</span> and seen what actually matters when these systems leave the demo stage.
-              I am also a tutor in the AI and data science space, and over the last couple of years
-              I have mentored and taught <span>3,000+ students and working professionals</span> transform their careers.
-              If I had to start all over again in 2026, this is exactly how I would begin. This roadmap
-              is the curriculum I wish someone had handed me on day one.
+              I spent <span>9+ years building production enterprise systems</span> across healthcare, SaaS,
+              manufacturing, and financial services before making the move into AI engineering. I hold
+              <span> 16 Salesforce certifications</span>, a Google AI certification, and an Anthropic AI certification —
+              and I built this roadmap because the one I needed didn't exist. Every module
+              is exactly what I had to figure out the hard way, laid out clearly so you don't have to.
+              If you're an engineer who wants to ship AI systems that actually work in production,
+              this is where you start.
             </p>
             <div className="instructor__chips">
-              <span className="instructor__chip">8 Years AI/ML</span>
+              <span className="instructor__chip">9+ Yrs Enterprise Arch</span>
+              <span className="instructor__chip">16× Salesforce Certified</span>
               <span className="instructor__chip">LangGraph</span>
               <span className="instructor__chip">Agentic AI</span>
               <span className="instructor__chip">Production RAG</span>
-              <span className="instructor__chip">Multi-Agent Systems</span>
               <span className="instructor__chip">LLMOps</span>
             </div>
           </div>
           <div className="instructor__cta">
             <div className="instructor__connect-label">Connect with me</div>
             <div className="instructor__socials">
-              <a className="instructor__social" href="https://www.linkedin.com/in/balaji-chippada-0317/" target="_blank" rel="noopener noreferrer" aria-label="Connect with Balaji Chippada on LinkedIn">
+              <a className="instructor__social" href="https://www.linkedin.com/in/harish-mondepu/" target="_blank" rel="noopener noreferrer" aria-label="Connect with Harish Mondepu on LinkedIn">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M6.7 9.2H3.2v11.3h3.5V9.2ZM4.9 3.5C3.8 3.5 3 4.3 3 5.4s.8 1.9 1.9 1.9 1.9-.8 1.9-1.9-.8-1.9-1.9-1.9Zm15.6 10.6c0-3.3-1.8-5.2-4.4-5.2-1.8 0-2.8 1-3.2 1.7V9.2H9.5v11.3H13v-6.1c0-1.6.8-2.5 2-2.5s1.9.8 1.9 2.5v6.1h3.6v-6.4Z" />
                 </svg>
               </a>
-              <a className="instructor__social" href="https://www.youtube.com/@balajichippada" target="_blank" rel="noopener noreferrer" aria-label="Open Balaji Chippada on YouTube">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M21.6 7.2a3 3 0 0 0-2.1-2.1C17.7 4.6 12 4.6 12 4.6s-5.7 0-7.5.5a3 3 0 0 0-2.1 2.1C2 9 2 12 2 12s0 3 .4 4.8a3 3 0 0 0 2.1 2.1c1.8.5 7.5.5 7.5.5s5.7 0 7.5-.5a3 3 0 0 0 2.1-2.1C22 15 22 12 22 12s0-3-.4-4.8ZM10 15.5v-7l6 3.5-6 3.5Z" />
+              <a className="instructor__social" href="https://portfolio-app-theta-one.vercel.app" target="_blank" rel="noopener noreferrer" aria-label="Harish Mondepu's Portfolio">
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
                 </svg>
               </a>
-              <a className="instructor__social" href="https://www.instagram.com/inside.datascience/" target="_blank" rel="noopener noreferrer" aria-label="Open Inside Data Science on Instagram">
+              <a className="instructor__social" href="https://github.com/harishmondepu-haiilo" target="_blank" rel="noopener noreferrer" aria-label="Harish Mondepu on GitHub">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M7.5 2.8h9A4.7 4.7 0 0 1 21.2 7.5v9a4.7 4.7 0 0 1-4.7 4.7h-9a4.7 4.7 0 0 1-4.7-4.7v-9a4.7 4.7 0 0 1 4.7-4.7Zm0 2A2.7 2.7 0 0 0 4.8 7.5v9a2.7 2.7 0 0 0 2.7 2.7h9a2.7 2.7 0 0 0 2.7-2.7v-9a2.7 2.7 0 0 0-2.7-2.7h-9Zm4.5 3.1a4.1 4.1 0 1 1 0 8.2 4.1 4.1 0 0 1 0-8.2Zm0 2a2.1 2.1 0 1 0 0 4.2 2.1 2.1 0 0 0 0-4.2Zm4.4-2.4a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z" />
+                  <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2Z"/>
                 </svg>
               </a>
             </div>
