@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Direction 1 — Editorial · Module 1.1: Core Python</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600&family=Instrument+Serif:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #f9f7f3;
+  --bg-nav: #f2efe8;
+  --bg-code: #f0ece4;
+  --fg: #1a1714;
+  --fg-dim: rgba(26,23,20,0.65);
+  --fg-faint: rgba(26,23,20,0.38);
+  --accent: #c2533c;
+  --accent-soft: rgba(194,83,60,0.10);
+  --border: rgba(26,23,20,0.10);
+  --border-strong: rgba(26,23,20,0.20);
+  --sidenote-bg: rgba(26,23,20,0.04);
+  --callout-note: #e8f4f8;
+  --callout-warn: #fef3cd;
+  --callout-tip: #e8f5e9;
+  --callout-err: #fde8e8;
+}
+[data-theme="dark"] {
+  --bg: #13121a;
+  --bg-nav: #1a1925;
+  --bg-code: #1e1d2c;
+  --fg: #ede9e0;
+  --fg-dim: rgba(237,233,224,0.65);
+  --fg-faint: rgba(237,233,224,0.38);
+  --accent: #e07a5f;
+  --accent-soft: rgba(224,122,95,0.12);
+  --border: rgba(255,255,255,0.09);
+  --border-strong: rgba(255,255,255,0.18);
+  --sidenote-bg: rgba(255,255,255,0.04);
+  --callout-note: rgba(52,130,161,0.15);
+  --callout-warn: rgba(200,150,40,0.15);
+  --callout-tip: rgba(60,140,80,0.15);
+  --callout-err: rgba(200,60,60,0.15);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 17px; scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Instrument Serif', Georgia, serif;
+  line-height: 1.75;
+  overflow-x: hidden;
+}
+
+/* ── Top bar ── */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg-nav);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.5rem;
+  height: 52px;
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 13px;
+}
+.topbar__brand { font-weight: 600; letter-spacing: -0.01em; color: var(--fg); text-decoration: none; }
+.topbar__brand em { color: var(--accent); font-style: normal; }
+.topbar__right { display: flex; align-items: center; gap: 1rem; }
+.topbar__breadcrumb { color: var(--fg-dim); }
+.topbar__breadcrumb span { color: var(--fg); }
+.theme-btn {
+  background: none; border: 1px solid var(--border-strong);
+  border-radius: 6px; padding: 4px 10px;
+  cursor: pointer; font-size: 12px; color: var(--fg);
+  font-family: 'Inter Tight', sans-serif;
+}
+
+/* ── Layout ── */
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr 200px;
+  max-width: 1280px;
+  margin: 0 auto;
+  min-height: calc(100vh - 52px);
+}
+@media (max-width: 1100px) { .layout { grid-template-columns: 220px 1fr; } .toc-rail { display: none; } }
+@media (max-width: 768px)  { .layout { grid-template-columns: 1fr; } .left-nav { display: none; } }
+
+/* ── Left nav ── */
+.left-nav {
+  border-right: 1px solid var(--border);
+  padding: 2rem 1.25rem;
+  position: sticky; top: 52px;
+  height: calc(100vh - 52px);
+  overflow-y: auto;
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 12.5px;
+}
+.left-nav__phase { margin-bottom: 1.5rem; }
+.left-nav__phase-title {
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--fg-faint); margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
+}
+.left-nav__module {
+  display: block; padding: 5px 8px;
+  border-radius: 5px; color: var(--fg-dim);
+  text-decoration: none; line-height: 1.4;
+  margin-bottom: 1px;
+  transition: background 150ms, color 150ms;
+}
+.left-nav__module:hover { background: var(--border); color: var(--fg); }
+.left-nav__module.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 500;
+}
+.left-nav__module-num { opacity: 0.5; margin-right: 4px; }
+
+/* ── Main content ── */
+.content {
+  padding: 4rem 3rem 6rem;
+  max-width: 72ch;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ── Module header ── */
+.module-eyebrow {
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 1rem;
+}
+.module-title {
+  font-size: 2.8rem; font-weight: 400; line-height: 1.15;
+  letter-spacing: -0.02em; margin-bottom: 1rem;
+}
+.module-title em { font-style: italic; color: var(--accent); }
+.module-meta {
+  display: flex; gap: 1.5rem; flex-wrap: wrap;
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 12.5px; color: var(--fg-dim);
+  margin-bottom: 2.5rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.module-meta__item strong { color: var(--fg); font-weight: 500; }
+
+/* ── Prose ── */
+.prose h2 {
+  font-size: 1.6rem; font-weight: 400; line-height: 1.25;
+  margin: 3rem 0 1rem;
+  letter-spacing: -0.015em;
+}
+.prose h3 {
+  font-size: 1.15rem; font-weight: 400; font-style: italic;
+  margin: 2rem 0 0.75rem;
+  color: var(--fg-dim);
+}
+.prose p { margin-bottom: 1.35rem; }
+.prose a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ── Prerequisites box ── */
+.prereq-box {
+  background: var(--sidenote-bg);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  padding: 1.25rem 1.5rem;
+  margin: 2rem 0;
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 14px;
+}
+.prereq-box__label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem;
+}
+.prereq-box ul { padding-left: 1.25rem; color: var(--fg-dim); line-height: 1.7; }
+
+/* ── Outcomes ── */
+.outcomes {
+  background: var(--accent-soft);
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 14px;
+}
+.outcomes__label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem;
+}
+.outcomes li { margin-bottom: 0.4rem; color: var(--fg-dim); padding-left: 0.25rem; }
+.outcomes li::marker { color: var(--accent); }
+
+/* ── Video embed ── */
+.video-wrap {
+  margin: 2.5rem 0;
+  border-radius: 10px; overflow: hidden;
+  border: 1px solid var(--border);
+  aspect-ratio: 16/9;
+  background: var(--bg-code);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 0.5rem;
+  color: var(--fg-faint);
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 13px;
+}
+.video-wrap iframe { width: 100%; height: 100%; border: none; }
+.video-wrap__label {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--fg-faint); margin-top: 0.5rem;
+  font-family: 'Inter Tight', sans-serif;
+  text-align: center;
+}
+
+/* ── Code block ── */
+.code-wrap {
+  margin: 2rem 0;
+  border-radius: 10px; overflow: hidden;
+  border: 1px solid var(--border);
+}
+.code-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 14px;
+  background: var(--border);
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 11.5px; color: var(--fg-dim);
+}
+.copy-btn {
+  background: none; border: 1px solid var(--border-strong);
+  border-radius: 4px; padding: 2px 10px;
+  cursor: pointer; font-size: 11px;
+  color: var(--fg-dim); font-family: 'Inter Tight', sans-serif;
+}
+.copy-btn:hover { color: var(--fg); border-color: var(--fg-dim); }
+pre {
+  background: var(--bg-code);
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13.5px; line-height: 1.65;
+  margin: 0;
+}
+code { font-family: 'JetBrains Mono', monospace; font-size: 0.88em; }
+p code {
+  background: var(--bg-code);
+  padding: 1px 6px; border-radius: 4px;
+  border: 1px solid var(--border);
+}
+.token-kw { color: #cc7bab; }
+.token-fn { color: #6fb3d2; }
+.token-str { color: #98c379; }
+.token-cm { color: var(--fg-faint); font-style: italic; }
+.token-num { color: #d19a66; }
+
+/* ── Callouts ── */
+.callout {
+  border-radius: 8px; padding: 1.1rem 1.4rem;
+  margin: 2rem 0;
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 14px; line-height: 1.65;
+}
+.callout--note   { background: var(--callout-note); border-left: 3px solid #5aaccc; }
+.callout--warn   { background: var(--callout-warn); border-left: 3px solid #c89234; }
+.callout--tip    { background: var(--callout-tip);  border-left: 3px solid #5a8d76; }
+.callout--mistake{ background: var(--callout-err);  border-left: 3px solid #c2533c; }
+.callout__label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; margin-bottom: 0.4rem;
+}
+.callout--note .callout__label   { color: #5aaccc; }
+.callout--warn .callout__label   { color: #c89234; }
+.callout--tip .callout__label    { color: #5a8d76; }
+.callout--mistake .callout__label{ color: #c2533c; }
+
+/* ── Sidenote ── */
+.sidenote-wrap { position: relative; }
+.sidenote-mark {
+  display: inline-block; vertical-align: super;
+  font-size: 0.65em; color: var(--accent);
+  font-family: 'Inter Tight', sans-serif;
+  cursor: default; margin-left: 1px;
+}
+
+/* ── Wrong / Right ── */
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 2rem 0; }
+@media (max-width: 600px) { .compare-grid { grid-template-columns: 1fr; } }
+.compare-col__label {
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+  text-transform: uppercase; margin-bottom: 0.5rem;
+}
+.compare-col--wrong .compare-col__label { color: #c2533c; }
+.compare-col--right .compare-col__label { color: #5a8d76; }
+
+/* ── Right TOC ── */
+.toc-rail {
+  padding: 2rem 1.25rem;
+  position: sticky; top: 52px;
+  height: calc(100vh - 52px);
+  overflow-y: auto;
+  border-left: 1px solid var(--border);
+  font-family: 'Inter Tight', sans-serif;
+}
+.toc-rail__label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--fg-faint); margin-bottom: 0.75rem;
+}
+.toc-rail a {
+  display: block; font-size: 12px; color: var(--fg-dim);
+  text-decoration: none; padding: 3px 0;
+  border-left: 2px solid transparent; padding-left: 8px;
+  transition: color 150ms, border-color 150ms;
+  line-height: 1.4;
+}
+.toc-rail a:hover { color: var(--fg); border-color: var(--border-strong); }
+.toc-rail a.active { color: var(--accent); border-color: var(--accent); }
+
+/* ── Author card ── */
+.author-card {
+  margin-top: 4rem; padding-top: 2rem;
+  border-top: 1px solid var(--border);
+  display: flex; gap: 1.25rem; align-items: flex-start;
+}
+.author-card__photo {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--accent-soft); flex-shrink: 0;
+  overflow: hidden;
+}
+.author-card__photo img { width: 100%; height: 100%; object-fit: cover; }
+.author-card__name {
+  font-size: 0.95rem; font-weight: 400; margin-bottom: 0.2rem;
+}
+.author-card__role {
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 12px; color: var(--fg-dim); margin-bottom: 0.4rem;
+}
+.author-card__bio {
+  font-family: 'Inter Tight', sans-serif;
+  font-size: 13px; color: var(--fg-dim); line-height: 1.6;
+}
+
+/* ── Next module ── */
+.next-module {
+  margin-top: 3rem; padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Inter Tight', sans-serif;
+}
+.next-module__label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--fg-faint); margin-bottom: 0.5rem;
+}
+.next-module__title { font-size: 1.05rem; font-weight: 500; color: var(--fg); }
+.next-module__desc { font-size: 13px; color: var(--fg-dim); margin: 0.4rem 0 0.75rem; line-height: 1.5; }
+.next-btn {
+  display: inline-block; background: var(--accent); color: #fff;
+  padding: 8px 20px; border-radius: 6px;
+  text-decoration: none; font-size: 13px; font-weight: 500;
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <a class="topbar__brand" href="/">Agent <em>Engineer</em> · 2026</a>
+  <div class="topbar__right">
+    <span class="topbar__breadcrumb">Phase 1 · <span>Core Python</span></span>
+    <button class="theme-btn" onclick="toggleTheme()">Toggle theme</button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT NAV -->
+  <nav class="left-nav" aria-label="Module navigation">
+    <div class="left-nav__phase">
+      <div class="left-nav__phase-title">Phase 1 — Python Foundations</div>
+      <a class="left-nav__module active" href="#"><span class="left-nav__module-num">1.1</span>Core Python</a>
+      <a class="left-nav__module" href="#"><span class="left-nav__module-num">1.2</span>Object-Oriented Python</a>
+      <a class="left-nav__module" href="#"><span class="left-nav__module-num">1.3</span>Data Structures</a>
+      <a class="left-nav__module" href="#"><span class="left-nav__module-num">1.4</span>Error & File Handling</a>
+      <a class="left-nav__module" href="#"><span class="left-nav__module-num">1.5</span>Working with HTTP APIs</a>
+      <a class="left-nav__module" href="#"><span class="left-nav__module-num">1.6</span>Database Connectivity</a>
+      <a class="left-nav__module" href="#"><span class="left-nav__module-num">1.7</span>FastAPI</a>
+      <a class="left-nav__module" href="#"><span class="left-nav__module-num">1.8</span>Async Programming</a>
+    </div>
+    <div class="left-nav__phase">
+      <div class="left-nav__phase-title">Phase 2 — LLM Mental Model</div>
+      <a class="left-nav__module" href="#"><span class="left-nav__module-num">2.1</span>What an LLM actually is</a>
+      <a class="left-nav__module" href="#"><span class="left-nav__module-num">2.2</span>How an LLM thinks</a>
+      <a class="left-nav__module" href="#"><span class="left-nav__module-num">2.3</span>Reasoning vs base models</a>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="content" id="main">
+    <div class="module-eyebrow">Phase 01 · Module 1.1 · Python Foundations</div>
+    <h1 class="module-title">Core <em>Python</em></h1>
+    <div class="module-meta">
+      <div class="module-meta__item"><strong>Week 1</strong> of 26</div>
+      <div class="module-meta__item"><strong>Difficulty</strong> ★★☆☆☆</div>
+      <div class="module-meta__item"><strong>Read time</strong> ~25 min</div>
+      <div class="module-meta__item"><strong>Prereqs</strong> Basic programming instinct</div>
+    </div>
+
+    <div class="prose">
+
+      <!-- PREREQUISITES -->
+      <div class="prereq-box">
+        <div class="prereq-box__label">Before you start</div>
+        <ul>
+          <li>You can write a loop and call a function in <em>any</em> programming language.</li>
+          <li>You have Python 3.10+ installed (we'll verify this in the first exercise).</li>
+          <li>You're comfortable opening a terminal.</li>
+        </ul>
+      </div>
+
+      <!-- OUTCOMES -->
+      <div class="outcomes">
+        <div class="outcomes__label">By the end of this module, you will be able to</div>
+        <ul>
+          <li>Write clean, type-hinted Python functions that AI frameworks actually expect</li>
+          <li>Use list comprehensions and generators without hesitation</li>
+          <li>Apply decorators — because every agent framework is full of them</li>
+          <li>Debug confidently using Python's built-in introspection tools</li>
+        </ul>
+      </div>
+
+      <!-- VIDEO -->
+      <div class="video-wrap">
+        <iframe src="https://www.youtube.com/embed/rfscVS0vtbw" title="Python in 4 hours — freeCodeCamp" allowfullscreen loading="lazy"></iframe>
+      </div>
+      <p class="video-wrap__label">Video · Python for Beginners — freeCodeCamp (4hr full course)</p>
+
+      <!-- SECTION 1 -->
+      <h2 id="why-python">Why Python — and not something else</h2>
+      <p>
+        Every major AI and agent framework — LangChain, LangGraph, Pydantic, FastAPI, the Anthropic SDK,
+        the OpenAI SDK — is written in Python. This isn't an accident. Python reads like pseudocode,
+        which means AI researchers could write their ideas as code without becoming software engineers first.
+        That culture compounded over twenty years, and now the entire AI ecosystem lives here.
+      </p>
+      <p>
+        You don't need to be a Python expert before you start building agents. But you do need a solid
+        grip on the five or six features that agent frameworks use constantly. Skip any of them and you'll
+        spend your time debugging framework internals instead of building things.
+      </p>
+
+      <div class="callout callout--note">
+        <div class="callout__label">Note</div>
+        We're not trying to teach you <em>all</em> of Python here — that would take months.
+        We're teaching the 20% that appears 80% of the time in AI engineering code.
+      </div>
+
+      <!-- SECTION 2 -->
+      <h2 id="variables-and-types">Variables, types, and why types matter now</h2>
+      <p>
+        Python is dynamically typed — you never write <code>int x = 5</code> like you would in Java.
+        You write <code>x = 5</code> and Python figures out the type at runtime. This is great for
+        experimentation and terrible for large systems, which is why modern Python code uses
+        <strong>type hints</strong>.
+      </p>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <span>python</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="token-cm"># Without type hints — works but gives you no help when something breaks</span>
+<span class="token-kw">def</span> <span class="token-fn">greet</span>(name):
+    <span class="token-kw">return</span> <span class="token-str">f"Hello, {name}"</span>
+
+<span class="token-cm"># With type hints — same code, but now your editor and Pydantic understand it</span>
+<span class="token-kw">def</span> <span class="token-fn">greet</span>(name: <span class="token-fn">str</span>) -> <span class="token-fn">str</span>:
+    <span class="token-kw">return</span> <span class="token-str">f"Hello, {name}"</span>
+
+<span class="token-cm"># Why this matters: LangChain reads your type hints to build tool schemas automatically</span>
+<span class="token-cm"># If you skip them, your agent tools silently break in weird ways</span></code></pre>
+      </div>
+
+      <!-- WRONG / RIGHT -->
+      <h3>The wrong way vs the right way</h3>
+      <div class="compare-grid">
+        <div class="compare-col compare-col--wrong">
+          <div class="compare-col__label">✗ Common mistake</div>
+          <div class="code-wrap">
+            <pre><code><span class="token-cm"># Mutable default argument</span>
+<span class="token-kw">def</span> <span class="token-fn">add_item</span>(item, lst=[]):
+    lst.append(item)
+    <span class="token-kw">return</span> lst
+
+<span class="token-fn">add_item</span>(<span class="token-str">"a"</span>)  <span class="token-cm"># ['a']</span>
+<span class="token-fn">add_item</span>(<span class="token-str">"b"</span>)  <span class="token-cm"># ['a', 'b'] ← bug!</span></code></pre>
+          </div>
+        </div>
+        <div class="compare-col compare-col--right">
+          <div class="compare-col__label">✓ Correct</div>
+          <div class="code-wrap">
+            <pre><code><span class="token-cm"># Use None, create fresh list each call</span>
+<span class="token-kw">def</span> <span class="token-fn">add_item</span>(item, lst=<span class="token-kw">None</span>):
+    <span class="token-kw">if</span> lst <span class="token-kw">is</span> <span class="token-kw">None</span>:
+        lst = []
+    lst.append(item)
+    <span class="token-kw">return</span> lst
+
+<span class="token-fn">add_item</span>(<span class="token-str">"a"</span>)  <span class="token-cm"># ['a']</span>
+<span class="token-fn">add_item</span>(<span class="token-str">"b"</span>)  <span class="token-cm"># ['b'] ✓</span></code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 3 -->
+      <h2 id="decorators">Decorators — because agent frameworks are full of them</h2>
+      <p>
+        A decorator is a function that wraps another function to add behaviour without changing the
+        original. This sounds abstract until you see it in context. LangChain's <code>@tool</code>
+        decorator turns a regular Python function into something an LLM can call. FastAPI's
+        <code>@app.get("/chat")</code> turns a function into an HTTP endpoint.
+      </p>
+
+      <div class="callout callout--tip">
+        <div class="callout__label">Mental model</div>
+        Think of a decorator like a pizza box. The pizza (your function) doesn't change.
+        The box (the decorator) adds structure around it — a label, a price, rules about how it gets delivered.
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <span>python — decorator from scratch, then the real thing</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><code><span class="token-cm"># Step 1 — write a decorator from scratch to understand what's happening</span>
+<span class="token-kw">def</span> <span class="token-fn">log_calls</span>(func):
+    <span class="token-kw">def</span> <span class="token-fn">wrapper</span>(*args, **kwargs):
+        <span class="token-fn">print</span>(<span class="token-str">f"Calling {func.__name__}"</span>)
+        result = <span class="token-fn">func</span>(*args, **kwargs)
+        <span class="token-fn">print</span>(<span class="token-str">f"Done: {result}"</span>)
+        <span class="token-kw">return</span> result
+    <span class="token-kw">return</span> wrapper
+
+<span class="token-kw">@</span><span class="token-fn">log_calls</span>
+<span class="token-kw">def</span> <span class="token-fn">add</span>(a: <span class="token-fn">int</span>, b: <span class="token-fn">int</span>) -> <span class="token-fn">int</span>:
+    <span class="token-kw">return</span> a + b
+
+<span class="token-fn">add</span>(<span class="token-num">2</span>, <span class="token-num">3</span>)
+<span class="token-cm"># Calling add</span>
+<span class="token-cm"># Done: 5</span>
+
+<span class="token-cm"># Step 2 — same pattern in LangChain (this is real code you'll write in Phase 5)</span>
+<span class="token-kw">from</span> langchain_core.tools <span class="token-kw">import</span> tool
+
+<span class="token-kw">@</span><span class="token-fn">tool</span>
+<span class="token-kw">def</span> <span class="token-fn">search_docs</span>(query: <span class="token-fn">str</span>) -> <span class="token-fn">str</span>:
+    <span class="token-str">"""Search internal documentation for a given query."""</span>
+    <span class="token-kw">return</span> <span class="token-fn">run_vector_search</span>(query)</code></pre>
+      </div>
+
+      <div class="callout callout--warn">
+        <div class="callout__label">Common mistake</div>
+        Forgetting the docstring on a <code>@tool</code> function. LangChain uses the docstring as the
+        tool description it sends to the LLM. No docstring = the LLM doesn't know when to call your tool.
+      </div>
+
+      <!-- NEXT MODULE -->
+      <div class="next-module">
+        <div class="next-module__label">Up next</div>
+        <div class="next-module__title">1.2 · Object-Oriented Python</div>
+        <p class="next-module__desc">
+          Core Python is the vocabulary. OOP is the grammar. Pydantic — which every agent framework
+          uses for tool schemas and data validation — is built entirely on Python classes. You need this.
+        </p>
+        <a href="#" class="next-btn">Continue →</a>
+      </div>
+
+      <!-- AUTHOR -->
+      <div class="author-card">
+        <div class="author-card__photo">
+          <img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.style.display='none'" />
+        </div>
+        <div>
+          <div class="author-card__name">Harish Mondepu</div>
+          <div class="author-card__role">Enterprise Architect · AI Engineer · 16× Salesforce Certified</div>
+          <div class="author-card__bio">
+            9+ years building production enterprise systems across healthcare, SaaS, and financial services.
+            This roadmap is what I wish existed when I made the move into AI engineering.
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /prose -->
+  </main>
+
+  <!-- RIGHT TOC -->
+  <aside class="toc-rail" aria-label="Page contents">
+    <div class="toc-rail__label">On this page</div>
+    <a href="#why-python" class="active">Why Python</a>
+    <a href="#variables-and-types">Variables & types</a>
+    <a href="#decorators">Decorators</a>
+  </aside>
+
+</div><!-- /layout -->
+
+<script>
+function toggleTheme() {
+  const h = document.documentElement;
+  h.dataset.theme = h.dataset.theme === 'dark' ? 'light' : 'dark';
+}
+function copyCode(btn) {
+  const pre = btn.closest('.code-wrap').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText);
+  btn.textContent = 'Copied!';
+  setTimeout(() => btn.textContent = 'Copy', 2000);
+}
+</script>
+</body>
+</html>
