@@ -979,6 +979,32 @@ body::before {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
+.tabbox__open-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 28px; align-self: flex-start;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13.5px; font-weight: 500;
+  text-decoration: none;
+  color: var(--phase-color, var(--c-rust));
+  border: 1px solid color-mix(in srgb, var(--phase-color, var(--c-rust)) 28%, transparent);
+  background: color-mix(in srgb, var(--phase-color, var(--c-rust)) 7%, transparent);
+  transition: background 200ms var(--ease), border-color 200ms var(--ease), transform 200ms var(--ease);
+}
+.tabbox__open-btn:hover {
+  background: color-mix(in srgb, var(--phase-color, var(--c-rust)) 15%, transparent);
+  border-color: color-mix(in srgb, var(--phase-color, var(--c-rust)) 50%, transparent);
+  transform: translateX(2px);
+}
+.tabbox__open-btn[data-color="teal-deep"] { --phase-color: var(--c-teal-deep); }
+.tabbox__open-btn[data-color="teal"]      { --phase-color: var(--c-teal); }
+.tabbox__open-btn[data-color="purple"]    { --phase-color: var(--c-purple); }
+.tabbox__open-btn[data-color="pink"]      { --phase-color: var(--c-pink); }
+.tabbox__open-btn[data-color="emerald"]   { --phase-color: var(--c-emerald); }
+.tabbox__open-btn[data-color="amber"]     { --phase-color: var(--c-amber); }
+.tabbox__open-btn[data-color="rust"]      { --phase-color: var(--c-rust); }
+.tabbox__open-btn[data-color="mustard"]   { --phase-color: var(--c-mustard); }
+.tabbox__open-btn[data-color="indigo"]    { --phase-color: var(--c-indigo); }
 
 /* end state */
 .phase__endstate {

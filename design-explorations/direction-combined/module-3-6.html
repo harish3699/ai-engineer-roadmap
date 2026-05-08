@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 3.6 Advanced Reasoning Techniques · by Harish Mondepu</title>
+<meta name="description" content="Self-consistency sampling, least-to-most prompting, self-refine loops, tree-of-thought, and Claude extended thinking — techniques for hard multi-step reasoning problems."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#7c3aed;--phase-hi:#8865a3;--phase-soft:rgba(124,58,237,.1);--phase-text:#7c3aed}
+[data-theme="dark"]{--phase:#a78bfa;--phase-hi:#c4b5fd;--phase-soft:rgba(167,139,250,.1);--phase-text:#c4b5fd}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 3 · <strong>Advanced Reasoning Techniques</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 19 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 3 · Prompt Engineering
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-3-1.html"><span class="sidebar__mod-num">3.1</span>UI vs API<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-3-2.html"><span class="sidebar__mod-num">3.2</span>Calling LLMs via API<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-3-3.html"><span class="sidebar__mod-num">3.3</span>Prompt Anatomy<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-3-4.html"><span class="sidebar__mod-num">3.4</span>Core Techniques<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-3-5.html"><span class="sidebar__mod-num">3.5</span>Applied Patterns<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">3.6</span>Advanced Reasoning<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod" href="module-3-7.html"><span class="sidebar__mod-num">3.7</span>Prompts in Production<span class="sidebar__check"></span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#e85a7a"></span>Phase 4 · RAG + Evaluation</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#10b981;opacity:.6"></span>Phase 5–9 · Agents &amp; Deployment</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 03</span>
+        <span class="tag tag--level">Advanced</span>
+        <span class="tag tag--week">Week 7</span>
+      </div>
+      <h1 class="mod-head__title">Advanced Reasoning <em>Techniques</em></h1>
+      <p class="mod-head__sub">Basic chain-of-thought solves most multi-step problems. For the ones it doesn't — ambiguous logic, complex planning, tasks where a single wrong step cascades into a wrong answer — there are four advanced techniques. Self-consistency averages out randomness. Least-to-most solves easy subproblems first and stacks the answers. Self-refine uses the model as its own critic. Extended thinking delegates reasoning to a hidden scratchpad. Each has a specific use case and a cost profile.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~25 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>4 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Self-consistency runs the same prompt N times at high temperature and takes a majority vote — it trades cost (N× API calls) for reliability on tasks with a single correct answer</li>
+          <li>Least-to-most decomposition solves the easiest subproblems first and passes each answer into the next call — error propagation is minimised because later steps have correct context</li>
+          <li>Self-refine is structured iterative refinement: the model critiques against an explicit rubric, then rewrites — the rubric is what makes it different from 3.4's simpler refinement loop</li>
+          <li>Claude extended thinking moves all reasoning to a hidden scratchpad — you get a clean final answer at higher accuracy without reasoning tokens polluting your response</li>
+          <li>All four techniques multiply cost — only reach for them when basic CoT fails, the task has a high-stakes correct answer, or quality ceiling matters more than latency</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Modules 3.1 – 3.5 complete</li>
+            <li><div class="meta-list__dot">!</div>Comfortable with async Python for parallel API calls</li>
+            <li><div class="meta-list__dot">!</div>Anthropic API key — extended thinking requires claude-sonnet-4-6 or claude-opus-4-7</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Implement self-consistency sampling with majority vote</li>
+            <li><div class="meta-list__dot">2</div>Apply least-to-most decomposition to a multi-step logic problem</li>
+            <li><div class="meta-list__dot">3</div>Write a self-refine loop with an explicit scoring rubric</li>
+            <li><div class="meta-list__dot">4</div>Use Claude's extended thinking API parameter correctly</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">Chain-of-Thought Prompting Elicits Reasoning in LLMs</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· search "self-consistency chain of thought prompting LLM reasoning techniques"</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/_VNnakGl5cM" title="Advanced Reasoning Techniques" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ Self-consistency, least-to-most, and tree-of-thought in practice</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="when-basic-cot-fails">When basic CoT fails <a class="anchor" href="#when-basic-cot-fails">#</a></h2>
+        <p>Basic chain-of-thought ("think step by step") works because it gives the model more context tokens before generating the final answer. It fails when: the problem has multiple valid reasoning paths that lead to different answers; individual reasoning steps are themselves complex enough to fail; or the task requires the model to evaluate its own work against a multi-dimensional rubric. The four techniques below address each failure mode.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">Technique vs failure mode</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem;font-size:13px">
+            <div style="display:grid;grid-template-columns:160px 1fr 140px;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:700;color:var(--phase-text)">Self-consistency</div>
+              <div>Multiple reasoning paths exist; single-sample answers are noisy.</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-dim)">N× cost</div>
+            </div>
+            <div style="display:grid;grid-template-columns:160px 1fr 140px;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:700;color:#10b981">Least-to-most</div>
+              <div>Problem has prerequisite subproblems; later steps need earlier answers.</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-dim)">K× cost (K steps)</div>
+            </div>
+            <div style="display:grid;grid-template-columns:160px 1fr 140px;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:700;color:#f59e0b">Self-refine</div>
+              <div>Output quality needs rubric-driven evaluation and targeted rewriting.</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-dim)">2–3× cost</div>
+            </div>
+            <div style="display:grid;grid-template-columns:160px 1fr 140px;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:700;color:#e85a7a">Extended thinking</div>
+              <div>Complex reasoning that would pollute the visible response with scratchpad work.</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-dim)">budget_tokens cost</div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="self-consistency">Self-consistency sampling <a class="anchor" href="#self-consistency">#</a></h2>
+        <p>Self-consistency runs the same prompt multiple times at a higher temperature and aggregates results. For tasks with a single correct answer — maths, logic, classification — the majority answer across N samples is significantly more accurate than a single greedy sample. The mechanism: different sampling paths find the same answer more often when it's correct than when it's wrong.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">self_consistency.py — majority vote across parallel samples</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic, asyncio
+<span class="kw">from</span> collections <span class="kw">import</span> Counter
+client = anthropic.<span class="fn">AsyncAnthropic</span>()
+
+<span class="kw">async def</span> <span class="fn">single_sample</span>(question: <span class="tp">str</span>, temperature: <span class="tp">float</span>) -> <span class="tp">str</span>:
+    resp = <span class="kw">await</span> client.messages.<span class="fn">create</span>(
+        model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+        max_tokens=<span class="nm">256</span>,
+        temperature=temperature,
+        system=<span class="st">"Solve the problem step by step. End your response with 'Answer: X' on its own line."</span>,
+        messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: question}],
+    )
+    text = resp.content[<span class="nm">0</span>].text
+    <span class="cm"># extract the final answer from the last line</span>
+    <span class="kw">for</span> line <span class="kw">in</span> reversed(text.<span class="fn">splitlines</span>()):
+        <span class="kw">if</span> line.<span class="fn">startswith</span>(<span class="st">"Answer:"</span>):
+            <span class="kw">return</span> line.<span class="fn">replace</span>(<span class="st">"Answer:"</span>, <span class="st">""</span>).<span class="fn">strip</span>()
+    <span class="kw">return</span> text.<span class="fn">strip</span>()
+
+<span class="kw">async def</span> <span class="fn">self_consistent_answer</span>(question: <span class="tp">str</span>, n: <span class="tp">int</span> = <span class="nm">5</span>, temperature: <span class="tp">float</span> = <span class="nm">0.8</span>) -> <span class="tp">str</span>:
+    <span class="cm"># run N samples in parallel — same latency as 1 call</span>
+    samples = <span class="kw">await</span> asyncio.<span class="fn">gather</span>(*[<span class="fn">single_sample</span>(question, temperature) <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(n)])
+    counts = <span class="fn">Counter</span>(samples)
+    majority, votes = counts.<span class="fn">most_common</span>(<span class="nm">1</span>)[<span class="nm">0</span>]
+    <span class="fn">print</span>(<span class="st">f"Samples: {dict(counts)} → majority: {majority!r} ({votes}/{n})"</span>)
+    <span class="kw">return</span> majority
+
+problem = <span class="st">"""A train leaves City A at 9:00 AM travelling at 80 km/h toward City B,
+which is 360 km away. Another train leaves City B at 10:00 AM travelling at
+100 km/h toward City A. At what time do they meet?"""</span>
+
+answer = asyncio.<span class="fn">run</span>(<span class="fn">self_consistent_answer</span>(problem, n=<span class="nm">7</span>))
+<span class="fn">print</span>(<span class="st">f"Final answer: {answer}"</span>)
+<span class="cm"># → Samples show 7 samples, majority answer with vote count</span></code></pre>
+        </div>
+
+        <div class="callout callout--note">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">Run samples in parallel, not serially</strong>
+            Using <code>asyncio.gather()</code> fires all N API calls simultaneously — wall-clock time equals one call, not N calls. Serial sampling multiplies your latency by N, which defeats the purpose in production. Always parallelize self-consistency sampling using the async SDK.
+          </div>
+        </div>
+
+        <h2 id="least-to-most">Least-to-most prompting <a class="anchor" href="#least-to-most">#</a></h2>
+        <p>Least-to-most decomposes a hard problem into an ordered list of subproblems, from easiest to hardest. Each subproblem is solved in a separate call, and the answer is appended to the next call's context. Later steps never need to rediscover what earlier steps already established — the context accumulates correct partial solutions.</p>
+
+        <!-- Least-to-most flow -->
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">Least-to-most: accumulating context</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.9;background:var(--surface-0);border-radius:6px;padding:.9rem">
+            <span style="color:var(--fg-dim)">Call 1  →  Q1 (easiest)                           → A1</span><br>
+            <span style="color:var(--fg-dim)">Call 2  →  Q1 + A1 + Q2                           → A2</span><br>
+            <span style="color:var(--fg-dim)">Call 3  →  Q1 + A1 + Q2 + A2 + Q3                → A3</span><br>
+            <span style="color:var(--phase-text)">Call N  →  Q1..N-1 + A1..N-1 + Q<sub>final</sub> (hardest) → Final Answer</span>
+          </div>
+          <div style="margin-top:.8rem;font-size:12px;color:var(--fg-dim)">Each call has a fully correct prior chain. The hardest question is asked last, when all prerequisite answers are already in context.</div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">least_to_most.py — multi-step word problem decomposition</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic
+client = anthropic.<span class="fn">Anthropic</span>()
+
+hard_problem = <span class="st">"""A bakery sells muffins for $2.50 and cookies for $1.75.
+On Monday it sold 48 muffins and 120 cookies.
+On Tuesday sales were 30% higher for muffins and 15% lower for cookies.
+What was the total revenue across both days, and what percentage came from muffins?"""</span>
+
+<span class="cm"># ── Step 1: Ask the model to decompose into ordered subproblems ───────</span>
+decompose_resp = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+    max_tokens=<span class="nm">256</span>,
+    system=<span class="st">"Break this problem into 3–5 subproblems ordered from easiest to hardest. Number them. No solutions yet."</span>,
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: hard_problem}],
+)
+subproblems = decompose_resp.content[<span class="nm">0</span>].text
+<span class="fn">print</span>(<span class="st">"Subproblems:\n"</span>, subproblems)
+
+<span class="cm"># ── Step 2: Solve each subproblem, accumulating correct context ───────</span>
+solve_resp = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+    max_tokens=<span class="nm">512</span>,
+    system=<span class="st">"Solve each subproblem in order. Show working for each. Use each answer in subsequent steps."</span>,
+    messages=[
+        {<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: hard_problem},
+        {<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: <span class="st">f"I'll break this into subproblems:\n{subproblems}"</span>},
+        {<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: <span class="st">"Now solve each subproblem in order and give the final answer."</span>},
+    ],
+)
+<span class="fn">print</span>(<span class="st">"\nSolution:\n"</span>, solve_resp.content[<span class="nm">0</span>].text)</code></pre>
+        </div>
+
+        <h2 id="self-refine">Self-refine with a rubric <a class="anchor" href="#self-refine">#</a></h2>
+        <p>Self-refine is a structured critique loop. The difference from the iterative refinement in module 3.4 is the <strong>rubric</strong>: instead of asking the model to generally improve its output, you give it specific dimensions to score, a minimum passing score per dimension, and instructions to keep refining until it passes. This converts vague "make it better" loops into targeted, measurable improvement cycles.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">self_refine.py — rubric-driven critique loop for email copy</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic, json
+client = anthropic.<span class="fn">Anthropic</span>()
+
+RUBRIC = <span class="st">"""Score the email subject line on each dimension from 1–5:
+- specificity: does it mention a concrete benefit or number? (5 = very specific)
+- urgency: does it create a reason to open now? (5 = strong urgency)
+- clarity: is the value proposition immediately clear? (5 = crystal clear)
+- spam_risk: does it use trigger words like FREE, URGENT, !!!? (5 = no spam signals)
+
+Respond with JSON: {"specificity": N, "urgency": N, "clarity": N, "spam_risk": N, "pass": bool, "issues": [...]}
+pass = true only if all dimensions score 4 or higher."""</span>
+
+brief = <span class="st">"Cold email subject line for a B2B tool that cuts AWS costs by 30% for startups."</span>
+
+<span class="cm"># ── Draft ─────────────────────────────────────────────────────────────</span>
+draft_resp = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-haiku-4-5-20251001"</span>, max_tokens=<span class="nm">64</span>,
+    system=<span class="st">"You write cold email subject lines. Return only the subject line, no quotes."</span>,
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: brief}],
+)
+subject = draft_resp.content[<span class="nm">0</span>].text.<span class="fn">strip</span>()
+
+<span class="cm"># ── Refine loop — max 3 iterations ───────────────────────────────────</span>
+<span class="kw">for</span> iteration <span class="kw">in</span> <span class="fn">range</span>(<span class="nm">1</span>, <span class="nm">4</span>):
+    <span class="fn">print</span>(<span class="st">f"\nIteration {iteration}: {subject!r}"</span>)
+
+    score_resp = client.messages.<span class="fn">create</span>(
+        model=<span class="st">"claude-haiku-4-5-20251001"</span>, max_tokens=<span class="nm">128</span>,
+        system=RUBRIC,
+        messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: subject},
+                  {<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: <span class="st">"{"</span>}],
+    )
+    scores = json.<span class="fn">loads</span>(<span class="st">"{"</span> + score_resp.content[<span class="nm">0</span>].text)
+    <span class="fn">print</span>(<span class="st">f"  Scores: {scores}"</span>)
+
+    <span class="kw">if</span> scores.<span class="fn">get</span>(<span class="st">"pass"</span>):
+        <span class="fn">print</span>(<span class="st">f"  ✓ Passed on iteration {iteration}"</span>)
+        <span class="kw">break</span>
+
+    <span class="cm"># failed — rewrite targeting the specific issues</span>
+    rewrite_resp = client.messages.<span class="fn">create</span>(
+        model=<span class="st">"claude-haiku-4-5-20251001"</span>, max_tokens=<span class="nm">64</span>,
+        system=<span class="st">"You improve cold email subject lines. Return only the revised subject line."</span>,
+        messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>:
+            <span class="st">f"Subject: {subject}\nIssues: {scores['issues']}\nRewrite to fix the issues."</span>}],
+    )
+    subject = rewrite_resp.content[<span class="nm">0</span>].text.<span class="fn">strip</span>()
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="st">"  Best effort after 3 iterations."</span>)</code></pre>
+        </div>
+
+        <h2 id="extended-thinking">Claude extended thinking <a class="anchor" href="#extended-thinking">#</a></h2>
+        <p>Extended thinking is Claude's native reasoning mode — activated via the <code>thinking</code> parameter. Instead of chain-of-thought reasoning appearing in the visible response, it happens in a hidden scratchpad. The visible response contains only the final, polished answer. The thinking blocks are available in the response if you want to inspect them, but they don't appear to the end user. This is the cleanest way to apply deep reasoning without contaminating your output.</p>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">Extended thinking requires specific models and disables some params</strong>
+            As of 2026, extended thinking is available on <code>claude-sonnet-4-6</code> and <code>claude-opus-4-7</code>. It is <strong>not available on Haiku</strong>. When <code>thinking</code> is enabled: <code>temperature</code> must be set to 1 (or omitted); streaming is supported; <code>top_p</code> and <code>top_k</code> cannot be set. <code>budget_tokens</code> controls the thinking token ceiling — minimum 1,024, recommended 8,000–16,000 for complex tasks.
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">extended_thinking.py — hidden scratchpad reasoning</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic
+client = anthropic.<span class="fn">Anthropic</span>()
+
+complex_problem = <span class="st">"""A startup has 3 pricing tiers: Starter ($49/mo), Pro ($149/mo), Enterprise ($499/mo).
+Current distribution: 60% Starter, 30% Pro, 10% Enterprise. Total customers: 2,000.
+They want to increase MRR by 40% without acquiring new customers.
+What combination of tier upgrades and price increases would achieve this with the lowest churn risk?"""</span>
+
+resp = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-sonnet-4-6"</span>,
+    max_tokens=<span class="nm">8000</span>,
+    thinking={
+        <span class="st">"type"</span>: <span class="st">"enabled"</span>,
+        <span class="st">"budget_tokens"</span>: <span class="nm">8000</span>,  <span class="cm"># how many tokens the hidden scratchpad can use</span>
+    },
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: complex_problem}],
+)
+
+<span class="cm"># ── Inspect what's in the response ───────────────────────────────────</span>
+<span class="kw">for</span> block <span class="kw">in</span> resp.content:
+    <span class="kw">if</span> block.type == <span class="st">"thinking"</span>:
+        <span class="fn">print</span>(<span class="st">f"[THINKING — {len(block.thinking)} chars, not shown to user]\n"</span>)
+    <span class="kw">elif</span> block.type == <span class="st">"text"</span>:
+        <span class="fn">print</span>(<span class="st">"[FINAL ANSWER]\n"</span>, block.text)
+
+<span class="fn">print</span>(<span class="st">f"\nInput tokens: {resp.usage.input_tokens}"</span>)
+<span class="fn">print</span>(<span class="st">f"Output tokens (thinking + text): {resp.usage.output_tokens}"</span>)
+
+<span class="cm"># ── Streaming with extended thinking ─────────────────────────────────</span>
+<span class="kw">with</span> client.messages.<span class="fn">stream</span>(
+    model=<span class="st">"claude-sonnet-4-6"</span>,
+    max_tokens=<span class="nm">8000</span>,
+    thinking={<span class="st">"type"</span>: <span class="st">"enabled"</span>, <span class="st">"budget_tokens"</span>: <span class="nm">5000</span>},
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: complex_problem}],
+) <span class="kw">as</span> stream:
+    <span class="kw">for</span> event <span class="kw">in</span> stream:
+        <span class="kw">if</span> <span class="fn">hasattr</span>(event, <span class="st">"type"</span>) <span class="kw">and</span> event.type == <span class="st">"content_block_start"</span>:
+            <span class="kw">if</span> event.content_block.type == <span class="st">"text"</span>:
+                <span class="fn">print</span>(<span class="st">"\n--- Final answer streaming ---"</span>)
+        <span class="kw">if</span> <span class="fn">hasattr</span>(event, <span class="st">"type"</span>) <span class="kw">and</span> event.type == <span class="st">"content_block_delta"</span>:
+            <span class="kw">if</span> <span class="fn">hasattr</span>(event.delta, <span class="st">"text"</span>):
+                <span class="fn">print</span>(event.delta.text, end=<span class="st">""</span>, flush=<span class="tp">True</span>)</code></pre>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">When to use extended thinking vs self-consistency</strong>
+            Extended thinking is for a single complex problem that needs deep reasoning — planning, multi-constraint optimisation, step-by-step proofs. Self-consistency is for problems where the correct answer exists but the model is noisy — maths, logic puzzles, classification edge cases. Extended thinking is one expensive call; self-consistency is N cheaper calls. For most production use cases, extended thinking on Sonnet is both cheaper and faster than self-consistency on Haiku with N=7.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 3.6: Advanced Reasoning Techniques</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~25 min · 4 live code demos</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 2:00</span><span class="script-action">INTRO</span><span class="script-narration">"Module 3.4 introduced chain-of-thought in one line. That covers maybe 80% of reasoning tasks. This module covers the 20% where CoT alone fails — and the four techniques that handle it. All of them cost more. None of them should be your default."</span></div>
+          <div class="script-line"><span class="script-ts">2:00 – 8:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run self_consistency.py. "Seven parallel calls — asyncio.gather fires them all at once, same latency as one call. Show the Counter output: maybe 5 say 12:20 PM, 1 says 12:25 PM, 1 says 12:15 PM. Majority is 12:20 PM and it's correct. A single greedy call gets it right 70% of the time; seven samples with majority vote gets it right 95%+ of the time. The cost: 7×."</span></div>
+          <div class="script-line"><span class="script-ts">8:00 – 14:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run least_to_most.py. "Call 1 decomposes the problem — no answers yet, just the structure. Call 2 solves step 1, then step 2 using step 1's answer, and so on. The key: every later step has verified correct prior steps in its context. Without this, a wrong Monday revenue figure corrupts everything downstream." Show what happens without least-to-most — run a naive single-call on the same problem and catch the error.</span></div>
+          <div class="script-line"><span class="script-ts">14:00 – 20:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run self_refine.py. "The rubric is the key difference from module 3.4's refinement. I'm not asking 'improve this' — I'm asking 'score specificity, urgency, clarity, and spam risk, then tell me what to fix.' Watch iteration 1: low specificity score. Iteration 2: added the 30% figure, now passes. This is measurable improvement, not vibes." Change the pass threshold to all-5s to show it can loop to 3 iterations.</span></div>
+          <div class="script-line"><span class="script-ts">20:00 – 25:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run extended_thinking.py. "See the thinking block? That's the scratchpad — the model's working memory. It's doing the hard reasoning there. The text block is the clean final answer. The user only sees the text block. I can inspect the thinking if I want to debug, but it never leaks to the response." Show the token usage — thinking tokens are in the output count. Discuss budget_tokens sizing.</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>You run self-consistency with N=5 on a maths problem and get answers: [42, 42, 41, 42, 40]. What do you return and with what confidence level?</summary>
+          <div class="selfcheck__a">Return <strong>42</strong> — it has 3 of 5 votes (60% majority). Confidence can be expressed as the vote fraction: 3/5 = 0.60. If you need a higher confidence threshold (e.g. 0.80) before auto-routing and not reaching it, you could increase N to 9 or 11 samples — odd numbers avoid ties — or route to a fallback. In practice, 5–7 samples is sufficient for most use cases; beyond 11 samples, the marginal accuracy gain rarely justifies the cost.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What makes least-to-most different from simply asking the model to "break the problem into steps and solve each"?</summary>
+          <div class="selfcheck__a">When you ask the model to break and solve in one call, it generates the decomposition and all solutions in the same context window simultaneously — it can't use the answer to step 1 as verified context when generating step 2, because they're generated in parallel within one completion pass. Least-to-most uses <em>separate API calls</em> — the answer to step 1 is a real completed API response appended to the context before step 2 is requested. This means later steps have verified, correct prior answers as grounding. The model can't generate an internally consistent but wrong chain; it has to use real committed answers.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What is the minimum budget_tokens value for extended thinking and what happens if you set it too low?</summary>
+          <div class="selfcheck__a">The minimum is 1,024 tokens. If budget_tokens is too low for a complex problem, the model's thinking is truncated mid-reasoning and the final answer quality degrades — it may produce a plausible-sounding but wrong response because it didn't finish working through the problem. For simple tasks, 1,024–2,000 is fine. For complex multi-constraint problems (planning, optimisation, proofs), use 8,000–16,000. You can inspect the thinking block length after a call to calibrate the budget for your specific task type. The budget is a ceiling — the model uses less if the task is simpler.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>You have a complex single problem that requires deep reasoning. Compare the cost trade-off between self-consistency with N=7 on Haiku vs extended thinking on Sonnet.</summary>
+          <div class="selfcheck__a">Self-consistency N=7 on Haiku: 7 API calls, each charged at Haiku rates (~$0.25/M input, $1.25/M output). For a 500-token problem with 300-token answers: 7 × (500 × $0.25 + 300 × $1.25) / 1M ≈ $0.0034. Extended thinking on Sonnet: 1 API call with 8,000 thinking tokens + ~300 output tokens, charged at Sonnet rates ($3/M input, $15/M output): (500 + 8,000 + 300) × blended rate ≈ roughly $0.02–$0.04 depending on thinking-to-output ratio. Extended thinking on Sonnet is typically 5–10× more expensive for this case, but provides deeper reasoning in one call. For most production use cases on complex single problems, extended thinking wins on quality; self-consistency wins on cost when a deterministic correct answer exists across simple reasoning paths.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Up next</div>
+          <div class="next-mod__title">3.7 · Prompts in Production</div>
+          <p class="next-mod__desc">Prompt versioning, A/B testing, caching strategies, DSPy for automated optimisation, and the operational practices that keep prompt-driven systems reliable as they scale.</p>
+        </div>
+        <a class="next-btn" href="module-3-7.html">Continue →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#when-basic-cot-fails">When basic CoT fails</a>
+    <a href="#self-consistency">Self-consistency</a>
+    <a href="#least-to-most">Least-to-most</a>
+    <a href="#self-refine">Self-refine with rubric</a>
+    <a href="#extended-thinking">Extended thinking</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 3.6 / 62<br/>Phase 3 · Week 7<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

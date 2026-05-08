@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 6.7 Long-Term Memory · by Harish Mondepu</title>
+<meta name="description" content="Build a complete long-term memory system — structured knowledge graph, memory prioritisation by recency and importance, and a recall pipeline that spans weeks of user interaction."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#d97706;--phase-hi:#f59e0b;--phase-soft:rgba(245,158,11,.1);--phase-text:#d97706}
+[data-theme="dark"]{--phase:#f59e0b;--phase-hi:#fbbf24;--phase-soft:rgba(251,191,36,.1);--phase-text:#fde68a}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 6 · <strong>Long-Term Memory</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 44 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#f06292"></span>
+        Phase 4 · RAG + Evaluation ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#10b981"></span>
+        Phase 5 · Tools, MCP &amp; Agents ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 6 · Memory &amp; Context
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-6-1.html"><span class="sidebar__mod-num">6.1</span>Context Window ✓</a>
+        <a class="sidebar__mod done" href="module-6-2.html"><span class="sidebar__mod-num">6.2</span>Context Structure ✓</a>
+        <a class="sidebar__mod done" href="module-6-3.html"><span class="sidebar__mod-num">6.3</span>Short-Term Memory ✓</a>
+        <a class="sidebar__mod done" href="module-6-4.html"><span class="sidebar__mod-num">6.4</span>Semantic Caching ✓</a>
+        <a class="sidebar__mod done" href="module-6-5.html"><span class="sidebar__mod-num">6.5</span>Episodic Memory ✓</a>
+        <a class="sidebar__mod done" href="module-6-6.html"><span class="sidebar__mod-num">6.6</span>Context Compression ✓</a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">6.7</span>Long-Term Memory</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 06</span>
+        <span class="tag tag--level">Advanced</span>
+        <span class="tag tag--week">Week 19</span>
+      </div>
+      <h1 class="mod-head__title">Long-Term <em>Memory</em></h1>
+      <p class="mod-head__sub">This is the Phase 6 capstone. Short-term memory (6.3) handled the current session. Episodic memory (6.5) stored facts from past sessions. Long-term memory ties it all together — a structured knowledge store that grows over months, prioritises what matters based on recency and access frequency, decays what doesn't, and surfaces the right memories at the right moment. This module covers the complete architecture: a typed memory schema, importance scoring, temporal decay, a unified recall pipeline, and the full memory lifecycle from write to archive to delete.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~28 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>5 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Long-term memory is not a flat list — it has types (preference, fact, goal, constraint, relationship) and each type has different retrieval priority and decay behaviour</li>
+          <li>Memory importance scoring combines recency, access frequency, and explicit importance labels — high-importance memories survive temporal decay longer</li>
+          <li>Temporal decay (forgetting) is a feature, not a bug — a preference stated 18 months ago may no longer be true. Memories with no recent access should decay toward archival</li>
+          <li>The recall pipeline is the critical path — it must run fast (under 100 ms) because it blocks every user turn. Use ANN (approximate nearest-neighbour) search, not exact nearest-neighbour</li>
+          <li>Long-term memory systems require operational tooling — a management UI for users to view/edit/delete memories, and a monitoring dashboard to catch memory quality regression</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>All of Phase 6 (6.1–6.6) — this is the capstone</li>
+            <li><div class="meta-list__dot">!</div>Module 4.1 — vector stores and ANN search</li>
+            <li><div class="meta-list__dot">!</div><code>pip install openai chromadb mem0ai</code></li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Design a typed memory schema with importance scoring and temporal decay</li>
+            <li><div class="meta-list__dot">2</div>Build a unified recall pipeline that combines semantic search with importance re-ranking</li>
+            <li><div class="meta-list__dot">3</div>Implement a memory lifecycle: write → update → decay → archive → delete</li>
+            <li><div class="meta-list__dot">4</div>Describe the full Phase 6 memory stack and where each layer fits</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="phase6-recap">The Phase 6 memory stack <a class="anchor" href="#phase6-recap">#</a></h2>
+        <p>Before building the long-term layer, let's position all six memory mechanisms relative to each other. Each solves a different problem at a different timescale:</p>
+
+        <div class="reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+          <div style="padding:.6rem 1rem;background:var(--phase-soft);border-bottom:1px solid var(--border);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--phase-text)">The Complete Memory Stack</div>
+          <div style="font-size:13px">
+            <div style="display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:0;align-items:center">
+              <div style="padding:.5rem .8rem;font-weight:700;font-size:11px;color:var(--fg-dim);text-transform:uppercase">Module</div>
+              <div style="padding:.5rem .8rem;font-weight:700;font-size:11px;color:var(--fg-dim);text-transform:uppercase">Mechanism</div>
+              <div style="padding:.5rem .8rem;font-weight:700;font-size:11px;color:var(--fg-dim);text-transform:uppercase">Scope</div>
+              <div style="padding:.5rem .8rem;font-weight:700;font-size:11px;color:var(--fg-dim);text-transform:uppercase">Storage</div>
+            </div>
+            <div style="border-top:1px solid var(--border)">
+              <div style="display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:0;align-items:center;border-bottom:1px solid var(--border)">
+                <div style="padding:.5rem .8rem;color:var(--phase-text);font-weight:600">6.1–6.2</div>
+                <div style="padding:.5rem .8rem">Context structure + budgeting</div>
+                <div style="padding:.5rem .8rem">Within one API call</div>
+                <div style="padding:.5rem .8rem">In-context (tokens)</div>
+              </div>
+              <div style="display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:0;align-items:center;border-bottom:1px solid var(--border)">
+                <div style="padding:.5rem .8rem;color:var(--phase-text);font-weight:600">6.3</div>
+                <div style="padding:.5rem .8rem">Short-term / session buffer</div>
+                <div style="padding:.5rem .8rem">Current session</div>
+                <div style="padding:.5rem .8rem">In-memory list</div>
+              </div>
+              <div style="display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:0;align-items:center;border-bottom:1px solid var(--border)">
+                <div style="padding:.5rem .8rem;color:var(--phase-text);font-weight:600">6.4</div>
+                <div style="padding:.5rem .8rem">Semantic cache</div>
+                <div style="padding:.5rem .8rem">Frequently repeated queries</div>
+                <div style="padding:.5rem .8rem">Vector store (responses)</div>
+              </div>
+              <div style="display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:0;align-items:center;border-bottom:1px solid var(--border)">
+                <div style="padding:.5rem .8rem;color:var(--phase-text);font-weight:600">6.5</div>
+                <div style="padding:.5rem .8rem">Episodic memory</div>
+                <div style="padding:.5rem .8rem">Past sessions</div>
+                <div style="padding:.5rem .8rem">Vector store (facts)</div>
+              </div>
+              <div style="display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:0;align-items:center;border-bottom:1px solid var(--border)">
+                <div style="padding:.5rem .8rem;color:var(--phase-text);font-weight:600">6.6</div>
+                <div style="padding:.5rem .8rem">Context compression</div>
+                <div style="padding:.5rem .8rem">Within context window</div>
+                <div style="padding:.5rem .8rem">In-context (summaries)</div>
+              </div>
+              <div style="display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:0;align-items:center">
+                <div style="padding:.5rem .8rem;color:var(--phase-text);font-weight:600">6.7</div>
+                <div style="padding:.5rem .8rem">Long-term memory</div>
+                <div style="padding:.5rem .8rem">Weeks / months</div>
+                <div style="padding:.5rem .8rem">Persistent DB + vector store</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="memory-schema">Typed memory schema <a class="anchor" href="#memory-schema">#</a></h2>
+        <p>A flat "store any string" approach fails at scale — you can't decide decay rates, access patterns, or retrieval priority without knowing what type of memory a record is. Use a typed schema:</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">memory_schema.py — typed long-term memory model</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+<span class="kw">from</span> enum <span class="kw">import</span> Enum
+<span class="kw">from</span> typing <span class="kw">import</span> Literal
+<span class="kw">import</span> uuid
+
+<span class="kw">class</span> <span class="tp">MemoryType</span>(<span class="tp">Enum</span>):
+    PREFERENCE   = <span class="st">"preference"</span>    <span class="cm"># "prefers TypeScript", "dislikes verbose code"</span>
+    FACT         = <span class="st">"fact"</span>          <span class="cm"># "works at Haiilo", "located in Hamburg"</span>
+    GOAL         = <span class="st">"goal"</span>          <span class="cm"># "building a SaaS for HR teams"</span>
+    CONSTRAINT   = <span class="st">"constraint"</span>    <span class="cm"># "can't use AWS, company policy is Azure"</span>
+    RELATIONSHIP = <span class="st">"relationship"</span>  <span class="cm"># "reports to Jana", "collaborates with Deepu"</span>
+    SKILL        = <span class="st">"skill"</span>         <span class="cm"># "expert in Salesforce Apex", "learning React"</span>
+
+
+@dataclass
+<span class="kw">class</span> <span class="tp">Memory</span>:
+    id:           <span class="tp">str</span>          = field(default_factory=<span class="kw">lambda</span>: <span class="tp">str</span>(uuid.<span class="fn">uuid4</span>()))
+    user_id:      <span class="tp">str</span>          = <span class="st">""</span>
+    content:      <span class="tp">str</span>          = <span class="st">""</span>
+    memory_type:  <span class="tp">MemoryType</span>   = <span class="tp">MemoryType</span>.FACT
+    importance:   <span class="tp">float</span>        = <span class="nm">0.5</span>   <span class="cm"># 0.0 – 1.0, set at extraction time</span>
+    access_count: <span class="tp">int</span>          = <span class="nm">0</span>     <span class="cm"># incremented each time memory is recalled</span>
+    created_at:   <span class="tp">datetime</span>     = field(default_factory=datetime.utcnow)
+    last_accessed:<span class="tp">datetime</span>     = field(default_factory=datetime.utcnow)
+    last_updated: <span class="tp">datetime</span>     = field(default_factory=datetime.utcnow)
+    source:       <span class="tp">str</span>          = <span class="st">""</span>    <span class="cm"># session ID the memory was extracted from</span>
+    confidence:   <span class="tp">float</span>        = <span class="nm">1.0</span>  <span class="cm"># how certain the extraction was</span>
+    archived:     <span class="tp">bool</span>         = <span class="kw">False</span>
+
+    <span class="kw">def</span> <span class="fn">score</span>(self, query_similarity: <span class="tp">float</span>, now: <span class="tp">datetime</span> | <span class="kw">None</span> = <span class="kw">None</span>) -> <span class="tp">float</span>:
+        <span class="st">"""Combined relevance score for re-ranking retrieved memories."""</span>
+        <span class="kw">if</span> now <span class="kw">is</span> <span class="kw">None</span>:
+            now = datetime.<span class="fn">utcnow</span>()
+        days_old = (now - self.last_accessed).<span class="fn">days</span>
+        <span class="cm"># Temporal decay: half-life of 30 days for importance=0.5 memories</span>
+        decay = <span class="nm">0.5</span> ** (days_old / (<span class="nm">30</span> / self.importance))
+        frequency_boost = <span class="fn">min</span>(<span class="nm">0.1</span> * self.access_count, <span class="nm">0.3</span>)
+        <span class="kw">return</span> (<span class="nm">0.5</span> * query_similarity) + (<span class="nm">0.3</span> * decay) + (<span class="nm">0.2</span> * self.importance) + frequency_boost</code></pre>
+        </div>
+
+        <h2 id="recall-pipeline">The recall pipeline <a class="anchor" href="#recall-pipeline">#</a></h2>
+        <p>The recall pipeline runs on every user turn. It must be fast. The two-stage approach — ANN search for candidates, then importance-weighted re-ranking — gives you both speed and quality:</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">recall.py — fast two-stage recall with importance re-ranking</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> chromadb
+<span class="kw">from</span> chromadb.utils.embedding_functions <span class="kw">import</span> OpenAIEmbeddingFunction
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+
+embed_fn = <span class="tp">OpenAIEmbeddingFunction</span>(
+    api_key=<span class="st">"YOUR_KEY"</span>, model_name=<span class="st">"text-embedding-3-small"</span>
+)
+db = chromadb.<span class="fn">PersistentClient</span>(path=<span class="st">"./long_term_memory"</span>)
+col = db.<span class="fn">get_or_create_collection</span>(<span class="st">"memories"</span>, embedding_function=embed_fn)
+
+
+<span class="kw">def</span> <span class="fn">recall</span>(
+    user_id: <span class="tp">str</span>,
+    query: <span class="tp">str</span>,
+    k: <span class="tp">int</span> = <span class="nm">6</span>,
+    candidate_k: <span class="tp">int</span> = <span class="nm">20</span>,    <span class="cm"># retrieve more candidates, re-rank, return top k</span>
+    min_importance: <span class="tp">float</span> = <span class="nm">0.2</span>,
+) -> <span class="tp">list</span>[<span class="tp">Memory</span>]:
+    <span class="cm"># Stage 1: ANN search — fast approximate nearest-neighbour</span>
+    results = col.<span class="fn">query</span>(
+        query_texts=[query],
+        n_results=candidate_k,
+        where={<span class="st">"user_id"</span>: user_id, <span class="st">"archived"</span>: <span class="kw">False</span>},
+        include=[<span class="st">"documents"</span>, <span class="st">"distances"</span>, <span class="st">"metadatas"</span>],
+    )
+
+    now = datetime.<span class="fn">utcnow</span>()
+    candidates = []
+    <span class="kw">for</span> doc, dist, meta <span class="kw">in</span> <span class="fn">zip</span>(
+        results[<span class="st">"documents"</span>][<span class="nm">0</span>],
+        results[<span class="st">"distances"</span>][<span class="nm">0</span>],
+        results[<span class="st">"metadatas"</span>][<span class="nm">0</span>],
+    ):
+        mem = <span class="fn">_from_meta</span>(doc, meta)
+        <span class="kw">if</span> mem.importance < min_importance:
+            <span class="kw">continue</span>
+        similarity = <span class="nm">1.0</span> - dist  <span class="cm"># convert distance to similarity</span>
+        final_score = mem.<span class="fn">score</span>(similarity, now)
+        candidates.<span class="fn">append</span>((final_score, mem))
+
+    <span class="cm"># Stage 2: Re-rank by combined score and return top k</span>
+    candidates.<span class="fn">sort</span>(key=<span class="kw">lambda</span> x: -x[<span class="nm">0</span>])
+    recalled = [m <span class="kw">for</span> _, m <span class="kw">in</span> candidates[:k]]
+
+    <span class="cm"># Update access stats in background (don't block the response)</span>
+    <span class="kw">for</span> m <span class="kw">in</span> recalled:
+        m.access_count += <span class="nm">1</span>
+        m.last_accessed = now
+        <span class="fn">_update_meta</span>(m)
+
+    <span class="kw">return</span> recalled
+
+
+<span class="kw">def</span> <span class="fn">format_for_context</span>(memories: <span class="tp">list</span>[<span class="tp">Memory</span>]) -> <span class="tp">str</span>:
+    <span class="kw">if</span> <span class="kw">not</span> memories:
+        <span class="kw">return</span> <span class="st">""</span>
+    lines = [<span class="st">f"[{m.memory_type.value}] {m.content}"</span> <span class="kw">for</span> m <span class="kw">in</span> memories]
+    <span class="kw">return</span> <span class="st">"&lt;long_term_memory&gt;\n"</span> + <span class="st">"\n"</span>.<span class="fn">join</span>(lines) + <span class="st">"\n&lt;/long_term_memory&gt;"</span></code></pre>
+        </div>
+
+        <h2 id="lifecycle">Memory lifecycle <a class="anchor" href="#lifecycle">#</a></h2>
+        <p>Long-term memories don't just accumulate forever — they go through a lifecycle. Managing this lifecycle is what separates a system that works at launch from one that still works two years later:</p>
+
+        <div class="reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+          <div style="padding:.6rem 1rem;background:var(--phase-soft);border-bottom:1px solid var(--border);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--phase-text)">Memory Lifecycle</div>
+          <div style="display:flex;justify-content:space-between;padding:1rem;gap:.5rem;overflow-x:auto;font-size:12px">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:.3rem;min-width:80px">
+              <div style="width:48px;height:48px;border-radius:50%;background:var(--phase-soft);border:2px solid var(--phase-hi);display:flex;align-items:center;justify-content:center;font-size:18px">📝</div>
+              <div style="font-weight:600;color:var(--phase-text)">Write</div>
+              <div style="text-align:center;color:var(--fg-dim);font-size:11px">Session end<br/>LLM extraction</div>
+            </div>
+            <div style="display:flex;align-items:center;color:var(--phase-hi);font-size:18px;padding-bottom:20px">→</div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:.3rem;min-width:80px">
+              <div style="width:48px;height:48px;border-radius:50%;background:var(--phase-soft);border:2px solid var(--phase-hi);display:flex;align-items:center;justify-content:center;font-size:18px">🔍</div>
+              <div style="font-weight:600;color:var(--phase-text)">Recall</div>
+              <div style="text-align:center;color:var(--fg-dim);font-size:11px">Each query<br/>ANN + re-rank</div>
+            </div>
+            <div style="display:flex;align-items:center;color:var(--phase-hi);font-size:18px;padding-bottom:20px">→</div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:.3rem;min-width:80px">
+              <div style="width:48px;height:48px;border-radius:50%;background:var(--phase-soft);border:2px solid var(--phase-hi);display:flex;align-items:center;justify-content:center;font-size:18px">✏️</div>
+              <div style="font-weight:600;color:var(--phase-text)">Update</div>
+              <div style="text-align:center;color:var(--fg-dim);font-size:11px">Contradiction<br/>detected</div>
+            </div>
+            <div style="display:flex;align-items:center;color:var(--phase-hi);font-size:18px;padding-bottom:20px">→</div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:.3rem;min-width:80px">
+              <div style="width:48px;height:48px;border-radius:50%;background:var(--phase-soft);border:2px solid var(--phase-hi);display:flex;align-items:center;justify-content:center;font-size:18px">📦</div>
+              <div style="font-weight:600;color:var(--phase-text)">Archive</div>
+              <div style="text-align:center;color:var(--fg-dim);font-size:11px">Low access<br/>score decayed</div>
+            </div>
+            <div style="display:flex;align-items:center;color:var(--phase-hi);font-size:18px;padding-bottom:20px">→</div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:.3rem;min-width:80px">
+              <div style="width:48px;height:48px;border-radius:50%;background:var(--phase-soft);border:2px solid var(--phase-hi);display:flex;align-items:center;justify-content:center;font-size:18px">🗑️</div>
+              <div style="font-weight:600;color:var(--phase-text)">Delete</div>
+              <div style="text-align:center;color:var(--fg-dim);font-size:11px">User request<br/>or expired</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">memory_maintenance.py — decay, archival, and contradiction detection</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> datetime <span class="kw">import</span> datetime, timedelta
+
+<span class="cm"># Run as a scheduled job — daily or weekly</span>
+<span class="kw">def</span> <span class="fn">decay_and_archive</span>(user_id: <span class="tp">str</span>, archive_threshold: <span class="tp">float</span> = <span class="nm">0.1</span>) -> <span class="tp">int</span>:
+    <span class="st">"""Archive memories whose combined decay score drops below threshold."""</span>
+    results = col.<span class="fn">get</span>(where={<span class="st">"user_id"</span>: user_id, <span class="st">"archived"</span>: <span class="kw">False</span>})
+    archived_count = <span class="nm">0</span>
+    now = datetime.<span class="fn">utcnow</span>()
+    <span class="kw">for</span> id_, meta <span class="kw">in</span> <span class="fn">zip</span>(results[<span class="st">"ids"</span>], results[<span class="st">"metadatas"</span>]):
+        mem = <span class="fn">_from_meta</span>(<span class="st">""</span>, meta)
+        time_score = mem.<span class="fn">score</span>(query_similarity=<span class="nm">0.0</span>, now=now)
+        <span class="kw">if</span> time_score < archive_threshold:
+            col.<span class="fn">update</span>(ids=[id_], metadatas=[{**meta, <span class="st">"archived"</span>: <span class="kw">True</span>}])
+            archived_count += <span class="nm">1</span>
+    <span class="kw">return</span> archived_count
+
+
+<span class="kw">def</span> <span class="fn">detect_contradiction</span>(user_id: <span class="tp">str</span>, new_memory: <span class="tp">str</span>) -> <span class="tp">str</span> | <span class="kw">None</span>:
+    <span class="st">"""Check if a new memory contradicts an existing one. Returns conflicting memory id or None."""</span>
+    candidates = <span class="fn">recall</span>(user_id=user_id, query=new_memory, k=<span class="nm">3</span>)
+    <span class="kw">if</span> <span class="kw">not</span> candidates:
+        <span class="kw">return</span> <span class="kw">None</span>
+    prompt = <span class="st">f"""Does the NEW fact contradict any of the EXISTING facts?
+Answer YES or NO only. If YES, output the contradicted fact verbatim.
+
+NEW: {new_memory}
+
+EXISTING:
+"""</span> + <span class="st">"\n"</span>.<span class="fn">join</span>(<span class="st">f"- {m.content}"</span> <span class="kw">for</span> m <span class="kw">in</span> candidates)
+    resp = client.chat.completions.<span class="fn">create</span>(
+        model=<span class="st">"gpt-4o-mini"</span>,
+        messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: prompt}],
+        max_tokens=<span class="nm">50</span>,
+    )
+    answer = resp.choices[<span class="nm">0</span>].message.content.<span class="fn">strip</span>()
+    <span class="kw">if</span> answer.<span class="fn">startswith</span>(<span class="st">"YES"</span>):
+        <span class="kw">return</span> answer  <span class="cm"># calling code should archive the contradicted memory</span>
+    <span class="kw">return</span> <span class="kw">None</span></code></pre>
+        </div>
+
+        <h2 id="full-agent">Putting it all together — the full memory agent <a class="anchor" href="#full-agent">#</a></h2>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">full_memory_agent.py — agent with the complete Phase 6 memory stack</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">async def</span> <span class="fn">memory_agent_turn</span>(
+    user_id: <span class="tp">str</span>,
+    user_query: <span class="tp">str</span>,
+    session_buffer: <span class="tp">TokenBudgetBuffer</span>,   <span class="cm"># Module 6.3</span>
+    cache: <span class="tp">SemanticCache</span>,                  <span class="cm"># Module 6.4</span>
+) -> <span class="tp">str</span>:
+
+    <span class="cm"># ── Layer 1: Semantic cache (fastest path — no LLM call) ──────────────</span>
+    cached = cache.<span class="fn">lookup</span>(user_query)
+    <span class="kw">if</span> cached:
+        <span class="kw">return</span> cached
+
+    <span class="cm"># ── Layer 2: Recall long-term memories (async ANN search) ─────────────</span>
+    memories = <span class="fn">recall</span>(user_id=user_id, query=user_query, k=<span class="nm">5</span>)
+    memory_block = <span class="fn">format_for_context</span>(memories)
+
+    <span class="cm"># ── Layer 3: Build context with structure (Module 6.2) ────────────────</span>
+    system = (
+        <span class="st">"You are a helpful personal assistant.\n"</span>
+        <span class="st">"Use the facts in &lt;long_term_memory&gt; to personalise your response.\n"</span>
+        <span class="st">"Do not reveal you have stored memories unless asked."</span>
+    )
+    <span class="kw">if</span> memory_block:
+        system += <span class="st">f"\n\n{memory_block}"</span>
+
+    <span class="cm"># ── Layer 4: Assemble messages with trimmed history (Module 6.3) ──────</span>
+    messages = session_buffer.<span class="fn">get_messages</span>(system, user_query)
+
+    <span class="cm"># ── Layer 5: Call LLM ─────────────────────────────────────────────────</span>
+    resp = <span class="kw">await</span> client.chat.completions.<span class="fn">acreate</span>(
+        model=<span class="st">"gpt-4o"</span>, messages=messages
+    )
+    answer = resp.choices[<span class="nm">0</span>].message.content
+
+    <span class="cm"># ── Layer 6: Update session buffer and cache ──────────────────────────</span>
+    session_buffer.<span class="fn">add_turn</span>(user_msg=user_query, assistant_msg=answer)
+    cache.<span class="fn">store</span>(user_query, answer)
+
+    <span class="kw">return</span> answer
+
+
+<span class="cm"># ── Session end handler ───────────────────────────────────────────────</span>
+<span class="kw">async def</span> <span class="fn">on_session_end</span>(user_id: <span class="tp">str</span>, session_buffer: <span class="tp">TokenBudgetBuffer</span>) -> <span class="kw">None</span>:
+    <span class="cm"># Extract and store new long-term memories (Module 6.5)</span>
+    <span class="kw">await</span> asyncio.<span class="fn">to_thread</span>(<span class="fn">on_session_end_sync</span>, user_id, session_buffer._history)</code></pre>
+        </div>
+
+        <div class="callout callout--info">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">Phase 6 complete — what you can now build</strong>
+            You now have every component of a production memory architecture: token budgeting and context structure (6.1–6.2), session history management (6.3), semantic caching (6.4), episodic memory with extraction and retrieval (6.5), context compression for long agentic runs (6.6), and a fully typed long-term memory system with decay and lifecycle management (6.7). Phase 7 uses all of this as foundation for multi-agent orchestration — agents that delegate sub-tasks to other agents and coordinate shared memory.
+          </div>
+        </div>
+
+        <div class="reveal" style="margin:2rem 0;padding:1.5rem;background:var(--phase-soft);border:1px solid var(--phase-hi);border-radius:10px;text-align:center">
+          <div style="font-size:28px;margin-bottom:.5rem">🎯</div>
+          <div style="font-size:16px;font-weight:700;color:var(--phase-text);margin-bottom:.4rem">Phase 6 Complete — Memory &amp; Context Engineering</div>
+          <div style="font-size:13px;color:var(--fg-dim)">Modules 38–44 · Week 17–19 · 7 modules · 44 / 62 total</div>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: Phase 7 — Multi-Agent Orchestration</div>
+            <div class="cta-block__sub">Phase 7 covers orchestrating multiple specialised agents — supervisor patterns, worker agents, agent communication, shared memory, and building reliable pipelines that recover from individual agent failures.</div>
+          </div>
+          <a class="cta-block__btn" href="module-7-1.html">Phase 7 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#phase6-recap">Phase 6 memory stack</a></li>
+      <li><a class="toc__link" href="#memory-schema">Typed memory schema</a></li>
+      <li><a class="toc__link" href="#recall-pipeline">Recall pipeline</a></li>
+      <li><a class="toc__link" href="#lifecycle">Memory lifecycle</a></li>
+      <li><a class="toc__link" href="#full-agent">Full memory agent</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){
+  const h=document.documentElement;
+  const dark=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',dark?'light':'dark');
+  localStorage.setItem('ae-theme',dark?'light':'dark');
+  document.getElementById('themeIcon').textContent=dark?'☀':'☾';
+  document.getElementById('themeLabel').textContent=dark?'Light':'Dark';
+}
+(function(){
+  const t=localStorage.getItem('ae-theme');
+  if(t){
+    document.documentElement.setAttribute('data-theme',t);
+    const dark=t==='dark';
+    document.getElementById('themeIcon').textContent=dark?'☾':'☀';
+    document.getElementById('themeLabel').textContent=dark?'Dark':'Light';
+  }
+})();
+function copyCode(btn){
+  const code=btn.closest('.code-wrap').querySelector('pre code');
+  navigator.clipboard.writeText(code.innerText).then(()=>{
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent='Copy',2000);
+  });
+}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    const id=e.target.id;
+    if(!id)return;
+    const link=document.querySelector(`.toc__link[href="#${id}"]`);
+    if(!link)return;
+    if(e.isIntersecting){
+      document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));
+      link.classList.add('active');
+    }
+  });
+},{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

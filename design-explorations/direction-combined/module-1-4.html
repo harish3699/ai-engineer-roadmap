@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 1.4 Error & File Handling · by Harish Mondepu</title>
+<meta name="description" content="Exception handling, custom exceptions, context managers, and file I/O — the patterns that keep production AI pipelines alive when something goes wrong."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 1 · <strong>Error &amp; File Handling</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 4 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 1 · Python Foundations
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="index.html"><span class="sidebar__mod-num">1.1</span>Core Python<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-1-2.html"><span class="sidebar__mod-num">1.2</span>Object-Oriented Python<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-1-3.html"><span class="sidebar__mod-num">1.3</span>Data Structures<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">1.4</span>Error &amp; File Handling<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod" href="module-1-5.html"><span class="sidebar__mod-num">1.5</span>HTTP APIs<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-1-6.html"><span class="sidebar__mod-num">1.6</span>Database Connectivity<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-1-7.html"><span class="sidebar__mod-num">1.7</span>FastAPI<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-1-8.html"><span class="sidebar__mod-num">1.8</span>Async Programming<span class="sidebar__check"></span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#8865a3"></span>Phase 2 · LLM Mental Model</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#e85a7a"></span>Phase 3 · Prompt Engineering</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#e85a7a;opacity:.5"></span>Phase 4 · RAG + Evaluation</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 01</span>
+        <span class="tag tag--level">Beginner</span>
+        <span class="tag tag--week">Week 1–3</span>
+      </div>
+      <h1 class="mod-head__title">Error &amp; File <em>Handling</em></h1>
+      <p class="mod-head__sub">Production AI pipelines fail. The question is whether they fail loudly (you know immediately and can fix it) or silently (bad data flows downstream for days). This module teaches you to control which one happens.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~25 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>4 code examples</span>
+        <span>Last updated 2026-05-06</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Catch specific exceptions — catching <code>Exception</code> broadly swallows bugs you need to know about</li>
+          <li>The <code>finally</code> block always runs — use it to release resources even if an exception occurred</li>
+          <li>Custom exception classes make error handling self-documenting and allow callers to catch specific failure types</li>
+          <li>Context managers (<code>with</code>) guarantee cleanup — files close, DB connections return to pool, even on exception</li>
+          <li>JSON and CSV are the two formats every RAG ingestion pipeline reads — know <code>json.load</code> and <code>csv.DictReader</code> cold</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Modules 1.1–1.3 complete</li>
+            <li><div class="meta-list__dot">!</div>Have raised a Python error at least once</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Write try/except/else/finally blocks correctly</li>
+            <li><div class="meta-list__dot">2</div>Build a custom exception hierarchy for a pipeline</li>
+            <li><div class="meta-list__dot">3</div>Use <code>contextlib.contextmanager</code> to write your own context managers</li>
+            <li><div class="meta-list__dot">4</div>Read and write JSON, CSV, and binary files safely</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">Python Exception Handling — Corey Schafer</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· Python Try/Except — Corey Schafer</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/NIWwJbo-9_8" title="Python Exception Handling — Corey Schafer" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ Corey Schafer's exception handling tutorial · 15 min · timestamps in script below</div>
+      </div>
+
+      <div class="prose">
+        <h2 id="try-except">try / except / else / finally <a class="anchor" href="#try-except">#</a></h2>
+        <p>Python's exception handling has four clauses. Most developers only use two. All four serve distinct purposes and skipping them means either swallowing errors or duplicating cleanup code.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">exceptions.py — all four clauses with real meanings</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> json, logging
+
+<span class="kw">def</span> <span class="fn">parse_llm_response</span>(raw: <span class="tp">str</span>) -> <span class="tp">dict</span>:
+    <span class="kw">try</span>:
+        <span class="cm"># Only code that might raise goes here — nothing else</span>
+        result = json.<span class="fn">loads</span>(raw)
+    <span class="kw">except</span> json.<span class="tp">JSONDecodeError</span> <span class="kw">as</span> e:
+        <span class="cm"># Catch specific exceptions — not bare `except:` or `except Exception:`</span>
+        logging.<span class="fn">error</span>(<span class="st">f"LLM returned non-JSON: {raw[:100]!r} — {e}"</span>)
+        <span class="kw">raise</span>   <span class="cm"># re-raise so the caller knows it failed</span>
+    <span class="kw">except</span> (<span class="tp">TypeError</span>, <span class="tp">ValueError</span>) <span class="kw">as</span> e:
+        <span class="cm"># Multiple exception types in one clause</span>
+        logging.<span class="fn">error</span>(<span class="st">f"Unexpected parse error: {e}"</span>)
+        <span class="kw">raise</span>
+    <span class="kw">else</span>:
+        <span class="cm"># Runs ONLY if no exception occurred — put success logic here</span>
+        logging.<span class="fn">info</span>(<span class="st">"Parsed successfully"</span>)
+        <span class="kw">return</span> result
+    <span class="kw">finally</span>:
+        <span class="cm"># ALWAYS runs — exception or not. Use for cleanup.</span>
+        logging.<span class="fn">debug</span>(<span class="st">"parse_llm_response exiting"</span>)
+
+
+<span class="cm"># ── Exception hierarchy — catch parent to catch all children ─────────</span>
+<span class="cm"># OSError is the parent of FileNotFoundError, PermissionError, etc.</span>
+<span class="kw">try</span>:
+    <span class="kw">with</span> <span class="fn">open</span>(<span class="st">"config.json"</span>) <span class="kw">as</span> f:
+        config = json.<span class="fn">load</span>(f)
+<span class="kw">except</span> <span class="tp">FileNotFoundError</span>:
+    config = {}  <span class="cm"># safe default</span>
+<span class="kw">except</span> <span class="tp">json</span>.<span class="tp">JSONDecodeError</span> <span class="kw">as</span> e:
+    <span class="kw">raise</span> <span class="tp">RuntimeError</span>(<span class="st">f"config.json is corrupt: {e}"</span>) <span class="kw">from</span> e</code></pre>
+        </div>
+
+        <div class="callout callout--err">
+          <span class="callout__icon">🚫</span>
+          <div>
+            <strong class="callout__title">Never do this</strong>
+            <code>except Exception: pass</code> — silently swallows every error including bugs in your own code.
+            <code>except:</code> — catches even <code>KeyboardInterrupt</code> and <code>SystemExit</code>.
+            Always catch the most specific exception you expect, and always either handle it or re-raise.
+          </div>
+        </div>
+
+        <h2 id="custom-exceptions">Custom exception classes <a class="anchor" href="#custom-exceptions">#</a></h2>
+        <p>When you build a pipeline, create a small exception hierarchy for it. Callers can then catch <code>PipelineError</code> to handle any pipeline failure, or <code>ChunkingError</code> specifically. This makes error handling expressive and avoids catching unrelated exceptions.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">custom_exceptions.py</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="cm"># ── Exception hierarchy for a RAG ingestion pipeline ─────────────────</span>
+<span class="kw">class</span> <span class="tp">PipelineError</span>(<span class="tp">Exception</span>):
+    <span class="st">"""Base class — catch this to handle any pipeline failure."""</span>
+
+<span class="kw">class</span> <span class="tp">IngestionError</span>(<span class="tp">PipelineError</span>):
+    <span class="st">"""Raised when a document cannot be read or parsed."""</span>
+
+<span class="kw">class</span> <span class="tp">ChunkingError</span>(<span class="tp">PipelineError</span>):
+    <span class="st">"""Raised when chunking logic fails on a specific document."""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="tp">self</span>, source: <span class="tp">str</span>, reason: <span class="tp">str</span>) -> <span class="kw">None</span>:
+        <span class="tp">self</span>.source = source
+        <span class="kw">super</span>().<span class="fn">__init__</span>(<span class="st">f"Chunking failed for {source!r}: {reason}"</span>)
+
+<span class="kw">class</span> <span class="tp">EmbeddingError</span>(<span class="tp">PipelineError</span>):
+    <span class="st">"""Raised when the embedding API returns a non-200 response."""</span>
+
+
+<span class="cm"># Usage — raise with context</span>
+<span class="kw">def</span> <span class="fn">chunk_document</span>(source: <span class="tp">str</span>, text: <span class="tp">str</span>) -> <span class="tp">list</span>[<span class="tp">str</span>]:
+    <span class="kw">if not</span> text.<span class="fn">strip</span>():
+        <span class="kw">raise</span> <span class="fn">ChunkingError</span>(source, <span class="st">"document is empty after stripping whitespace"</span>)
+    <span class="kw">return</span> text.<span class="fn">split</span>(<span class="st">"\n\n"</span>)
+
+<span class="cm"># Caller can be as specific or broad as needed</span>
+<span class="kw">try</span>:
+    chunks = <span class="fn">chunk_document</span>(<span class="st">"policy.pdf"</span>, <span class="st">""</span>)
+<span class="kw">except</span> <span class="tp">ChunkingError</span> <span class="kw">as</span> e:
+    <span class="fn">print</span>(<span class="st">f"Document skipped: {e.source}"</span>)   <span class="cm"># access structured attributes</span>
+<span class="kw">except</span> <span class="tp">PipelineError</span>:
+    <span class="fn">print</span>(<span class="st">"Any other pipeline failure"</span>)</code></pre>
+        </div>
+
+        <h2 id="context-managers">Context managers <a class="anchor" href="#context-managers">#</a></h2>
+        <p>The <code>with</code> statement guarantees that cleanup code runs even when exceptions occur. Files, database connections, locks, and HTTP sessions should always be opened inside <code>with</code> blocks.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">context_managers.py</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> contextlib <span class="kw">import</span> contextmanager
+<span class="kw">import</span> time, logging
+
+<span class="cm"># ── Built-in context manager: file ───────────────────────────────────</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="st">"data.json"</span>, <span class="st">"r"</span>, encoding=<span class="st">"utf-8"</span>) <span class="kw">as</span> f:
+    data = f.<span class="fn">read</span>()
+<span class="cm"># f.close() is called automatically — even if an exception occurred</span>
+
+<span class="cm"># ── Build your own with @contextmanager ─────────────────────────────</span>
+<span class="kw">@contextmanager</span>
+<span class="kw">def</span> <span class="fn">timer</span>(label: <span class="tp">str</span>):
+    <span class="st">"""Logs how long a block of code takes — useful for LLM call latency."""</span>
+    start = time.<span class="fn">perf_counter</span>()
+    <span class="kw">try</span>:
+        <span class="kw">yield</span>           <span class="cm"># code inside `with` runs here</span>
+    <span class="kw">finally</span>:
+        elapsed = time.<span class="fn">perf_counter</span>() - start
+        logging.<span class="fn">info</span>(<span class="st">f"{label}: {elapsed:.3f}s"</span>)
+
+<span class="kw">with</span> <span class="fn">timer</span>(<span class="st">"embed_batch"</span>):
+    <span class="cm"># your embedding call here</span>
+    time.<span class="fn">sleep</span>(<span class="nm">0.1</span>)   <span class="cm"># simulated</span>
+<span class="cm"># logs: embed_batch: 0.100s</span>
+
+<span class="cm"># ── Multiple context managers on one line ────────────────────────────</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="st">"input.json"</span>) <span class="kw">as</span> src, <span class="fn">open</span>(<span class="st">"output.json"</span>, <span class="st">"w"</span>) <span class="kw">as</span> dst:
+    dst.<span class="fn">write</span>(src.<span class="fn">read</span>())   <span class="cm"># both files close cleanly</span></code></pre>
+        </div>
+
+        <h2 id="file-io">File I/O — JSON, CSV, binary <a class="anchor" href="#file-io">#</a></h2>
+        <p>Every RAG ingestion pipeline reads files. JSON for configs and API payloads. CSV for structured data exports. Binary for PDFs (handled by Docling in Phase 4). Know the standard library patterns cold.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">file_io.py</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> json, csv
+<span class="kw">from</span> pathlib <span class="kw">import</span> Path
+
+<span class="cm"># ── JSON ─────────────────────────────────────────────────────────────</span>
+<span class="cm"># Read</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="st">"config.json"</span>, encoding=<span class="st">"utf-8"</span>) <span class="kw">as</span> f:
+    config: <span class="tp">dict</span> = json.<span class="fn">load</span>(f)        <span class="cm"># file object → Python dict</span>
+
+<span class="cm"># Write</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="st">"output.json"</span>, <span class="st">"w"</span>, encoding=<span class="st">"utf-8"</span>) <span class="kw">as</span> f:
+    json.<span class="fn">dump</span>(config, f, indent=<span class="nm">2</span>, ensure_ascii=<span class="kw">False</span>)
+
+<span class="cm"># String ↔ dict (for API payloads, LLM responses)</span>
+json_str  = json.<span class="fn">dumps</span>(config)          <span class="cm"># dict → JSON string</span>
+back_dict = json.<span class="fn">loads</span>(json_str)        <span class="cm"># JSON string → dict</span>
+
+<span class="cm"># ── CSV — DictReader gives you each row as a dict ────────────────────</span>
+<span class="kw">with</span> <span class="fn">open</span>(<span class="st">"documents.csv"</span>, newline=<span class="st">""</span>, encoding=<span class="st">"utf-8"</span>) <span class="kw">as</span> f:
+    reader = csv.<span class="fn">DictReader</span>(f)
+    rows: <span class="tp">list</span>[<span class="tp">dict</span>] = <span class="tp">list</span>(reader)     <span class="cm"># [{'title': '...', 'text': '...'}, ...]</span>
+
+<span class="cm"># Write CSV</span>
+fieldnames = [<span class="st">"source"</span>, <span class="st">"chunk_id"</span>, <span class="st">"score"</span>]
+<span class="kw">with</span> <span class="fn">open</span>(<span class="st">"results.csv"</span>, <span class="st">"w"</span>, newline=<span class="st">""</span>, encoding=<span class="st">"utf-8"</span>) <span class="kw">as</span> f:
+    writer = csv.<span class="fn">DictWriter</span>(f, fieldnames=fieldnames)
+    writer.<span class="fn">writeheader</span>()
+    writer.<span class="fn">writerows</span>([{<span class="st">"source"</span>: <span class="st">"a.pdf"</span>, <span class="st">"chunk_id"</span>: <span class="nm">0</span>, <span class="st">"score"</span>: <span class="nm">0.91</span>}])
+
+<span class="cm"># ── pathlib — cleaner than os.path ───────────────────────────────────</span>
+data_dir = <span class="fn">Path</span>(<span class="st">"data"</span>)
+pdf_files = <span class="tp">list</span>(data_dir.<span class="fn">glob</span>(<span class="st">"*.pdf"</span>))   <span class="cm"># [Path('data/policy.pdf'), ...]</span>
+<span class="kw">for</span> pdf <span class="kw">in</span> pdf_files:
+    <span class="fn">print</span>(pdf.stem, pdf.suffix)              <span class="cm"># 'policy'  '.pdf'</span></code></pre>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 1.4: Error &amp; File Handling</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~25 min · screen + narration cues</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 1:00</span><span class="script-action">TITLE CARD</span><span class="script-narration">"Module 1.4 — Error and File Handling. Two things you do constantly in production AI work: catch failures gracefully and read files efficiently. Let's start with the exception system."</span></div>
+          <div class="script-line"><span class="script-ts">1:00 – 8:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Write parse_llm_response live. Emphasize the four clauses: "try is only for the thing that might throw. else only runs if it didn't. finally always runs — even if you return from inside try. That's where your cleanup belongs."</span></div>
+          <div class="script-line"><span class="script-ts">8:00 – 13:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Build the custom exception hierarchy. Raise ChunkingError with an empty string. Show how the caller catches it and accesses e.source. "Now your stack trace says ChunkingError, not ValueError. Anyone who reads it knows exactly where in the pipeline it failed."</span></div>
+          <div class="script-line"><span class="script-ts">13:00 – 18:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Write the timer context manager. "Here's the pattern: everything before yield is __enter__, everything after (in finally) is __exit__. The finally guarantees the timer logs even if the code inside crashes."</span></div>
+          <div class="script-line"><span class="script-ts">18:00 – 24:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Write file_io.py. Read a real JSON file. Show json.loads vs json.load. Then write CSV with DictWriter. "Always use newline='' in CSV open — it prevents double newlines on Windows. Always specify encoding='utf-8' — it prevents encoding errors on international text."</span></div>
+          <div class="script-line"><span class="script-ts">24:00 – 25:00</span><span class="script-action">WRAP</span><span class="script-narration">"Module 1.5 is about calling external HTTP APIs — the requests library, authentication, and retry logic. That's how your agents will call OpenAI, Anthropic, and your own FastAPI services."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+        <p>Four questions — ready for 1.5 when you can answer without hesitation.</p>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>What is the difference between <code>else</code> and <code>finally</code> in a try/except block?</summary>
+          <div class="selfcheck__a"><code>else</code> runs only when no exception was raised in the <code>try</code> block. <code>finally</code> always runs — whether an exception occurred, whether the code returned early, or whether everything succeeded. Use <code>else</code> for "what to do on success" and <code>finally</code> for "what to clean up no matter what."</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Why should you re-raise after logging an exception in most cases?</summary>
+          <div class="selfcheck__a">Logging the exception but swallowing it (not re-raising) hides the failure from the caller. The caller has no way to know the operation failed and may continue with invalid data or state. The rule: log AND raise — or handle AND recover. Never log AND silently continue unless you have an explicit fallback path that is safe.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Why is <code>with open(...) as f:</code> better than <code>f = open(...)</code> followed by <code>f.close()</code>?</summary>
+          <div class="selfcheck__a">If an exception occurs between <code>open()</code> and <code>close()</code>, the file handle is never closed — leaking a file descriptor. The <code>with</code> statement calls <code>__exit__</code> (which calls <code>close()</code>) even when an exception occurs, so the file is always properly closed. On Windows, an unclosed file handle also prevents other processes from writing to the file.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What does <code>json.load(f)</code> do that <code>json.loads(f.read())</code> does not?</summary>
+          <div class="selfcheck__a"><code>json.load(f)</code> reads and parses the file in one operation using an iterable API — it can stream large JSON files without loading the entire content into a string first. <code>json.loads(f.read())</code> reads the entire file into a Python string, then parses it — requiring twice the memory peak (file bytes in string + parsed object). For large config files this rarely matters, but for large JSON datasets it can be significant.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Up next</div>
+          <div class="next-mod__title">1.5 · HTTP APIs</div>
+          <p class="next-mod__desc">The <code>requests</code> library, authentication patterns (Bearer tokens, API keys), and production-grade retry logic with <code>tenacity</code> — the foundation for calling any LLM or external API.</p>
+        </div>
+        <a class="next-btn" href="module-1-5.html">Continue →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#try-except">try / except</a>
+    <a href="#custom-exceptions">Custom exceptions</a>
+    <a href="#context-managers">Context managers</a>
+    <a href="#file-io">File I/O</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 1.4 / 62<br/>Phase 1 · Week 1–3<br/>Author: Harish Mondepu<br/>Updated: 2026-05-06</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

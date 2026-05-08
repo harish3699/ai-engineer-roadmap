@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 4.3 Embedding Models · by Harish Mondepu</title>
+<meta name="description" content="How embedding models turn text into vectors, what dimensions mean, how to choose between OpenAI, Cohere, and open-source alternatives, and how to benchmark embedding quality for your corpus."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#c2185b;--phase-hi:#e85a7a;--phase-soft:rgba(232,90,122,.1);--phase-text:#c2185b}
+[data-theme="dark"]{--phase:#f06292;--phase-hi:#f48fb1;--phase-soft:rgba(240,98,146,.1);--phase-text:#f9a8d4}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 4 · <strong>Embedding Models</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 23 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 4 · RAG + Evaluation
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-4-1.html"><span class="sidebar__mod-num">4.1</span>What is RAG<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-2.html"><span class="sidebar__mod-num">4.2</span>Chunking Strategies<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">4.3</span>Embedding Models<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod" href="module-4-4.html"><span class="sidebar__mod-num">4.4</span>Vector Databases<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-5.html"><span class="sidebar__mod-num">4.5</span>Retrieval Techniques<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-6.html"><span class="sidebar__mod-num">4.6</span>Reranking<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-7.html"><span class="sidebar__mod-num">4.7</span>RAG Pipeline Assembly<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-8.html"><span class="sidebar__mod-num">4.8</span>Evaluating RAG<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-9.html"><span class="sidebar__mod-num">4.9</span>Advanced RAG Patterns<span class="sidebar__check"></span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#10b981;opacity:.6"></span>Phase 5–9 · Agents &amp; Deployment</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 04</span>
+        <span class="tag tag--level">Practical</span>
+        <span class="tag tag--week">Week 9</span>
+      </div>
+      <h1 class="mod-head__title">Embedding <em>Models</em></h1>
+      <p class="mod-head__sub">An embedding model converts a chunk of text into a dense vector — a list of floating-point numbers where geometrically close vectors represent semantically similar meaning. Everything downstream in your RAG pipeline depends on the quality of those vectors: retrieval precision, recall, and ultimately the accuracy of your LLM's answers. This module covers what embeddings are, how they are trained, what dimensions mean, how the major models compare, and how to benchmark embedding quality for your specific corpus before you commit to one.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~22 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>4 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>An embedding model encodes semantic meaning into a fixed-length vector — two chunks that mean the same thing should have high cosine similarity even if they share no words</li>
+          <li>Embedding models are trained on pairs of similar and dissimilar texts using contrastive loss — the training data distribution determines which domain the model is good at</li>
+          <li>Higher dimensions (1536, 3072) give finer-grained representation but cost more to store and query; start with a lower-dimension model and only upgrade if eval scores justify it</li>
+          <li>MTEB (Massive Text Embedding Benchmark) is the standard leaderboard — filter it to the task type "Retrieval" and the language of your corpus before comparing models</li>
+          <li>General-purpose models (OpenAI, Cohere, BAAI/bge) work well across domains; domain-specific fine-tuning helps for highly specialised corpora like medical or legal text</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Module 4.2 complete — understand chunking strategies</li>
+            <li><div class="meta-list__dot">!</div><code>pip install openai sentence-transformers numpy</code></li>
+            <li><div class="meta-list__dot">!</div>OpenAI API key in environment: <code>OPENAI_API_KEY</code></li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Explain how embedding models encode semantic meaning</li>
+            <li><div class="meta-list__dot">2</div>Compare the major embedding models on dimensions, cost, and quality</li>
+            <li><div class="meta-list__dot">3</div>Call the OpenAI and sentence-transformers APIs in Python</li>
+            <li><div class="meta-list__dot">4</div>Use MTEB to select the right model for your retrieval task</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">Text Embeddings Explained — Semantic Search &amp; Vector Similarity</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· search "text embeddings explained cosine similarity RAG OpenAI"</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/ySus5ZS0b94" title="Text Embeddings Explained" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ How embedding models convert text to dense vectors and why cosine similarity finds semantic neighbours</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="what-is-an-embedding">What is an embedding? <a class="anchor" href="#what-is-an-embedding">#</a></h2>
+        <p>An embedding is a dense, fixed-length list of floating-point numbers — a <strong>vector</strong> — that represents the semantic content of a piece of text. "Dense" means almost every number carries signal (unlike sparse bag-of-words vectors which are mostly zeros). "Fixed-length" means every piece of text produces a vector of the same dimension, regardless of input length.</p>
+
+        <p>The key property: <strong>geometric proximity encodes semantic similarity</strong>. Two texts that mean the same thing produce vectors that are close together in the high-dimensional space — high cosine similarity. Two texts about unrelated topics produce vectors that are far apart — low cosine similarity. The embedding model has learned this mapping from millions of (similar, dissimilar) training pairs.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">From text to vector: the embedding pipeline</div>
+          <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;font-size:13px">
+            <div style="background:var(--surface-0);border-radius:8px;padding:.8rem 1rem;text-align:center;min-width:130px">
+              <div style="font-weight:700;color:var(--fg);margin-bottom:.3rem">Input text</div>
+              <div style="font-size:11px;color:var(--fg-dim)">"$150/mo for home internet"</div>
+            </div>
+            <div style="color:var(--phase-text);font-size:18px;font-weight:700">→</div>
+            <div style="background:var(--surface-0);border-radius:8px;padding:.8rem 1rem;text-align:center;min-width:140px">
+              <div style="font-weight:700;color:var(--fg);margin-bottom:.3rem">Tokeniser</div>
+              <div style="font-size:11px;color:var(--fg-dim)">[7543, 12, 4820, 601, …]</div>
+            </div>
+            <div style="color:var(--phase-text);font-size:18px;font-weight:700">→</div>
+            <div style="background:var(--surface-0);border-radius:8px;padding:.8rem 1rem;text-align:center;min-width:160px">
+              <div style="font-weight:700;color:var(--fg);margin-bottom:.3rem">Transformer encoder</div>
+              <div style="font-size:11px;color:var(--fg-dim)">Self-attention across all tokens</div>
+            </div>
+            <div style="color:var(--phase-text);font-size:18px;font-weight:700">→</div>
+            <div style="background:var(--surface-0);border-radius:8px;padding:.8rem 1rem;text-align:center;min-width:140px">
+              <div style="font-weight:700;color:var(--fg);margin-bottom:.3rem">Pooling</div>
+              <div style="font-size:11px;color:var(--fg-dim)">Mean or [CLS] token</div>
+            </div>
+            <div style="color:var(--phase-text);font-size:18px;font-weight:700">→</div>
+            <div style="background:var(--phase-soft);border:1px solid var(--phase-hi);border-radius:8px;padding:.8rem 1rem;text-align:center;min-width:140px">
+              <div style="font-weight:700;color:var(--phase-text);margin-bottom:.3rem">Embedding vector</div>
+              <div style="font-size:11px;color:var(--fg-dim)">[0.021, -0.83, 0.41 …] (1536-d)</div>
+            </div>
+          </div>
+          <div style="margin-top:.8rem;font-size:12px;color:var(--fg-dim)">Pooling collapses the per-token representations into one vector for the whole input sequence. Mean pooling averages all token vectors; [CLS] pooling uses the special classification token inserted at position 0.</div>
+        </div>
+
+        <h2 id="contrastive-training">How embedding models are trained <a class="anchor" href="#contrastive-training">#</a></h2>
+        <p>Embedding models are encoder-only transformers (like BERT) trained with <strong>contrastive loss</strong>. The training signal comes from pairs: a query and a positive passage (an answer or semantically similar text), and negatives (unrelated passages). The loss function rewards high similarity for positive pairs and low similarity for negatives.</p>
+
+        <div class="callout callout--note">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">Why training data determines domain fit</strong>
+            A model trained on Wikipedia + web crawl pairs learns general English semantics well. The same model applied to a corpus of pharmaceutical patents or Salesforce SOQL documentation may embed domain jargon poorly — the model has never seen contrastive pairs where two biomedical sentences that use different synonyms for the same compound are marked as similar. This is why domain-specific fine-tuning helps for specialised corpora.
+          </div>
+        </div>
+
+        <p>Modern models like OpenAI's text-embedding-3 family and BAAI/bge-m3 also use <strong>matryoshka representation learning (MRL)</strong>: the model is trained so that the first N dimensions of the vector are independently useful. This lets you truncate a 3072-dimension vector to 256 dimensions at query time with only a modest quality loss — useful when storage or query latency is constrained.</p>
+
+        <h2 id="calling-the-api">Calling embedding APIs <a class="anchor" href="#calling-the-api">#</a></h2>
+        <p>The OpenAI Embeddings API is the easiest entry point. Pass one or more strings, receive one embedding vector per string. Batch your documents — the API accepts up to 2048 inputs per request, and batching is significantly cheaper than one-request-per-chunk.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">openai_embeddings.py — batch document and query embedding</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> os
+<span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+client = <span class="fn">OpenAI</span>(api_key=os.environ[<span class="st">"OPENAI_API_KEY"</span>])
+
+<span class="kw">def</span> <span class="fn">embed_texts</span>(
+    texts: <span class="tp">list</span>[<span class="tp">str</span>],
+    model: <span class="tp">str</span> = <span class="st">"text-embedding-3-small"</span>,
+    dimensions: <span class="tp">int</span> | <span class="tp">None</span> = <span class="tp">None</span>,
+) -> <span class="tp">list</span>[<span class="tp">list</span>[<span class="tp">float</span>]]:
+    <span class="st">"""Embed a batch of texts. Returns one vector per text."""</span>
+    kwargs = {<span class="st">"model"</span>: model, <span class="st">"input"</span>: texts}
+    <span class="kw">if</span> dimensions:
+        kwargs[<span class="st">"dimensions"</span>] = dimensions  <span class="cm"># MRL truncation — only text-embedding-3-*</span>
+    resp = client.embeddings.<span class="fn">create</span>(**kwargs)
+    <span class="kw">return</span> [item.embedding <span class="kw">for</span> item <span class="kw">in</span> resp.data]
+
+<span class="kw">def</span> <span class="fn">cosine_similarity</span>(a: <span class="tp">list</span>[<span class="tp">float</span>], b: <span class="tp">list</span>[<span class="tp">float</span>]) -> <span class="tp">float</span>:
+    a, b = np.<span class="fn">array</span>(a), np.<span class="fn">array</span>(b)
+    <span class="kw">return</span> <span class="tp">float</span>(a @ b / (np.linalg.<span class="fn">norm</span>(a) * np.linalg.<span class="fn">norm</span>(b)))
+
+<span class="cm"># ── Embed a corpus (at index time) ───────────────────────────────────</span>
+chunks = [
+    <span class="st">"Employees may claim up to $150 per month for home internet."</span>,
+    <span class="st">"A one-time $600 allowance is available for ergonomic furniture."</span>,
+    <span class="st">"All claims must be submitted via Workday by the 5th of the month."</span>,
+    <span class="st">"AcmeCorp was founded in Austin, Texas in 2018 and employs 400 people."</span>,
+]
+
+chunk_vectors = <span class="fn">embed_texts</span>(chunks)
+
+<span class="cm"># ── Embed a query (at retrieval time) ────────────────────────────────</span>
+query = <span class="st">"How much can I claim for my standing desk?"</span>
+query_vector = <span class="fn">embed_texts</span>([query])[<span class="nm">0</span>]
+
+<span class="cm"># ── Rank by similarity ───────────────────────────────────────────────</span>
+scores = [(i, <span class="fn">cosine_similarity</span>(query_vector, cv)) <span class="kw">for</span> i, cv <span class="kw">in</span> <span class="fn">enumerate</span>(chunk_vectors)]
+scores.<span class="fn">sort</span>(key=<span class="kw">lambda</span> x: x[<span class="nm">1</span>], reverse=<span class="tp">True</span>)
+<span class="kw">for</span> rank, (idx, score) <span class="kw">in</span> <span class="fn">enumerate</span>(scores[:3]):
+    <span class="fn">print</span>(<span class="st">f"[{rank+1}] score={score:.3f}  {chunks[idx]}"</span>)
+<span class="cm"># → [1] score=0.721  "A one-time $600 allowance for ergonomic furniture."</span>
+<span class="cm"># → [2] score=0.614  "Employees may claim up to $150 per month for home internet."</span>
+<span class="cm"># → [3] score=0.482  "All claims must be submitted via Workday..."</span></code></pre>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">Use asymmetric embedding at query time</strong>
+            Some models (BAAI/bge, Cohere) support an instruction prefix that tells the model whether it is encoding a query or a document. At index time you embed documents with a "passage:" prefix; at query time you embed with "query:" prefix. This asymmetric encoding improves retrieval precision because the model was trained to match differently-phrased queries against full passages. Always check the model card for recommended prefixes.
+          </div>
+        </div>
+
+        <h2 id="open-source-embeddings">Open-source embeddings with sentence-transformers <a class="anchor" href="#open-source-embeddings">#</a></h2>
+        <p>When you need zero API cost, offline operation, or data-privacy guarantees, <code>sentence-transformers</code> is the standard library. It wraps Hugging Face models and handles tokenisation, batching, and pooling behind a single <code>encode()</code> call.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">local_embeddings.py — sentence-transformers with batch encode</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> sentence_transformers <span class="kw">import</span> SentenceTransformer
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cm"># Downloaded from Hugging Face on first run, cached locally</span>
+model = <span class="fn">SentenceTransformer</span>(<span class="st">"BAAI/bge-small-en-v1.5"</span>)
+
+chunks = [
+    <span class="st">"Employees may claim up to $150 per month for home internet."</span>,
+    <span class="st">"A one-time $600 allowance is available for ergonomic furniture."</span>,
+    <span class="st">"All claims must be submitted via Workday by the 5th of the month."</span>,
+    <span class="st">"AcmeCorp was founded in Austin, Texas in 2018 and employs 400 people."</span>,
+]
+
+<span class="cm"># normalize_embeddings=True → vectors are unit-length, dot product == cosine similarity</span>
+chunk_vectors = model.<span class="fn">encode</span>(chunks, normalize_embeddings=<span class="tp">True</span>, batch_size=<span class="nm">32</span>)
+
+<span class="cm"># BGE requires this instruction prefix for queries (not for documents)</span>
+query = <span class="st">"Represent this sentence for searching relevant passages: How much can I claim for my standing desk?"</span>
+query_vector = model.<span class="fn">encode</span>([query], normalize_embeddings=<span class="tp">True</span>)[<span class="nm">0</span>]
+
+scores = chunk_vectors @ query_vector  <span class="cm"># fast dot product == cosine sim when normalised</span>
+ranked = np.<span class="fn">argsort</span>(scores)[::-<span class="nm">1</span>]
+<span class="kw">for</span> idx <span class="kw">in</span> ranked[:3]:
+    <span class="fn">print</span>(<span class="st">f"score={scores[idx]:.3f}  {chunks[idx]}"</span>)
+
+<span class="cm"># ── GPU acceleration (if available) ─────────────────────────────────</span>
+<span class="kw">import</span> torch
+device = <span class="st">"cuda"</span> <span class="kw">if</span> torch.cuda.<span class="fn">is_available</span>() <span class="kw">else</span> <span class="st">"cpu"</span>
+model_gpu = <span class="fn">SentenceTransformer</span>(<span class="st">"BAAI/bge-large-en-v1.5"</span>, device=device)
+<span class="cm"># batch_size=64+ on GPU, vs 16–32 on CPU for large models</span></code></pre>
+        </div>
+
+        <h2 id="model-comparison">Model comparison <a class="anchor" href="#model-comparison">#</a></h2>
+        <p>There is no universally best embedding model — the right choice depends on dimensions, latency, cost, and whether your corpus is in-distribution for that model's training data. The table below covers the models most commonly used in production RAG systems as of 2025.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem;overflow-x:auto">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem">Embedding model comparison</div>
+          <table style="width:100%;border-collapse:collapse;font-size:12.5px;min-width:640px">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border)">
+                <th style="text-align:left;padding:.5rem .6rem;color:var(--fg-dim);font-weight:600">Model</th>
+                <th style="text-align:center;padding:.5rem .6rem;color:var(--fg-dim);font-weight:600">Dim</th>
+                <th style="text-align:center;padding:.5rem .6rem;color:var(--fg-dim);font-weight:600">Max tokens</th>
+                <th style="text-align:center;padding:.5rem .6rem;color:var(--fg-dim);font-weight:600">Cost</th>
+                <th style="text-align:left;padding:.5rem .6rem;color:var(--fg-dim);font-weight:600">Best for</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--border-subtle)">
+                <td style="padding:.5rem .6rem;font-weight:600;color:var(--fg)">text-embedding-3-small</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">1536</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">8192</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:#10b981">$0.02/1M</td>
+                <td style="padding:.5rem .6rem;color:var(--fg-dim)">Most production RAG — great quality/cost balance</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border-subtle)">
+                <td style="padding:.5rem .6rem;font-weight:600;color:var(--fg)">text-embedding-3-large</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">3072</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">8192</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">$0.13/1M</td>
+                <td style="padding:.5rem .6rem;color:var(--fg-dim)">When retrieval quality is critical and cost is secondary</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border-subtle)">
+                <td style="padding:.5rem .6rem;font-weight:600;color:var(--fg)">Cohere embed-english-v3.0</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">1024</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">512</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">$0.10/1M</td>
+                <td style="padding:.5rem .6rem;color:var(--fg-dim)">Strong on BEIR benchmarks; Cohere ecosystem</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border-subtle)">
+                <td style="padding:.5rem .6rem;font-weight:600;color:var(--fg)">BAAI/bge-m3</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">1024</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">8192</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:#10b981">Free</td>
+                <td style="padding:.5rem .6rem;color:var(--fg-dim)">Multi-lingual, long context, self-hosted</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border-subtle)">
+                <td style="padding:.5rem .6rem;font-weight:600;color:var(--fg)">BAAI/bge-small-en-v1.5</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">384</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">512</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:#10b981">Free</td>
+                <td style="padding:.5rem .6rem;color:var(--fg-dim)">Fast local inference, limited memory, prototyping</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border-subtle)">
+                <td style="padding:.5rem .6rem;font-weight:600;color:var(--fg)">nomic-embed-text-v1.5</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">768</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">8192</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:#10b981">Free</td>
+                <td style="padding:.5rem .6rem;color:var(--fg-dim)">Long-context open-source, MRL support, competitive quality</td>
+              </tr>
+              <tr>
+                <td style="padding:.5rem .6rem;font-weight:600;color:var(--fg)">all-MiniLM-L6-v2</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">384</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">256</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:#10b981">Free</td>
+                <td style="padding:.5rem .6rem;color:var(--fg-dim)">Very fast, small footprint — semantic chunking (4.2) at index time</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="dimensions">What dimensions mean <a class="anchor" href="#dimensions">#</a></h2>
+        <p>Dimensions set the size of the vector space. A 384-dimensional model has 384 numbers per embedding; a 3072-dimensional model has 3072. Higher dimensions allow finer distinctions between semantically close texts — the model has more "room" to place similar but distinct concepts far enough apart to be distinguishable at retrieval time.</p>
+
+        <div class="compare-block reveal">
+          <div class="compare-col compare-col--wrong">
+            <div class="compare-label">Higher dimensions are not always better</div>
+            <ul class="compare-list">
+              <li>3072-d vectors use 8× more storage than 384-d</li>
+              <li>Vector similarity search is O(n·d) — slower queries</li>
+              <li>For simple, homogeneous corpora the extra dimensions are wasted capacity</li>
+              <li>Going from 384-d to 3072-d on a general knowledge base FAQ rarely improves RAGAS context recall by more than 2–3%</li>
+            </ul>
+          </div>
+          <div class="compare-col compare-col--right">
+            <div class="compare-label">When to upgrade dimensions</div>
+            <ul class="compare-list">
+              <li>Your corpus has many semantically similar documents that need fine-grained separation (e.g. 10k product descriptions with subtle variations)</li>
+              <li>Your eval shows retrieval recall stalling and context is in the corpus — not a chunking or query problem</li>
+              <li>You are using MRL to truncate at runtime — start with 3072-d model, test with 512-d, promote when quality holds</li>
+            </ul>
+          </div>
+        </div>
+
+        <h2 id="benchmarking">Benchmarking with MTEB <a class="anchor" href="#benchmarking">#</a></h2>
+        <p>MTEB (Massive Text Embedding Benchmark) evaluates embedding models across 56 datasets and 8 task types. For RAG you care about one task type: <strong>Retrieval</strong>. The metric is NDCG@10 — whether the correct passage appears in the top 10 results.</p>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">MTEB scores are an upper bound, not a guarantee</strong>
+            MTEB benchmarks public datasets. If your corpus is domain-specific (legal, medical, proprietary enterprise data), MTEB scores correlate weakly with actual retrieval performance on your data. Always run a domain-specific eval: take 50–100 representative queries from your use case, embed them, retrieve top-K chunks, and measure how often the correct answer appears. This is more predictive than any published benchmark.
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">benchmark_embeddings.py — compare two models on your own corpus</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> sentence_transformers <span class="kw">import</span> SentenceTransformer
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cm"># Ground-truth pairs: (query, correct_chunk_index)</span>
+eval_set = [
+    (<span class="st">"How much for standing desk?"</span>, <span class="nm">1</span>),      <span class="cm"># correct answer is chunk[1]</span>
+    (<span class="st">"When is the Workday deadline?"</span>, <span class="nm">2</span>),
+    (<span class="st">"What does AcmeCorp do?"</span>, <span class="nm">3</span>),
+    (<span class="st">"Internet expense allowance"</span>, <span class="nm">0</span>),
+]
+
+chunks = [
+    <span class="st">"Employees may claim up to $150 per month for home internet."</span>,
+    <span class="st">"A one-time $600 allowance is available for ergonomic furniture."</span>,
+    <span class="st">"All claims must be submitted via Workday by the 5th of the month."</span>,
+    <span class="st">"AcmeCorp was founded in Austin, Texas in 2018 and employs 400 people."</span>,
+]
+
+<span class="kw">def</span> <span class="fn">recall_at_k</span>(model_name: <span class="tp">str</span>, k: <span class="tp">int</span> = <span class="nm">3</span>) -> <span class="tp">float</span>:
+    model = <span class="fn">SentenceTransformer</span>(model_name)
+    doc_vecs = model.<span class="fn">encode</span>(chunks, normalize_embeddings=<span class="tp">True</span>)
+    hits = <span class="nm">0</span>
+    <span class="kw">for</span> query, correct_idx <span class="kw">in</span> eval_set:
+        q_vec = model.<span class="fn">encode</span>([query], normalize_embeddings=<span class="tp">True</span>)[<span class="nm">0</span>]
+        scores = doc_vecs @ q_vec
+        top_k = <span class="fn">set</span>(np.<span class="fn">argsort</span>(scores)[-k:])
+        <span class="kw">if</span> correct_idx <span class="kw">in</span> top_k:
+            hits += <span class="nm">1</span>
+    <span class="kw">return</span> hits / <span class="fn">len</span>(eval_set)
+
+<span class="kw">for</span> model_name <span class="kw">in</span> [<span class="st">"all-MiniLM-L6-v2"</span>, <span class="st">"BAAI/bge-small-en-v1.5"</span>]:
+    r = <span class="fn">recall_at_k</span>(model_name, k=<span class="nm">3</span>)
+    <span class="fn">print</span>(<span class="st">f"{model_name}: recall@3 = {r:.2%}"</span>)</code></pre>
+        </div>
+
+        <div class="callout callout--note">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">Cosine vs dot product vs Euclidean distance</strong>
+            When vectors are L2-normalised (unit length), cosine similarity and dot product are identical — use dot product since it is faster. Most vector databases default to cosine; if yours defaults to Euclidean (L2 distance), normalise your vectors first or switch metrics. Euclidean distance is sensitive to vector magnitude, which is irrelevant for semantic similarity.
+          </div>
+        </div>
+
+        <h2 id="when-to-fine-tune">When to fine-tune an embedding model <a class="anchor" href="#when-to-fine-tune">#</a></h2>
+        <p>Fine-tuning is warranted when your domain vocabulary is significantly different from the model's training data — medical abbreviations, internal product names, proprietary acronyms. The signal you need is a set of (query, positive_passage, negative_passage) triplets from your domain.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">finetune_embeddings.py — domain fine-tuning with sentence-transformers</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> sentence_transformers <span class="kw">import</span> SentenceTransformer, InputExample, losses
+<span class="kw">from</span> torch.utils.data <span class="kw">import</span> DataLoader
+
+<span class="cm"># Load base model — fine-tune from a good starting point, not from scratch</span>
+model = <span class="fn">SentenceTransformer</span>(<span class="st">"BAAI/bge-small-en-v1.5"</span>)
+
+<span class="cm"># Domain training pairs: (query, positive_passage) — negatives sampled in-batch</span>
+train_examples = [
+    <span class="fn">InputExample</span>(texts=[<span class="st">"internet expense claim"</span>, <span class="st">"Employees may claim $150/mo for home internet."</span>]),
+    <span class="fn">InputExample</span>(texts=[<span class="st">"ergonomic equipment allowance"</span>, <span class="st">"$600 one-time allowance for ergonomic furniture."</span>]),
+    <span class="cm"># ... hundreds to thousands of domain-specific pairs</span>
+]
+
+<span class="cm"># MultipleNegativesRankingLoss: other batch items become in-batch negatives</span>
+train_dataloader = <span class="fn">DataLoader</span>(train_examples, shuffle=<span class="tp">True</span>, batch_size=<span class="nm">32</span>)
+train_loss = losses.<span class="fn">MultipleNegativesRankingLoss</span>(model)
+
+model.<span class="fn">fit</span>(
+    train_objectives=[(train_dataloader, train_loss)],
+    epochs=<span class="nm">3</span>,
+    warmup_steps=<span class="nm">100</span>,
+    show_progress_bar=<span class="tp">True</span>,
+)
+model.<span class="fn">save</span>(<span class="st">"./my-domain-embedding-model"</span>)
+
+<span class="cm"># Reload later:</span>
+<span class="cm"># model = SentenceTransformer("./my-domain-embedding-model")</span></code></pre>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">Generate training pairs from your LLM</strong>
+            If you have a corpus but no labeled query/answer pairs, use an LLM to generate synthetic training data. For each chunk, prompt: "Write 3 different questions that this passage answers." Collect (generated question, original chunk) as positive pairs. This bootstraps fine-tuning without manual labeling and typically yields a 5–15% recall improvement over the base model on domain-specific retrieval tasks.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 4.3: Embedding Models</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~22 min · 4 live code demos</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 3:00</span><span class="script-action">INTRO</span><span class="script-narration">"We have chunks. Now we need to convert those chunks into a form that a computer can compare — not by keyword matching, but by meaning. That form is the embedding vector. I'm going to show you what it is, how it's made, and which model to pick for your use case."</span></div>
+          <div class="script-line"><span class="script-ts">3:00 – 7:00</span><span class="script-action">DIAGRAM</span><span class="script-narration">Walk through the text-to-vector pipeline diagram. "The tokeniser splits the text into sub-word tokens, the transformer encoder runs self-attention across all of them, and pooling collapses that into one fixed-length vector. That vector is what gets stored in your vector database." Show the cosine similarity intuition — two similar sentences have a small angle between their vectors.</span></div>
+          <div class="script-line"><span class="script-ts">7:00 – 13:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run openai_embeddings.py. "Four chunks from a fake HR policy. The query is 'How much can I claim for my standing desk?' Watch the similarity scores — the ergonomic furniture chunk should rank highest. That's semantic matching, not keyword matching. The word 'standing desk' never appears in the corpus." Print the actual vector to show what it looks like — a list of 1536 numbers.</span></div>
+          <div class="script-line"><span class="script-ts">13:00 – 18:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run local_embeddings.py with BAAI/bge-small. "This runs entirely on your machine — no API call, no cost, no data leaves your network. The quality is close to the OpenAI small model on general English text. Watch the BGE instruction prefix — 'Represent this sentence for searching…' That asymmetric embedding is one of the tricks that makes BGE competitive."</span></div>
+          <div class="script-line"><span class="script-ts">18:00 – 22:00</span><span class="script-action">TABLE + WRAP</span><span class="script-narration">Walk through the model comparison table. "For most production RAG: text-embedding-3-small. It's cheap, high context window, great quality. Only upgrade to large if your eval scores are stalling. For offline/privacy: bge-m3 or nomic-embed-text-v1.5 — both have 8k context and MRL. For prototyping: MiniLM — it's tiny, fast, and good enough to test your chunking logic." End: "Next module: where do you put these vectors? Vector databases."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>What is contrastive training and why does the training data distribution matter for your RAG system?</summary>
+          <div class="selfcheck__a">Contrastive training optimises the model to produce high cosine similarity for positive pairs (semantically similar texts) and low similarity for negative pairs. The model learns what "similar" and "different" mean from the distribution of those pairs. If the training data is general web text, the model learns general semantic similarity well. If your corpus is, say, Salesforce SOQL documentation or pharmaceutical trial reports, the domain jargon — object names, technical abbreviations, domain-specific phrasings — may not appear in the training pairs, so the model's similarity estimates for those concepts will be less accurate. This is why domain-specific fine-tuning (or selecting a model fine-tuned on similar data) can materially improve retrieval recall on specialised corpora.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Your embedding model has a 512-token limit but you are chunking documents at 400 tokens. You switch to a new model with an 8192-token limit. Does this mean you should use much larger chunks?</summary>
+          <div class="selfcheck__a">Not necessarily. The token limit of an embedding model defines the maximum input it can process without truncation — but the optimal chunk size for retrieval is still controlled by the precision/recall tradeoff from module 4.2, not by the model's max tokens. Larger chunks still dilute the embedding signal with noise from multiple topics. The 8192-token limit is valuable when your document units are naturally large (e.g. a long legal clause or a full API documentation page that must not be split), not as a reason to use larger chunks universally. Keep chunking decisions based on your RAGAS eval results, not on the model's context window ceiling.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Explain matryoshka representation learning (MRL) and how you would use it in a production RAG system with a large corpus.</summary>
+          <div class="selfcheck__a">MRL trains the model so that the first N dimensions of the vector are independently useful for retrieval. A 3072-d vector trained with MRL can be truncated to 512-d or 256-d without retraining, with only a modest quality loss. In a production RAG system with millions of chunks, you might: (1) Embed all documents at full 3072-d during initial indexing. (2) Run your RAGAS eval with truncated vectors at 512-d, 256-d, 128-d. (3) Choose the smallest dimension that keeps context recall above your threshold. (4) Store and query at that reduced dimension — lower storage cost, faster similarity search, same model. This avoids reindexing from scratch if you need to scale down later.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What is the difference between cosine similarity and dot product similarity, and when are they equivalent?</summary>
+          <div class="selfcheck__a">Cosine similarity measures the angle between two vectors, ignoring their magnitude: <code>cos(θ) = a·b / (|a| × |b|)</code>. Dot product computes <code>a·b</code> directly, which reflects both angle and magnitude. They are equivalent when both vectors are L2-normalised (unit length: <code>|a| = |b| = 1</code>), because the division by magnitudes becomes 1/1. Most embedding models trained with contrastive loss produce near-unit-length vectors, and calling <code>model.encode(..., normalize_embeddings=True)</code> explicitly enforces this. When vectors are normalised you can use dot product (faster in most vector databases and NumPy) instead of computing the full cosine formula. Use Euclidean distance only if you are working with a vector database that doesn't support cosine — it gives different rankings than cosine on non-normalised vectors.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Up next</div>
+          <div class="next-mod__title">4.4 · Vector Databases</div>
+          <p class="next-mod__desc">Where to store and query your embeddings at scale — comparing Pinecone, Weaviate, Qdrant, pgvector, and in-memory FAISS; ANN indexing algorithms (HNSW, IVF); filtering on metadata; and when to use each option.</p>
+        </div>
+        <a class="next-btn" href="module-4-4.html">Continue →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#what-is-an-embedding">What is an embedding?</a>
+    <a href="#contrastive-training">How models are trained</a>
+    <a href="#calling-the-api">Calling embedding APIs</a>
+    <a href="#open-source-embeddings">Open-source with sentence-transformers</a>
+    <a href="#model-comparison">Model comparison</a>
+    <a href="#dimensions">What dimensions mean</a>
+    <a href="#benchmarking">Benchmarking with MTEB</a>
+    <a href="#when-to-fine-tune">When to fine-tune</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 4.3 / 62<br/>Phase 4 · Week 9<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

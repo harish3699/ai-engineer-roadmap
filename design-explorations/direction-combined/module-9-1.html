@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 9.1 Storage &amp; Data · by Harish Mondepu</title>
+<meta name="description" content="S3 for document lakes, RDS PostgreSQL for agent state, and DynamoDB for high-throughput ingestion pipeline KV state — the three storage primitives every AWS-deployed agent system needs."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#3730a3;--phase-hi:#4338ca;--phase-soft:rgba(67,56,202,.1);--phase-text:#3730a3}
+[data-theme="dark"]{--phase:#818cf8;--phase-hi:#a5b4fc;--phase-soft:rgba(129,140,248,.1);--phase-text:#c7d2fe}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 9 · <strong>Storage &amp; Data</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 57 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#1aada0"></span>Phase 1 · Python Foundations ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#06b6d4"></span>Phase 2 · LLM Mental Model ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#a78bfa"></span>Phase 3 · Prompt Engineering ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f06292"></span>Phase 4 · RAG + Evaluation ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#10b981"></span>Phase 5 · Tools, MCP &amp; Agents ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f59e0b"></span>Phase 6 · Memory &amp; Context ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f97316"></span>Phase 7 · Multi-Agent Orchestration ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#eab308"></span>Phase 8 · Guardrails &amp; LLMOps ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 9 · Cloud Infrastructure
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">9.1</span>Storage &amp; Data</a>
+        <a class="sidebar__mod" href="module-9-2.html"><span class="sidebar__mod-num">9.2</span>Compute</a>
+        <a class="sidebar__mod" href="module-9-3.html"><span class="sidebar__mod-num">9.3</span>Networking &amp; Access</a>
+        <a class="sidebar__mod" href="module-9-4.html"><span class="sidebar__mod-num">9.4</span>AI-Specific Services</a>
+        <a class="sidebar__mod" href="module-9-5.html"><span class="sidebar__mod-num">9.5</span>Deployment &amp; Realtime</a>
+        <a class="sidebar__mod" href="module-9-6.html"><span class="sidebar__mod-num">9.6</span>Cost &amp; Capacity</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 09</span>
+        <span class="tag tag--level">Advanced</span>
+        <span class="tag tag--week">Week 25</span>
+      </div>
+      <h1 class="mod-head__title">Storage <em>&amp; Data</em></h1>
+      <p class="mod-head__sub">Every agent system needs three types of storage working together: durable object storage for raw documents and artefacts, a relational database for structured state and conversation history, and a key-value store for high-throughput pipeline metadata. On AWS those are S3, RDS PostgreSQL, and DynamoDB. This module shows exactly how each one is used in an agent deployment — not a general AWS tutorial, but the specific patterns you'll reach for when building production LLM systems.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~18 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>3 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li><strong>S3:</strong> document lake for raw files uploaded by users, crawled web pages, embeddings export/import, model artefacts, and LLM trace archives — virtually unlimited, pay-per-GB-stored</li>
+          <li><strong>RDS PostgreSQL:</strong> agent conversation state, long-term memory records, evaluation results, user preferences — anything that needs ACID transactions, joins, or complex queries. Use pgvector for embeddings stored alongside structured data</li>
+          <li><strong>DynamoDB:</strong> ingestion pipeline job state, document processing status, idempotency keys — anything that needs single-digit-ms reads at arbitrary throughput with a known access pattern</li>
+          <li><strong>The decision rule:</strong> S3 for blobs, Postgres for queryable structured data and anything you'll JOIN, DynamoDB for high-throughput KV with known access patterns and no joins</li>
+        </ul>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="s3">S3 — document lakes and artefact storage <a class="anchor" href="#s3">#</a></h2>
+        <p>In an agent system, S3 is where raw material lives before it's processed, and where outputs are persisted for durability. The typical bucket layout for a RAG pipeline:</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">text</span><span class="code-file">s3-layout.txt — bucket structure for an agent deployment</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>s3://my-agent-prod/
+├── documents/raw/          ← user uploads (PDF, DOCX, TXT) — immutable once written
+│   └── {user_id}/{doc_id}.{ext}
+├── documents/processed/    ← chunked JSON after text extraction
+│   └── {user_id}/{doc_id}.jsonl
+├── embeddings/             ← exported vectors for backup / re-indexing
+│   └── {collection_id}/{date}.parquet
+├── traces/                 ← LangSmith/LangFuse trace exports for offline analysis
+│   └── {year}/{month}/{day}/{trace_id}.json
+└── models/                 ← fine-tuned model artefacts, eval checkpoints
+    └── {experiment_id}/</code></pre>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">s3_document_store.py — upload, presign, and retrieve</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> boto3
+<span class="kw">from</span> pathlib <span class="kw">import</span> Path
+
+s3 = boto3.<span class="fn">client</span>(<span class="st">"s3"</span>, region_name=<span class="st">"us-east-1"</span>)
+BUCKET = <span class="st">"my-agent-prod"</span>
+
+<span class="kw">def</span> <span class="fn">store_document</span>(user_id: <span class="tp">str</span>, doc_id: <span class="tp">str</span>, file_bytes: <span class="tp">bytes</span>, extension: <span class="tp">str</span>) -&gt; <span class="tp">str</span>:
+    key = <span class="st">f"documents/raw/{user_id}/{doc_id}.{extension}"</span>
+    s3.<span class="fn">put_object</span>(
+        Bucket=BUCKET, Key=key, Body=file_bytes,
+        ServerSideEncryption=<span class="st">"AES256"</span>,          <span class="cm"># encrypt at rest</span>
+        Metadata={<span class="st">"user_id"</span>: user_id, <span class="st">"doc_id"</span>: doc_id},
+    )
+    <span class="kw">return</span> key
+
+<span class="kw">def</span> <span class="fn">get_download_url</span>(key: <span class="tp">str</span>, expires_in: <span class="tp">int</span> = <span class="nm">3600</span>) -&gt; <span class="tp">str</span>:
+    <span class="cm">"""Pre-signed URL — never expose the bucket directly to users."""</span>
+    <span class="kw">return</span> s3.<span class="fn">generate_presigned_url</span>(
+        <span class="st">"get_object"</span>,
+        Params={<span class="st">"Bucket"</span>: BUCKET, <span class="st">"Key"</span>: key},
+        ExpiresIn=expires_in,
+    )
+
+<span class="kw">def</span> <span class="fn">stream_document</span>(key: <span class="tp">str</span>) -&gt; <span class="tp">bytes</span>:
+    response = s3.<span class="fn">get_object</span>(Bucket=BUCKET, Key=key)
+    <span class="kw">return</span> response[<span class="st">"Body"</span>].<span class="fn">read</span>()</code></pre>
+        </div>
+
+        <h2 id="rds">RDS PostgreSQL — agent state and memory <a class="anchor" href="#rds">#</a></h2>
+        <p>Postgres is the right home for anything that needs ACID guarantees, rich queries, or a relation to another table. For agents that means: conversation history (LangGraph checkpoint storage), long-term memory records, evaluation results, and user preferences. The pgvector extension lets you store embeddings in the same database as structured metadata — eliminating the need for a separate vector database for smaller deployments.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">sql</span><span class="code-file">schema.sql — agent state tables on RDS Postgres</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="cm">-- Enable pgvector for embedding storage</span>
+<span class="kw">CREATE EXTENSION IF NOT EXISTS</span> vector;
+
+<span class="cm">-- Conversation sessions</span>
+<span class="kw">CREATE TABLE</span> sessions (
+    id          UUID <span class="kw">PRIMARY KEY DEFAULT</span> gen_random_uuid(),
+    user_id     TEXT <span class="kw">NOT NULL</span>,
+    created_at  TIMESTAMPTZ <span class="kw">DEFAULT</span> now(),
+    ended_at    TIMESTAMPTZ,
+    metadata    JSONB <span class="kw">DEFAULT</span> <span class="st">'{}'</span>
+);
+
+<span class="cm">-- LangGraph checkpoints (compatible with PostgresSaver)</span>
+<span class="kw">CREATE TABLE</span> checkpoints (
+    thread_id       TEXT <span class="kw">NOT NULL</span>,
+    checkpoint_ns   TEXT <span class="kw">NOT NULL DEFAULT</span> <span class="st">''</span>,
+    checkpoint_id   TEXT <span class="kw">NOT NULL</span>,
+    parent_id       TEXT,
+    type            TEXT,
+    checkpoint      BYTEA <span class="kw">NOT NULL</span>,
+    metadata        BYTEA <span class="kw">NOT NULL</span>,
+    <span class="kw">PRIMARY KEY</span> (thread_id, checkpoint_ns, checkpoint_id)
+);
+
+<span class="cm">-- Long-term memory with pgvector</span>
+<span class="kw">CREATE TABLE</span> memories (
+    id              UUID <span class="kw">PRIMARY KEY DEFAULT</span> gen_random_uuid(),
+    user_id         TEXT <span class="kw">NOT NULL</span>,
+    content         TEXT <span class="kw">NOT NULL</span>,
+    memory_type     TEXT <span class="kw">NOT NULL</span>,
+    importance      FLOAT <span class="kw">NOT NULL DEFAULT</span> <span class="nm">0.5</span>,
+    embedding       vector(<span class="nm">1536</span>),            <span class="cm">-- text-embedding-3-small dimension</span>
+    created_at      TIMESTAMPTZ <span class="kw">DEFAULT</span> now(),
+    last_accessed   TIMESTAMPTZ <span class="kw">DEFAULT</span> now(),
+    access_count    INT <span class="kw">DEFAULT</span> <span class="nm">0</span>
+);
+
+<span class="kw">CREATE INDEX ON</span> memories <span class="kw">USING</span> hnsw (embedding vector_cosine_ops);
+<span class="kw">CREATE INDEX ON</span> memories (user_id, importance <span class="kw">DESC</span>);
+
+<span class="cm">-- ANN search: top-5 memories by cosine similarity</span>
+<span class="kw">SELECT</span> content, memory_type, importance,
+       <span class="nm">1</span> - (embedding <&lt;=&gt;> $<span class="nm">1</span>::vector) <span class="kw">AS</span> similarity
+<span class="kw">FROM</span> memories
+<span class="kw">WHERE</span> user_id = $<span class="nm">2</span> <span class="kw">AND</span> importance > <span class="nm">0.2</span>
+<span class="kw">ORDER BY</span> embedding <&lt;=&gt;> $<span class="nm">1</span>::vector
+<span class="kw">LIMIT</span> <span class="nm">5</span>;</code></pre>
+        </div>
+
+        <h2 id="dynamodb">DynamoDB — ingestion pipeline KV state <a class="anchor" href="#dynamodb">#</a></h2>
+        <p>DynamoDB excels when you have a high-throughput operation with a known access pattern — always fetched by a single key, no joins required. Document ingestion pipelines are a perfect fit: track processing status per document, store idempotency keys to prevent duplicate processing, record chunk counts and error flags.</p>
+        <p>The single-table design pattern: store all entity types in one table, use the PK/SK combination to encode the entity type and identifier. This gives you the flexibility to add access patterns later without schema changes.</p>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">✦</span>
+          <div>
+            <strong class="callout__title">Postgres vs DynamoDB decision</strong>
+            If you need to query "all documents for user X that failed in the last 7 days" with a WHERE clause — that's Postgres. If you need to check "is document Y already processed?" at 50,000 requests/second — that's DynamoDB. When in doubt: start with Postgres (easier to iterate on), migrate the hot paths to DynamoDB when you have real throughput data.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: Compute</div>
+            <div class="cta-block__sub">Module 9.2 covers Lambda for event-driven flows, ECS Fargate for long-running agents, and ECR for container image management — choosing the right compute shape for each part of your system.</div>
+          </div>
+          <a class="cta-block__btn" href="module-9-2.html">Module 9.2 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#s3">S3 — document lakes</a></li>
+      <li><a class="toc__link" href="#rds">RDS PostgreSQL</a></li>
+      <li><a class="toc__link" href="#dynamodb">DynamoDB</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){const h=document.documentElement;const dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');localStorage.setItem('ae-theme',dark?'light':'dark');document.getElementById('themeIcon').textContent=dark?'☀':'☾';document.getElementById('themeLabel').textContent=dark?'Light':'Dark';}
+(function(){const t=localStorage.getItem('ae-theme');if(t){document.documentElement.setAttribute('data-theme',t);const dark=t==='dark';document.getElementById('themeIcon').textContent=dark?'☾':'☀';document.getElementById('themeLabel').textContent=dark?'Dark':'Light';}})();
+function copyCode(btn){const code=btn.closest('.code-wrap').querySelector('pre code');navigator.clipboard.writeText(code.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{es.forEach(e=>{const id=e.target.id;if(!id)return;const link=document.querySelector(`.toc__link[href="#${id}"]`);if(!link)return;if(e.isIntersecting){document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));link.classList.add('active');}});},{rootMargin:'-20% 0px -70% 0px'});document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

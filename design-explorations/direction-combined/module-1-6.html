@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 1.6 Database Connectivity · by Harish Mondepu</title>
+<meta name="description" content="psycopg2, SQLAlchemy ORM, and connection pooling — the database layer every production AI pipeline depends on."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 1 · <strong>Database Connectivity</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 6 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 1 · Python Foundations
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="index.html"><span class="sidebar__mod-num">1.1</span>Core Python<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-1-2.html"><span class="sidebar__mod-num">1.2</span>Object-Oriented Python<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-1-3.html"><span class="sidebar__mod-num">1.3</span>Data Structures<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-1-4.html"><span class="sidebar__mod-num">1.4</span>Error &amp; File Handling<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-1-5.html"><span class="sidebar__mod-num">1.5</span>HTTP APIs<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">1.6</span>Database Connectivity<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod" href="module-1-7.html"><span class="sidebar__mod-num">1.7</span>FastAPI<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-1-8.html"><span class="sidebar__mod-num">1.8</span>Async Programming<span class="sidebar__check"></span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#8865a3"></span>Phase 2 · LLM Mental Model</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#e85a7a"></span>Phase 3 · Prompt Engineering</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#e85a7a;opacity:.5"></span>Phase 4 · RAG + Evaluation</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 01</span>
+        <span class="tag tag--level">Intermediate</span>
+        <span class="tag tag--week">Week 1–3</span>
+      </div>
+      <h1 class="mod-head__title">Database <em>Connectivity</em></h1>
+      <p class="mod-head__sub">Every production agent needs persistent state. Chat history, ingestion progress, evaluation results — all of it lives in a database. This module covers raw PostgreSQL with psycopg2, the SQLAlchemy ORM, and the connection pooling that keeps your agent from exhausting DB connections under load.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~30 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>3 code examples</span>
+        <span>Last updated 2026-05-06</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Always use parameterised queries — string interpolation into SQL is a textbook SQL injection vulnerability</li>
+          <li>Connection pooling prevents "too many connections" errors — never create a new connection per request in production</li>
+          <li>The SQLAlchemy ORM is Pydantic-compatible: your data models from Module 1.2 map cleanly to ORM models</li>
+          <li>Use raw SQL (via <code>session.execute(text(...))</code>) when the ORM generates inefficient queries — don't fight the abstraction, just bypass it</li>
+          <li><code>pgvector</code> extension turns PostgreSQL into a vector database — your Phase 4 capstone uses it alongside Pinecone</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Modules 1.1–1.5 complete</li>
+            <li><div class="meta-list__dot">!</div><code>pip install psycopg2-binary sqlalchemy</code></li>
+            <li><div class="meta-list__dot">!</div>PostgreSQL running locally (or a free Neon/Supabase instance)</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Execute safe parameterised queries with psycopg2</li>
+            <li><div class="meta-list__dot">2</div>Define SQLAlchemy models and query with sessions</li>
+            <li><div class="meta-list__dot">3</div>Configure a connection pool and explain why it matters</li>
+            <li><div class="meta-list__dot">4</div>Drop to raw SQL when the ORM gets in the way</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">SQLAlchemy ORM Crash Course — Tech With Tim</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· SQLAlchemy ORM — ArjanCodes or Tech With Tim</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/AKQ3XEDI9Mw" title="SQLAlchemy ORM Crash Course" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ SQLAlchemy ORM fundamentals · timestamps in script below</div>
+      </div>
+
+      <div class="prose">
+        <h2 id="psycopg2">Raw PostgreSQL with psycopg2 <a class="anchor" href="#psycopg2">#</a></h2>
+        <p>psycopg2 is the standard PostgreSQL adapter for Python. Use it when you need full control over SQL, when you're writing performance-critical queries, or when you're running database migrations.</p>
+
+        <div class="callout callout--err">
+          <span class="callout__icon">🚫</span>
+          <div>
+            <strong class="callout__title">SQL injection — never do this</strong>
+            <code>f"SELECT * FROM chunks WHERE source = '{user_input}'"</code> — if <code>user_input</code> is <code>'; DROP TABLE chunks; --</code>, you just deleted your data. Always use parameterised queries with <code>%s</code> placeholders.
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">psycopg2_example.py</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> psycopg2
+<span class="kw">from</span> psycopg2.extras <span class="kw">import</span> RealDictCursor
+<span class="kw">import</span> os
+
+<span class="cm"># ── Connect ───────────────────────────────────────────────────────────</span>
+conn = psycopg2.<span class="fn">connect</span>(os.environ[<span class="st">"DATABASE_URL"</span>])
+
+<span class="kw">with</span> conn.<span class="fn">cursor</span>(cursor_factory=<span class="fn">RealDictCursor</span>) <span class="kw">as</span> cur:
+    <span class="cm"># ── Parameterised query — %s placeholders, NEVER f-strings ───────</span>
+    cur.<span class="fn">execute</span>(
+        <span class="st">"SELECT id, text, score FROM chunks WHERE source = %s AND score > %s"</span>,
+        (<span class="st">"policy.pdf"</span>, <span class="nm">0.8</span>),   <span class="cm"># values as a tuple, not string-interpolated</span>
+    )
+    rows = cur.<span class="fn">fetchall</span>()   <span class="cm"># list of RealDictRow — access by column name</span>
+    <span class="fn">print</span>(rows[<span class="nm">0</span>][<span class="st">"text"</span>])
+
+    <span class="cm"># ── Insert with RETURNING ─────────────────────────────────────────</span>
+    cur.<span class="fn">execute</span>(
+        <span class="st">"""
+        INSERT INTO ingestion_jobs (source, status, created_at)
+        VALUES (%s, %s, NOW())
+        RETURNING id
+        """</span>,
+        (<span class="st">"new_doc.pdf"</span>, <span class="st">"queued"</span>),
+    )
+    new_id = cur.<span class="fn">fetchone</span>()[<span class="st">"id"</span>]
+    conn.<span class="fn">commit</span>()   <span class="cm"># DML requires explicit commit</span>
+
+conn.<span class="fn">close</span>()</code></pre>
+        </div>
+
+        <h2 id="sqlalchemy">SQLAlchemy ORM <a class="anchor" href="#sqlalchemy">#</a></h2>
+        <p>The ORM lets you work with database rows as Python objects. It integrates with Pydantic (Module 1.2) and FastAPI (Module 1.7), and is what LangGraph uses internally for its PostgreSQL checkpointer.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">sqlalchemy_orm.py — model definition + session queries</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> sqlalchemy <span class="kw">import</span> create_engine, String, Float, Integer, text
+<span class="kw">from</span> sqlalchemy.orm <span class="kw">import</span> DeclarativeBase, Mapped, mapped_column, Session
+<span class="kw">import</span> os
+
+engine = <span class="fn">create_engine</span>(os.environ[<span class="st">"DATABASE_URL"</span>], pool_size=<span class="nm">10</span>, max_overflow=<span class="nm">20</span>)
+
+<span class="cm"># ── Model definition ─────────────────────────────────────────────────</span>
+<span class="kw">class</span> <span class="tp">Base</span>(<span class="tp">DeclarativeBase</span>): <span class="kw">pass</span>
+
+<span class="kw">class</span> <span class="tp">Chunk</span>(<span class="tp">Base</span>):
+    __tablename__ = <span class="st">"chunks"</span>
+
+    id:     <span class="tp">Mapped</span>[<span class="tp">int</span>]   = <span class="fn">mapped_column</span>(<span class="fn">Integer</span>(), primary_key=<span class="kw">True</span>)
+    source: <span class="tp">Mapped</span>[<span class="tp">str</span>]   = <span class="fn">mapped_column</span>(<span class="fn">String</span>(<span class="nm">512</span>), nullable=<span class="kw">False</span>)
+    text:   <span class="tp">Mapped</span>[<span class="tp">str</span>]   = <span class="fn">mapped_column</span>(<span class="fn">String</span>(), nullable=<span class="kw">False</span>)
+    score:  <span class="tp">Mapped</span>[<span class="tp">float</span>] = <span class="fn">mapped_column</span>(<span class="fn">Float</span>(), default=<span class="nm">0.0</span>)
+
+Base.metadata.<span class="fn">create_all</span>(engine)   <span class="cm"># creates table if it doesn't exist</span>
+
+<span class="cm"># ── Session: query, insert, update ───────────────────────────────────</span>
+<span class="kw">with</span> <span class="fn">Session</span>(engine) <span class="kw">as</span> session:
+    <span class="cm"># Query — ORM style</span>
+    high_score = (
+        session.<span class="fn">query</span>(<span class="tp">Chunk</span>)
+        .<span class="fn">filter</span>(<span class="tp">Chunk</span>.score > <span class="nm">0.8</span>)
+        .<span class="fn">order_by</span>(<span class="tp">Chunk</span>.score.<span class="fn">desc</span>())
+        .<span class="fn">limit</span>(<span class="nm">5</span>)
+        .<span class="fn">all</span>()
+    )
+
+    <span class="cm"># Insert</span>
+    new_chunk = <span class="fn">Chunk</span>(source=<span class="st">"guide.pdf"</span>, text=<span class="st">"RAG pipelines..."</span>, score=<span class="nm">0.92</span>)
+    session.<span class="fn">add</span>(new_chunk)
+    session.<span class="fn">commit</span>()
+
+    <span class="cm"># Raw SQL when ORM generates inefficient query</span>
+    result = session.<span class="fn">execute</span>(
+        <span class="fn">text</span>(<span class="st">"SELECT id, score FROM chunks ORDER BY score DESC LIMIT 100"</span>)
+    )
+    rows = result.<span class="fn">fetchall</span>()</code></pre>
+        </div>
+
+        <h2 id="connection-pooling">Connection pooling <a class="anchor" href="#connection-pooling">#</a></h2>
+        <p>Creating a new DB connection takes 30–100ms. Under concurrent load, creating a connection per request exhausts PostgreSQL's connection limit (default 100) in seconds. A pool maintains a set of open connections and lends them to requests — the request returns the connection to the pool when done.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">connection_pool.py — pool config and why the numbers matter</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> sqlalchemy <span class="kw">import</span> create_engine
+
+<span class="cm"># ── SQLAlchemy pool config ────────────────────────────────────────────</span>
+engine = <span class="fn">create_engine</span>(
+    os.environ[<span class="st">"DATABASE_URL"</span>],
+    pool_size=<span class="nm">10</span>,        <span class="cm"># keep 10 connections always open</span>
+    max_overflow=<span class="nm">20</span>,     <span class="cm"># allow 20 more under burst (total 30 max)</span>
+    pool_timeout=<span class="nm">30</span>,     <span class="cm"># wait up to 30s for a connection before raising</span>
+    pool_recycle=<span class="nm">1800</span>,   <span class="cm"># recycle connections after 30min (avoids stale TCP)</span>
+    pool_pre_ping=<span class="kw">True</span>,  <span class="cm"># test connection before lending — auto-reconnects</span>
+)
+
+<span class="cm"># ── Rule of thumb ─────────────────────────────────────────────────────</span>
+<span class="cm"># pool_size ≈ number of concurrent workers your app can sustain</span>
+<span class="cm"># max_overflow for burst headroom — keep pool_size + max_overflow < DB max_connections</span>
+<span class="cm"># pool_recycle MUST be set for serverless/cloud DBs that drop idle connections</span>
+
+<span class="cm"># ── For async (FastAPI + async SQLAlchemy) use create_async_engine ────</span>
+<span class="kw">from</span> sqlalchemy.ext.asyncio <span class="kw">import</span> create_async_engine
+
+async_engine = <span class="fn">create_async_engine</span>(
+    os.environ[<span class="st">"DATABASE_URL"</span>].<span class="fn">replace</span>(<span class="st">"postgresql://"</span>, <span class="st">"postgresql+asyncpg://"</span>),
+    pool_size=<span class="nm">10</span>,
+    max_overflow=<span class="nm">20</span>,
+)</code></pre>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 1.6: Database Connectivity</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~30 min · screen + narration cues</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 1:00</span><span class="script-action">TITLE CARD</span><span class="script-narration">"Module 1.6 — Database Connectivity. Every production agent needs persistent state. By the end of this module you'll be comfortable with both raw SQL and the ORM — knowing which to use and when."</span></div>
+          <div class="script-line"><span class="script-ts">1:00 – 10:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Open psycopg2_example.py with a real local Postgres. First show the SQL injection vulnerability — execute with user input directly. "See how that drops the table? Now use %s." Run the safe version. Show RealDictCursor so rows are dicts not tuples.</span></div>
+          <div class="script-line"><span class="script-ts">10:00 – 22:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Define the Chunk ORM model. Create the table. Insert a row. Query with filter. "Notice how this mirrors the Pydantic model from Module 1.2 — same field names, same types. In FastAPI you'll convert between them with model_validate."</span></div>
+          <div class="script-line"><span class="script-ts">22:00 – 28:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Show pool config. Open 30 connections simultaneously in a loop without a pool — show the error. Then add the pool and run the same loop — all succeed. "pool_pre_ping is the one you'll add the hard way after your first production outage on a cloud database that drops idle connections."</span></div>
+          <div class="script-line"><span class="script-ts">28:00 – 30:00</span><span class="script-action">WRAP</span><span class="script-narration">"Module 1.7 is FastAPI — we build the /chat endpoint your agents will expose. Pydantic, dependency injection, and automatic OpenAPI docs. The Python phase is almost done."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>Why are parameterised queries safe but f-string SQL is not?</summary>
+          <div class="selfcheck__a">Parameterised queries send the SQL template and the values separately to the database driver. The driver handles escaping and quoting — user input cannot break out of the value context. With f-strings, you construct a single string before sending it to the database. User-supplied values become part of the SQL syntax, allowing injection of arbitrary SQL statements.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What does <code>pool_pre_ping=True</code> do and when does it matter?</summary>
+          <div class="selfcheck__a"><code>pool_pre_ping=True</code> tests each connection with a cheap SELECT before lending it to a request. If the connection is stale (dropped by the database or firewall timeout), it reconnects automatically. Without it, your app will get a cryptic "connection closed" error on the first query after a period of inactivity — common on cloud databases (RDS, Neon, Supabase) that drop idle connections after minutes.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>When would you use <code>session.execute(text(...))</code> instead of ORM-style queries?</summary>
+          <div class="selfcheck__a">When the ORM generates inefficient SQL for complex joins, window functions, CTEs, or database-specific features like PostgreSQL's <code>EXPLAIN ANALYZE</code>. Also useful for bulk operations where ORM's per-row model overhead matters, and for pgvector queries (<code>&lt;-&gt;</code> cosine distance operator) which have no ORM equivalent. The rule: start with ORM, drop to raw SQL when you see the generated query and wince.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What happens when all connections in the pool are in use and a new request arrives?</summary>
+          <div class="selfcheck__a">The request waits up to <code>pool_timeout</code> seconds (default 30s) for a connection to be returned to the pool. If no connection is returned within that time, a <code>TimeoutError</code> is raised. This is why <code>pool_size + max_overflow</code> must match your app's actual concurrency — set too low and you get timeouts; set too high and you exhaust PostgreSQL's <code>max_connections</code> limit.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Up next</div>
+          <div class="next-mod__title">1.7 · FastAPI</div>
+          <p class="next-mod__desc">Build your first <code>/chat</code> endpoint in minutes — Pydantic request/response models, dependency injection, automatic OpenAPI docs, and streaming responses to a chat UI.</p>
+        </div>
+        <a class="next-btn" href="module-1-7.html">Continue →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#psycopg2">Raw psycopg2</a>
+    <a href="#sqlalchemy">SQLAlchemy ORM</a>
+    <a href="#connection-pooling">Connection pooling</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 1.6 / 62<br/>Phase 1 · Week 1–3<br/>Author: Harish Mondepu<br/>Updated: 2026-05-06</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

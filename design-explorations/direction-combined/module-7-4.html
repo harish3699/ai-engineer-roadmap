@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 7.4 Agent-as-Tool · by Harish Mondepu</title>
+<meta name="description" content="Wrap a specialist sub-agent behind a normal @tool interface — the lightweight multi-agent alternative that avoids full graph orchestration when the hierarchy is clear and state is not shared."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#c2410c;--phase-hi:#ea580c;--phase-soft:rgba(234,88,12,.1);--phase-text:#c2410c}
+[data-theme="dark"]{--phase:#f97316;--phase-hi:#fb923c;--phase-soft:rgba(249,115,22,.1);--phase-text:#fed7aa}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 7 · <strong>Agent-as-Tool</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 48 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#1aada0"></span>Phase 1 · Python Foundations ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#06b6d4"></span>Phase 2 · LLM Mental Model ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#a78bfa"></span>Phase 3 · Prompt Engineering ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f06292"></span>Phase 4 · RAG + Evaluation ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#10b981"></span>Phase 5 · Tools, MCP &amp; Agents ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f59e0b"></span>Phase 6 · Memory &amp; Context ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 7 · Multi-Agent Orchestration
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-7-1.html"><span class="sidebar__mod-num">7.1</span>When Multi-Agent? ✓</a>
+        <a class="sidebar__mod done" href="module-7-2.html"><span class="sidebar__mod-num">7.2</span>LangGraph Fundamentals ✓</a>
+        <a class="sidebar__mod done" href="module-7-3.html"><span class="sidebar__mod-num">7.3</span>Common Patterns ✓</a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">7.4</span>Agent-as-Tool</a>
+        <a class="sidebar__mod" href="module-7-5.html"><span class="sidebar__mod-num">7.5</span>State Management</a>
+        <a class="sidebar__mod" href="module-7-6.html"><span class="sidebar__mod-num">7.6</span>A2A Protocol</a>
+        <a class="sidebar__mod" href="module-7-7.html"><span class="sidebar__mod-num">7.7</span>Frameworks Compared</a>
+        <a class="sidebar__mod" href="module-7-8.html"><span class="sidebar__mod-num">7.8</span>Debugging Multi-Agent</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 07</span>
+        <span class="tag tag--level">Expert</span>
+        <span class="tag tag--week">Week 21</span>
+      </div>
+      <h1 class="mod-head__title">Agent-as-<em>Tool</em></h1>
+      <p class="mod-head__sub">Not every multi-agent system needs a graph. When the hierarchy is clear (parent calls child, never the reverse), the flow is deterministic (parent decides when to call the child), and there is no shared mutable state between agents, wrapping a sub-agent as a <code>@tool</code> gives you all the specialisation benefits of multi-agent with none of the LangGraph overhead. The parent agent calls it like any other function. The sub-agent runs its own internal loop, returns a result, and the parent continues. This is the simplest, most debuggable form of multi-agent composition.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~18 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>3 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Agent-as-tool: wrap a complete sub-agent (with its own LLM loop, tools, and system prompt) behind a <code>@tool</code> decorated function — the parent agent calls it like any other tool</li>
+          <li>Use this pattern when: the hierarchy is clear and unidirectional, the sub-agent's task has well-defined input/output types, and you don't need to observe or interrupt the sub-agent's internal steps</li>
+          <li>Composing researcher + summariser + critic agents as tools creates a specialist team without graph state machinery</li>
+          <li>The sub-agent's internal LLM calls are invisible to the parent's context window — each agent has its own isolated context, which is the key benefit</li>
+          <li>Choose LangGraph over agent-as-tool when: you need to observe intermediate states, the flow is non-hierarchical, agents need to communicate directly, or you need checkpointing and resumability</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Module 5.1 — function calling and tool design</li>
+            <li><div class="meta-list__dot">!</div>Module 5.5 — <code>create_react_agent</code> and the <code>@tool</code> decorator</li>
+            <li><div class="meta-list__dot">!</div>Module 7.1 — multi-agent decision framework</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Wrap a complete LangChain agent as a <code>@tool</code> callable</li>
+            <li><div class="meta-list__dot">2</div>Compose three specialist sub-agents under a parent orchestrator agent</li>
+            <li><div class="meta-list__dot">3</div>State the conditions under which agent-as-tool beats LangGraph</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="the-pattern">The pattern <a class="anchor" href="#the-pattern">#</a></h2>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">agent_as_tool.py — wrapping a sub-agent as a @tool</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> langchain_core.tools <span class="kw">import</span> tool
+<span class="kw">from</span> langgraph.prebuilt <span class="kw">import</span> create_react_agent
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI
+
+llm = <span class="tp">ChatOpenAI</span>(model=<span class="st">"gpt-4o-mini"</span>)
+
+<span class="cm"># ── Sub-agent 1: Researcher ───────────────────────────────────────────</span>
+researcher_agent = <span class="fn">create_react_agent</span>(
+    llm,
+    tools=[web_search, fetch_url],           <span class="cm"># researcher's own tools</span>
+    state_modifier=<span class="st">"You are a research specialist. Search for facts only."</span>,
+)
+
+@<span class="fn">tool</span>
+<span class="kw">def</span> <span class="fn">research_topic</span>(topic: <span class="tp">str</span>) -> <span class="tp">str</span>:
+    <span class="st">"""Research a topic thoroughly and return a factual summary.
+    Use this when you need detailed, sourced information on a specific subject."""</span>
+    result = researcher_agent.<span class="fn">invoke</span>({<span class="st">"messages"</span>: [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: topic}]})
+    <span class="kw">return</span> result[<span class="st">"messages"</span>][-<span class="nm">1</span>].content  <span class="cm"># only final answer returned to parent</span>
+
+
+<span class="cm"># ── Sub-agent 2: Code Generator ───────────────────────────────────────</span>
+code_agent = <span class="fn">create_react_agent</span>(
+    llm,
+    tools=[run_tests, check_syntax],
+    state_modifier=<span class="st">"You are a Python expert. Write clean, tested code."</span>,
+)
+
+@<span class="fn">tool</span>
+<span class="kw">def</span> <span class="fn">generate_code</span>(specification: <span class="tp">str</span>) -> <span class="tp">str</span>:
+    <span class="st">"""Write and test Python code for a given specification.
+    Returns the final code only — no explanation unless asked."""</span>
+    result = code_agent.<span class="fn">invoke</span>({<span class="st">"messages"</span>: [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: specification}]})
+    <span class="kw">return</span> result[<span class="st">"messages"</span>][-<span class="nm">1</span>].content
+
+
+<span class="cm"># ── Parent orchestrator ───────────────────────────────────────────────</span>
+orchestrator = <span class="fn">create_react_agent</span>(
+    llm,
+    tools=[research_topic, generate_code],   <span class="cm"># sub-agents are just tools</span>
+    state_modifier=<span class="st">"""You are an orchestrator. For complex tasks:
+1. Use research_topic to gather facts
+2. Use generate_code to produce implementations
+Delegate — do not attempt deep research or coding yourself."""</span>,
+)
+
+<span class="cm"># The parent treats sub-agents exactly like any other tool call.
+# The sub-agent's internal reasoning loop (potentially 10 LLM calls) is
+# invisible to the parent — it only sees the final returned string.</span></code></pre>
+        </div>
+
+        <h2 id="comparison">Agent-as-tool vs LangGraph — decision table <a class="anchor" href="#comparison">#</a></h2>
+
+        <div class="reveal" style="margin:1.5rem 0;overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border)">
+                <th style="text-align:left;padding:.6rem .8rem;color:var(--fg-dim);font-weight:600">Requirement</th>
+                <th style="text-align:left;padding:.6rem .8rem;color:var(--fg-dim);font-weight:600">Agent-as-tool</th>
+                <th style="text-align:left;padding:.6rem .8rem;color:var(--fg-dim);font-weight:600">LangGraph</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem">Clear parent→child hierarchy</td>
+                <td style="padding:.6rem .8rem;color:#34d399">✓ Ideal</td>
+                <td style="padding:.6rem .8rem">Works but overkill</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem">Observe sub-agent intermediate steps</td>
+                <td style="padding:.6rem .8rem;color:#f87171">✗ Not possible</td>
+                <td style="padding:.6rem .8rem;color:#34d399">✓ Via stream()</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem">Interrupt sub-agent mid-execution</td>
+                <td style="padding:.6rem .8rem;color:#f87171">✗ Not possible</td>
+                <td style="padding:.6rem .8rem;color:#34d399">✓ interrupt_before</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem">Agents communicate bidirectionally</td>
+                <td style="padding:.6rem .8rem;color:#f87171">✗ Not supported</td>
+                <td style="padding:.6rem .8rem;color:#34d399">✓ Via shared state</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem">Checkpoint and resume workflows</td>
+                <td style="padding:.6rem .8rem;color:#f87171">✗ Manual only</td>
+                <td style="padding:.6rem .8rem;color:#34d399">✓ Built-in checkpointers</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem">Context isolation between agents</td>
+                <td style="padding:.6rem .8rem;color:#34d399">✓ Automatic</td>
+                <td style="padding:.6rem .8rem">Requires design</td>
+              </tr>
+              <tr>
+                <td style="padding:.6rem .8rem">Implementation complexity</td>
+                <td style="padding:.6rem .8rem;color:#34d399">✓ Low — just a function</td>
+                <td style="padding:.6rem .8rem">Higher — graph DSL</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="composed-team">Composing a specialist team <a class="anchor" href="#composed-team">#</a></h2>
+        <p>The agent-as-tool pattern composes naturally into a specialist team — each agent is a callable with a clear contract. The parent orchestrator decides which specialists to engage and in what order, without any graph state infrastructure:</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">specialist_team.py — researcher + summariser + critic team</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>@<span class="fn">tool</span>
+<span class="kw">def</span> <span class="fn">deep_research</span>(query: <span class="tp">str</span>) -> <span class="tp">str</span>:
+    <span class="st">"""Search and synthesise information on a topic. Returns factual summary with sources."""</span>
+    <span class="kw">return</span> researcher_agent.<span class="fn">invoke</span>({<span class="st">"messages"</span>: [{<span class="st">"role"</span>:<span class="st">"user"</span>,<span class="st">"content"</span>:query}]})[<span class="st">"messages"</span>][-<span class="nm">1</span>].content
+
+@<span class="fn">tool</span>
+<span class="kw">def</span> <span class="fn">summarise_document</span>(document: <span class="tp">str</span>, style: <span class="tp">str</span> = <span class="st">"executive"</span>) -> <span class="tp">str</span>:
+    <span class="st">"""Summarise a long document. style: 'executive' | 'technical' | 'bullet'"""</span>
+    <span class="kw">return</span> summariser_agent.<span class="fn">invoke</span>({<span class="st">"messages"</span>: [{<span class="st">"role"</span>:<span class="st">"user"</span>,<span class="st">"content"</span>:<span class="st">f"{style}: {document}"</span>}]})[<span class="st">"messages"</span>][-<span class="nm">1</span>].content
+
+@<span class="fn">tool</span>
+<span class="kw">def</span> <span class="fn">critique_argument</span>(argument: <span class="tp">str</span>) -> <span class="tp">str</span>:
+    <span class="st">"""Evaluate an argument for logical flaws, missing evidence, and counterarguments."""</span>
+    <span class="kw">return</span> critic_agent.<span class="fn">invoke</span>({<span class="st">"messages"</span>: [{<span class="st">"role"</span>:<span class="st">"user"</span>,<span class="st">"content"</span>:argument}]})[<span class="st">"messages"</span>][-<span class="nm">1</span>].content
+
+<span class="cm"># Parent orchestrator with three specialist tools
+# It decides the order: research → summarise → critique</span>
+analyst = <span class="fn">create_react_agent</span>(llm, tools=[deep_research, summarise_document, critique_argument],
+    state_modifier=<span class="st">"You are an analyst. Use your tools to research, synthesise, and validate claims."</span>)
+
+result = analyst.<span class="fn">invoke</span>({<span class="st">"messages"</span>: [{<span class="st">"role"</span>:<span class="st">"user"</span>,<span class="st">"content"</span>:<span class="st">"Analyse the impact of remote work on productivity"</span>}]})</code></pre>
+        </div>
+
+        <div class="callout callout--info">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">Start with agent-as-tool, graduate to LangGraph</strong>
+            When building a new multi-agent system, start with agent-as-tool. It's faster to implement, easier to test, and often sufficient. Only graduate to LangGraph when you hit one of the concrete limitations in the table above — when you need to observe intermediate state, when agents need to communicate sideways, or when you need durable checkpointing. Premature LangGraph adoption is common and adds weeks of debugging without proportional benefit.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: State Management</div>
+            <div class="cta-block__sub">Module 7.5 covers typed state design with Pydantic, what to put in graph state versus context, and LangGraph checkpointers for resumable workflows — MemorySaver, SqliteSaver, and PostgresSaver.</div>
+          </div>
+          <a class="cta-block__btn" href="module-7-5.html">Module 7.5 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#the-pattern">The pattern</a></li>
+      <li><a class="toc__link" href="#comparison">vs LangGraph decision table</a></li>
+      <li><a class="toc__link" href="#composed-team">Composing a specialist team</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){const h=document.documentElement;const dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');localStorage.setItem('ae-theme',dark?'light':'dark');document.getElementById('themeIcon').textContent=dark?'☀':'☾';document.getElementById('themeLabel').textContent=dark?'Light':'Dark';}
+(function(){const t=localStorage.getItem('ae-theme');if(t){document.documentElement.setAttribute('data-theme',t);const dark=t==='dark';document.getElementById('themeIcon').textContent=dark?'☾':'☀';document.getElementById('themeLabel').textContent=dark?'Dark':'Light';}})();
+function copyCode(btn){const code=btn.closest('.code-wrap').querySelector('pre code');navigator.clipboard.writeText(code.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{es.forEach(e=>{const id=e.target.id;if(!id)return;const link=document.querySelector(`.toc__link[href="#${id}"]`);if(!link)return;if(e.isIntersecting){document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));link.classList.add('active');}});},{rootMargin:'-20% 0px -70% 0px'});document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

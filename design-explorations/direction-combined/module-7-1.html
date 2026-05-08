@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 7.1 When to Go Multi-Agent · by Harish Mondepu</title>
+<meta name="description" content="The most important multi-agent question: when is it actually worth the added complexity? Single-agent with tools beats multi-agent for ~80% of tasks. This module covers the decision framework."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#c2410c;--phase-hi:#ea580c;--phase-soft:rgba(234,88,12,.1);--phase-text:#c2410c}
+[data-theme="dark"]{--phase:#f97316;--phase-hi:#fb923c;--phase-soft:rgba(249,115,22,.1);--phase-text:#fed7aa}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 7 · <strong>When to Go Multi-Agent</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 45 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#f06292"></span>
+        Phase 4 · RAG + Evaluation ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#10b981"></span>
+        Phase 5 · Tools, MCP &amp; Agents ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#f59e0b"></span>
+        Phase 6 · Memory &amp; Context ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 7 · Multi-Agent Orchestration
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">7.1</span>When Multi-Agent?</a>
+        <a class="sidebar__mod" href="module-7-2.html"><span class="sidebar__mod-num">7.2</span>LangGraph Fundamentals</a>
+        <a class="sidebar__mod" href="module-7-3.html"><span class="sidebar__mod-num">7.3</span>Common Patterns</a>
+        <a class="sidebar__mod" href="module-7-4.html"><span class="sidebar__mod-num">7.4</span>Agent-as-Tool</a>
+        <a class="sidebar__mod" href="module-7-5.html"><span class="sidebar__mod-num">7.5</span>State Management</a>
+        <a class="sidebar__mod" href="module-7-6.html"><span class="sidebar__mod-num">7.6</span>A2A Protocol</a>
+        <a class="sidebar__mod" href="module-7-7.html"><span class="sidebar__mod-num">7.7</span>Frameworks Compared</a>
+        <a class="sidebar__mod" href="module-7-8.html"><span class="sidebar__mod-num">7.8</span>Debugging Multi-Agent</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 07</span>
+        <span class="tag tag--level">Expert</span>
+        <span class="tag tag--week">Week 20</span>
+      </div>
+      <h1 class="mod-head__title">When to Go <em>Multi-Agent</em></h1>
+      <p class="mod-head__sub">Multi-agent systems are the most over-applied pattern in AI engineering. Developers reach for them when their single-agent gets complex, then spend three weeks debugging inter-agent communication that didn't need to exist. This module is deliberately contrarian: you will spend most of it learning the reasons <em>not</em> to go multi-agent. When you do understand the genuine use cases — tasks with fundamentally different specialisation requirements, parallel workloads that need independent context isolation, or workflows where one agent's output is another's input and the boundary is real — multi-agent earns its complexity budget.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~18 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>2 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>A single agent with well-designed tools solves ~80% of tasks with less latency, lower cost, and simpler debugging than a multi-agent system</li>
+          <li>Multi-agent genuinely earns its complexity when: tasks need different context isolation, different system prompts, or parallel specialisation that exceeds one agent's capacity to hold in a single context window</li>
+          <li>The Tableau→QuickSight migration case: code analysis, migration planning, code generation, and testing each need different tools, context, and prompting strategies — this is a real multi-agent use case</li>
+          <li>Two telltale signs you need multi-agent: (1) your single agent's system prompt has grown to handle 4+ completely different sub-tasks, or (2) you need true parallel execution of independent steps</li>
+          <li>The cost is real: every agent hop adds an LLM call, latency, and a new failure point. Don't pay that cost without a clear benefit</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Phase 5 complete — you've built single agents with tool loops</li>
+            <li><div class="meta-list__dot">!</div>Module 5.5 — LangChain agents (you know what a single agent looks like)</li>
+            <li><div class="meta-list__dot">!</div>Module 6.3 — session memory (you understand context management)</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Apply the multi-agent decision framework to any system design problem</li>
+            <li><div class="meta-list__dot">2</div>Identify the three genuine signals that justify a multi-agent architecture</li>
+            <li><div class="meta-list__dot">3</div>Describe the Tableau→QuickSight case as a concrete multi-agent justification</li>
+            <li><div class="meta-list__dot">4</div>Estimate the per-hop cost penalty and build it into your architecture decision</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="default-single">Default to single agent <a class="anchor" href="#default-single">#</a></h2>
+        <p>Before adding a second agent, ask: can I solve this with one agent and better tools? In the vast majority of cases, the answer is yes. A single agent with 10 well-designed tools can handle complex, multi-step tasks, conditional routing, error recovery, and parallelism via <code>asyncio.gather</code> — without the inter-agent communication overhead, without multiple LLM calls per step, and with a single trace to debug.</p>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">The complexity tax</strong>
+            Every agent you add multiplies the failure surface. With 2 agents, one can produce bad output that the second accepts without validation. With 4 agents, you get exponential combinations of failure modes. You also pay: N × LLM call latency (sequential), added token cost for state passing, and N × debugging surface when something goes wrong. That tax must be justified by a real architectural benefit, not by complexity avoidance.
+          </div>
+        </div>
+
+        <h2 id="decision-framework">The multi-agent decision framework <a class="anchor" href="#decision-framework">#</a></h2>
+        <p>Multi-agent architecture is justified when <em>at least one</em> of these three conditions is true:</p>
+
+        <div class="reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+          <div style="padding:.6rem 1rem;background:var(--phase-soft);border-bottom:1px solid var(--border);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--phase-text)">When Multi-Agent is Justified</div>
+          <div style="display:flex;flex-direction:column">
+            <div style="padding:1rem 1.1rem;border-bottom:1px solid var(--border)">
+              <div style="display:flex;align-items:flex-start;gap:.75rem">
+                <div style="min-width:24px;height:24px;border-radius:50%;background:var(--phase-soft);border:1px solid var(--phase-hi);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--phase-text);flex-shrink:0;margin-top:1px">1</div>
+                <div>
+                  <div style="font-weight:600;font-size:13px;margin-bottom:.25rem;color:var(--phase-text)">Context isolation</div>
+                  <div style="font-size:13px;color:var(--fg)">Sub-tasks need completely different context, retrieved documents, or system prompts that would conflict in a single context window. Example: a "code analysis" agent that reads 5,000 tokens of legacy code has context that would pollute a "test generation" agent if mixed together.</div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:1rem 1.1rem;border-bottom:1px solid var(--border)">
+              <div style="display:flex;align-items:flex-start;gap:.75rem">
+                <div style="min-width:24px;height:24px;border-radius:50%;background:var(--phase-soft);border:1px solid var(--phase-hi);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--phase-text);flex-shrink:0;margin-top:1px">2</div>
+                <div>
+                  <div style="font-weight:600;font-size:13px;margin-bottom:.25rem;color:var(--phase-text)">Specialised reasoning</div>
+                  <div style="font-size:13px;color:var(--fg)">Sub-tasks need fundamentally different prompting strategies (e.g., creative writing vs SQL generation vs code review). A single system prompt trying to do all three produces worse results than three agents each specialised with precision instructions.</div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:1rem 1.1rem">
+              <div style="display:flex;align-items:flex-start;gap:.75rem">
+                <div style="min-width:24px;height:24px;border-radius:50%;background:var(--phase-soft);border:1px solid var(--phase-hi);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--phase-text);flex-shrink:0;margin-top:1px">3</div>
+                <div>
+                  <div style="font-weight:600;font-size:13px;margin-bottom:.25rem;color:var(--phase-text)">True parallelism</div>
+                  <div style="font-size:13px;color:var(--fg)">Multiple independent sub-tasks can run in parallel and their results need to be merged. A single agent cannot achieve true parallelism across LLM calls — it must run sequentially. Multiple agents can run concurrently via <code>asyncio.gather</code> across different LLM calls.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="case-study">Case study: Tableau → QuickSight migration <a class="anchor" href="#case-study">#</a></h2>
+        <p>The canonical example from the data.js curriculum. A customer wants to migrate 200 Tableau workbooks to AWS QuickSight. This is a real multi-agent use case because each phase of the migration requires genuinely different capabilities:</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">migration_agents.py — why this needs multiple agents</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="cm"># Why a single agent fails here:
+# ------------------------------------
+# Agent turn 1: "Analyse this 200-workbook codebase for migration complexity"
+#   → Loads 150,000 tokens of Tableau XML + VizQL into context
+#   → Context is now filled with Tableau-specific analysis
+#
+# Agent turn 2: "Now write the QuickSight migration code"
+#   → 150,000 tokens of Tableau XML still in context
+#   → Model is now reasoning about QS with Tableau noise bleeding through
+#   → Quality degrades 20-30% vs clean context
+#
+# Agent turn 3: "Now write tests for the migration"
+#   → Context has BOTH Tableau analysis AND QS code
+#   → At 128k context: lost-in-the-middle kills the test quality
+#
+# ────────────────────────────────────────────────────────────────────────
+# Why multi-agent works:
+# ────────────────────────────────────────────────────────────────────────
+
+ANALYST_SYSTEM = <span class="st">"""You are a Tableau expert. Analyse workbook XML for:
+- Custom SQL complexity (1-5 scale)
+- Calculated field patterns
+- Cross-database joins
+- Filter dependencies
+Output a structured migration complexity report. Nothing else."""</span>
+
+PLANNER_SYSTEM = <span class="st">"""You are a migration architect. Given a complexity report,
+produce a phased migration plan with QuickSight equivalents.
+You do not see the original Tableau XML — only the summary."""</span>
+
+GENERATOR_SYSTEM = <span class="st">"""You are a QuickSight expert. Given a migration plan,
+produce the equivalent QuickSight dataset definitions and analysis configs.
+You do not see the Tableau XML or the migration plan rationale."""</span>
+
+TESTER_SYSTEM = <span class="st">"""You are a QA engineer. Given QuickSight config, generate
+pytest tests that validate data equivalence between old and new dashboards."""</span>
+
+<span class="cm"># Each agent gets only what it needs — no context bleed, clean specialisation</span>
+<span class="cm"># Analyst → Planner → Generator → Tester: ~4 LLM calls, each with clean context</span>
+<span class="cm"># vs. single-agent: 4 turns × accumulating context = degrading quality</span></code></pre>
+        </div>
+
+        <h2 id="cost-model">The cost model <a class="anchor" href="#cost-model">#</a></h2>
+        <p>Before choosing multi-agent, estimate the per-hop penalty in your specific case:</p>
+
+        <div class="reveal" style="margin:1.5rem 0;overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border)">
+                <th style="text-align:left;padding:.6rem .8rem;color:var(--fg-dim);font-weight:600">Architecture</th>
+                <th style="text-align:left;padding:.6rem .8rem;color:var(--fg-dim);font-weight:600">Latency</th>
+                <th style="text-align:left;padding:.6rem .8rem;color:var(--fg-dim);font-weight:600">LLM calls</th>
+                <th style="text-align:left;padding:.6rem .8rem;color:var(--fg-dim);font-weight:600">Failure surfaces</th>
+                <th style="text-align:left;padding:.6rem .8rem;color:var(--fg-dim);font-weight:600">Justified when</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem">Single agent + tools</td>
+                <td style="padding:.6rem .8rem">1× per step</td>
+                <td style="padding:.6rem .8rem">1 per turn</td>
+                <td style="padding:.6rem .8rem">1 (the agent)</td>
+                <td style="padding:.6rem .8rem">Default choice</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem">Supervisor + 2 workers</td>
+                <td style="padding:.6rem .8rem">3× sequential</td>
+                <td style="padding:.6rem .8rem">3 per request</td>
+                <td style="padding:.6rem .8rem">3</td>
+                <td style="padding:.6rem .8rem">Condition 1 or 2 met</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem">Parallel fan-out (4 workers)</td>
+                <td style="padding:.6rem .8rem">2× (fan-out + merge)</td>
+                <td style="padding:.6rem .8rem">5 per request</td>
+                <td style="padding:.6rem .8rem">5</td>
+                <td style="padding:.6rem .8rem">Condition 3 met, 4× parallelism needed</td>
+              </tr>
+              <tr>
+                <td style="padding:.6rem .8rem">Full pipeline (4 sequential)</td>
+                <td style="padding:.6rem .8rem">4× sequential</td>
+                <td style="padding:.6rem .8rem">4 per request</td>
+                <td style="padding:.6rem .8rem">4</td>
+                <td style="padding:.6rem .8rem">Conditions 1 AND 2 both met</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="signals">Warning signs you're adding unnecessary complexity <a class="anchor" href="#signals">#</a></h2>
+        <div class="callout callout--note">
+          <span class="callout__icon">◈</span>
+          <div>
+            <strong class="callout__title">Red flags for premature multi-agent</strong>
+            <ul style="margin:.4rem 0 0 1rem;padding:0">
+              <li>You're adding a second agent because the first agent "feels too complex" — the fix is better tool design, not more agents</li>
+              <li>The second agent mostly re-formats what the first agent produced — use a structured output schema instead</li>
+              <li>You need agents to share context extensively — they're passing most of their state to each other anyway, which defeats context isolation</li>
+              <li>The tasks are strictly sequential AND the output of step N is exactly what step N+1 needs verbatim — a pipeline of function calls is simpler</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: LangGraph Fundamentals</div>
+            <div class="cta-block__sub">Module 7.2 covers the core primitives of LangGraph — nodes, edges, StateGraph, conditional routing, and how to build your first multi-agent graph.</div>
+          </div>
+          <a class="cta-block__btn" href="module-7-2.html">Module 7.2 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#default-single">Default to single agent</a></li>
+      <li><a class="toc__link" href="#decision-framework">Decision framework</a></li>
+      <li><a class="toc__link" href="#case-study">Case study: Tableau→QuickSight</a></li>
+      <li><a class="toc__link" href="#cost-model">The cost model</a></li>
+      <li><a class="toc__link" href="#signals">Warning signs</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){
+  const h=document.documentElement;
+  const dark=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',dark?'light':'dark');
+  localStorage.setItem('ae-theme',dark?'light':'dark');
+  document.getElementById('themeIcon').textContent=dark?'☀':'☾';
+  document.getElementById('themeLabel').textContent=dark?'Light':'Dark';
+}
+(function(){
+  const t=localStorage.getItem('ae-theme');
+  if(t){
+    document.documentElement.setAttribute('data-theme',t);
+    const dark=t==='dark';
+    document.getElementById('themeIcon').textContent=dark?'☾':'☀';
+    document.getElementById('themeLabel').textContent=dark?'Dark':'Light';
+  }
+})();
+function copyCode(btn){
+  const code=btn.closest('.code-wrap').querySelector('pre code');
+  navigator.clipboard.writeText(code.innerText).then(()=>{
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent='Copy',2000);
+  });
+}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    const id=e.target.id;
+    if(!id)return;
+    const link=document.querySelector(`.toc__link[href="#${id}"]`);
+    if(!link)return;
+    if(e.isIntersecting){
+      document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));
+      link.classList.add('active');
+    }
+  });
+},{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

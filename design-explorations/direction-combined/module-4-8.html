@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 4.8 Evaluating RAG · by Harish Mondepu</title>
+<meta name="description" content="RAGAS metrics — context precision, context recall, faithfulness, answer relevancy — building an eval set, interpreting scores, and using evaluation to guide pipeline improvements."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#c2185b;--phase-hi:#e85a7a;--phase-soft:rgba(232,90,122,.1);--phase-text:#c2185b}
+[data-theme="dark"]{--phase:#f06292;--phase-hi:#f48fb1;--phase-soft:rgba(240,98,146,.1);--phase-text:#f9a8d4}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 4 · <strong>Evaluating RAG</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 28 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 4 · RAG + Evaluation
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-4-1.html"><span class="sidebar__mod-num">4.1</span>What is RAG<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-2.html"><span class="sidebar__mod-num">4.2</span>Chunking Strategies<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-3.html"><span class="sidebar__mod-num">4.3</span>Embedding Models<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-4.html"><span class="sidebar__mod-num">4.4</span>Vector Databases<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-5.html"><span class="sidebar__mod-num">4.5</span>Retrieval Techniques<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-6.html"><span class="sidebar__mod-num">4.6</span>Reranking<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-7.html"><span class="sidebar__mod-num">4.7</span>RAG Pipeline Assembly<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">4.8</span>Evaluating RAG<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod" href="module-4-9.html"><span class="sidebar__mod-num">4.9</span>Advanced RAG Patterns<span class="sidebar__check"></span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#10b981;opacity:.6"></span>Phase 5–9 · Agents &amp; Deployment</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 04</span>
+        <span class="tag tag--level">Analytical</span>
+        <span class="tag tag--week">Week 11</span>
+      </div>
+      <h1 class="mod-head__title">Evaluating <em>RAG</em></h1>
+      <p class="mod-head__sub">Building a RAG pipeline without evaluation is building blind. You cannot know whether a retrieval upgrade actually improved answers, whether a chunking change helped or hurt, or whether your system is hallucinating, without a measurement framework. RAGAS provides four complementary metrics that decompose RAG quality into retrieval precision, retrieval recall, generation faithfulness, and answer relevancy — each one diagnosing a different failure mode. This module covers the metrics, building an eval set, running RAGAS, and using the results to guide concrete pipeline improvements.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~24 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>3 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>RAGAS provides four metrics that measure different failure modes: context precision (noise in retrieved chunks), context recall (relevant information missing), faithfulness (hallucination), and answer relevancy (answer addresses the question)</li>
+          <li>Build your eval set from real user queries, not synthetic ones — the distribution of real questions reveals failure modes that contrived examples hide</li>
+          <li>Low faithfulness means the LLM is hallucinating — the fix is the system prompt and generation configuration, not retrieval</li>
+          <li>Low context recall means relevant chunks are not being retrieved — the fix is chunking strategy, embedding model, retrieve_k, or hybrid search</li>
+          <li>Low context precision means retrieved context is noisy — the fix is reranking, final_k reduction, or metadata filtering</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Module 4.7 complete — working RAG pipeline</li>
+            <li><div class="meta-list__dot">!</div><code>pip install ragas datasets langchain-openai</code></li>
+            <li><div class="meta-list__dot">!</div>OpenAI API key (RAGAS uses LLM-as-judge for some metrics)</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Explain all four RAGAS metrics and what failure mode each diagnoses</li>
+            <li><div class="meta-list__dot">2</div>Build a minimal eval set from your corpus and user queries</li>
+            <li><div class="meta-list__dot">3</div>Run RAGAS programmatically and interpret the output scores</li>
+            <li><div class="meta-list__dot">4</div>Map low metric scores to specific pipeline components to fix</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">RAG Evaluation with RAGAS — Context Precision, Recall, Faithfulness</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· search "RAGAS evaluation RAG system context precision recall faithfulness"</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/tD6fwQyUIJE" title="RAGAS RAG Evaluation" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ RAGAS metrics explained with working Python examples</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="four-metrics">The four RAGAS metrics <a class="anchor" href="#four-metrics">#</a></h2>
+        <p>RAGAS decomposes RAG quality into two retrieval metrics and two generation metrics. Each metric scores 0–1. You need all four — a system can score perfectly on one while failing badly on another.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">RAGAS metrics — what each measures</div>
+          <div style="display:flex;flex-direction:column;gap:.6rem;font-size:13px">
+            <div style="display:grid;grid-template-columns:180px 100px 1fr;gap:.8rem;padding:.8rem;background:var(--surface-0);border-radius:8px;align-items:start">
+              <div>
+                <div style="font-weight:700;color:var(--fg)">Context Precision</div>
+                <div style="font-size:11px;color:var(--fg-dim);margin-top:.2rem">Retrieval metric</div>
+              </div>
+              <div style="font-weight:700;color:#10b981;font-size:12px">Signal-to-noise<br/>in context</div>
+              <div style="color:var(--fg-dim)">Of all chunks retrieved, what fraction were actually relevant to the question? Low precision = the LLM context is full of noise, increasing hallucination risk. Fix: reranking, lower final_k, metadata filtering.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:180px 100px 1fr;gap:.8rem;padding:.8rem;background:var(--surface-0);border-radius:8px;align-items:start">
+              <div>
+                <div style="font-weight:700;color:var(--fg)">Context Recall</div>
+                <div style="font-size:11px;color:var(--fg-dim);margin-top:.2rem">Retrieval metric</div>
+              </div>
+              <div style="font-weight:700;color:#10b981;font-size:12px">Completeness<br/>of retrieval</div>
+              <div style="color:var(--fg-dim)">Of all the information needed to answer the question, what fraction was present in the retrieved context? Low recall = the answer is in the corpus but retrieval missed it. Fix: hybrid search, larger retrieve_k, better chunking, better embedding model.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:180px 100px 1fr;gap:.8rem;padding:.8rem;background:var(--surface-0);border-radius:8px;align-items:start">
+              <div>
+                <div style="font-weight:700;color:var(--fg)">Faithfulness</div>
+                <div style="font-size:11px;color:var(--fg-dim);margin-top:.2rem">Generation metric</div>
+              </div>
+              <div style="font-weight:700;color:#e85a7a;font-size:12px">Hallucination<br/>detection</div>
+              <div style="color:var(--fg-dim)">Are all claims in the generated answer supported by the retrieved context? Low faithfulness = hallucination — the LLM added facts not in the context. Fix: system prompt (forbid prior knowledge), lower temperature, smaller max_tokens.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:180px 100px 1fr;gap:.8rem;padding:.8rem;background:var(--surface-0);border-radius:8px;align-items:start">
+              <div>
+                <div style="font-weight:700;color:var(--fg)">Answer Relevancy</div>
+                <div style="font-size:11px;color:var(--fg-dim);margin-top:.2rem">Generation metric</div>
+              </div>
+              <div style="font-weight:700;color:#e85a7a;font-size:12px">Question<br/>addressed?</div>
+              <div style="color:var(--fg-dim)">Does the generated answer actually address what the user asked? Low relevancy = the answer is on-topic but evasive, or addresses a related but different question. Fix: system prompt clarity, better context (high recall means the right info is available for the answer).</div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="eval-set">Building an evaluation set <a class="anchor" href="#eval-set">#</a></h2>
+        <p>An eval set is a list of (question, ground_truth_answer, ground_truth_contexts) triples. The ground truth contexts are the specific chunks that contain the information needed to answer the question. You can build this manually (golden standard, most reliable) or synthetically using an LLM (faster, good enough for iteration).</p>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">Use real user queries when possible</strong>
+            Synthetic eval sets generated by prompting an LLM to "write questions about this document" miss the distribution of actual user queries — which are often ambiguous, poorly phrased, multi-part, or ask about information that was assumed to be obvious. If you have access to user logs (chat history, support tickets), sample 50–100 real queries as the basis for your eval set. If you have nothing, synthetic is fine to start — but validate it against real queries once you have them.
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">build_eval_set.py — LLM-generated question/answer pairs from corpus chunks</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> os, json
+<span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+
+client = <span class="fn">OpenAI</span>(api_key=os.environ[<span class="st">"OPENAI_API_KEY"</span>])
+
+corpus_chunks = [
+    {<span class="st">"text"</span>: <span class="st">"Employees may claim $150/mo for home internet."</span>,             <span class="st">"source"</span>: <span class="st">"HR Policy v3.2"</span>},
+    {<span class="st">"text"</span>: <span class="st">"One-time $600 allowance for ergonomic furniture."</span>,            <span class="st">"source"</span>: <span class="st">"HR Policy v3.2"</span>},
+    {<span class="st">"text"</span>: <span class="st">"All claims submitted via Workday by the 5th of each month."</span>,   <span class="st">"source"</span>: <span class="st">"HR Policy v3.2"</span>},
+    {<span class="st">"text"</span>: <span class="st">"Manager approval required for claims over $200."</span>,              <span class="st">"source"</span>: <span class="st">"HR Policy v3.2"</span>},
+]
+
+eval_set = []
+
+<span class="kw">for</span> chunk <span class="kw">in</span> corpus_chunks:
+    resp = client.chat.completions.<span class="fn">create</span>(
+        model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+        messages=[{
+            <span class="st">"role"</span>: <span class="st">"user"</span>,
+            <span class="st">"content"</span>: (
+                <span class="st">f"Given this passage:\n\n{chunk['text']}\n\n"</span>
+                <span class="st">f"Generate ONE specific question that this passage answers, "</span>
+                <span class="st">f"and a concise ground-truth answer. "</span>
+                <span class="st">f"Return JSON: {{\"question\": \"...\", \"answer\": \"...\"}}"</span>
+            ),
+        }],
+        max_tokens=<span class="nm">200</span>,
+    )
+    qa = json.<span class="fn">loads</span>(resp.choices[<span class="nm">0</span>].message.content)
+    eval_set.<span class="fn">append</span>({
+        <span class="st">"question"</span>:    qa[<span class="st">"question"</span>],
+        <span class="st">"ground_truth"</span>: qa[<span class="st">"answer"</span>],
+        <span class="st">"reference_contexts"</span>: [chunk[<span class="st">"text"</span>]],  <span class="cm"># the chunk that answers it</span>
+    })
+
+<span class="fn">print</span>(json.<span class="fn">dumps</span>(eval_set, indent=<span class="nm">2</span>))</code></pre>
+        </div>
+
+        <h2 id="running-ragas">Running RAGAS <a class="anchor" href="#running-ragas">#</a></h2>
+        <p>RAGAS takes a dataset of (question, answer, contexts, ground_truth) rows and computes the four metrics using an LLM-as-judge for the generation metrics and embedding similarity for the retrieval metrics. Connect it to your RAG pipeline, run it over your eval set, and get scores per row and aggregated.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">ragas_eval.py — run RAGAS metrics on your RAG pipeline output</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> datasets <span class="kw">import</span> Dataset
+<span class="kw">from</span> ragas <span class="kw">import</span> evaluate
+<span class="kw">from</span> ragas.metrics <span class="kw">import</span> (
+    context_precision,
+    context_recall,
+    faithfulness,
+    answer_relevancy,
+)
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI, OpenAIEmbeddings
+
+<span class="cm"># ── 1. Collect pipeline outputs ──────────────────────────────────────</span>
+<span class="cm"># eval_set was built in build_eval_set.py</span>
+eval_set = [
+    {
+        <span class="st">"question"</span>: <span class="st">"What is the monthly internet allowance?"</span>,
+        <span class="st">"ground_truth"</span>: <span class="st">"$150 per month."</span>,
+        <span class="st">"reference_contexts"</span>: [<span class="st">"Employees may claim $150/mo for home internet."</span>],
+    },
+    {
+        <span class="st">"question"</span>: <span class="st">"How much can I claim for a standing desk?"</span>,
+        <span class="st">"ground_truth"</span>: <span class="st">"Up to $600 one-time for ergonomic furniture."</span>,
+        <span class="st">"reference_contexts"</span>: [<span class="st">"One-time $600 allowance for ergonomic furniture."</span>],
+    },
+]
+
+<span class="cm"># Run your RAG pipeline for each eval question</span>
+<span class="cm"># (assume `rag` is a RAGPipeline from module 4.7, already indexed)</span>
+rows = []
+<span class="kw">for</span> item <span class="kw">in</span> eval_set:
+    question = item[<span class="st">"question"</span>]
+    context_chunks = rag.<span class="fn">retrieve</span>(question)        <span class="cm"># returns list[Chunk]</span>
+    contexts = [c.text <span class="kw">for</span> c <span class="kw">in</span> context_chunks]
+    answer = rag.<span class="fn">query</span>(question, stream=<span class="tp">False</span>)     <span class="cm"># non-streaming for eval</span>
+    rows.<span class="fn">append</span>({
+        <span class="st">"question"</span>:    question,
+        <span class="st">"answer"</span>:      answer,
+        <span class="st">"contexts"</span>:    contexts,           <span class="cm"># what retrieval returned</span>
+        <span class="st">"ground_truth"</span>: item[<span class="st">"ground_truth"</span>],
+    })
+
+<span class="cm"># ── 2. Build HuggingFace Dataset ─────────────────────────────────────</span>
+dataset = Dataset.<span class="fn">from_list</span>(rows)
+
+<span class="cm"># ── 3. Configure LLM judge + embeddings ─────────────────────────────</span>
+llm        = <span class="fn">ChatOpenAI</span>(model=<span class="st">"gpt-4o-mini"</span>)  <span class="cm"># judge model</span>
+embeddings = <span class="fn">OpenAIEmbeddings</span>(model=<span class="st">"text-embedding-3-small"</span>)
+
+<span class="cm"># ── 4. Run evaluation ─────────────────────────────────────────────────</span>
+result = <span class="fn">evaluate</span>(
+    dataset=dataset,
+    metrics=[context_precision, context_recall, faithfulness, answer_relevancy],
+    llm=llm,
+    embeddings=embeddings,
+)
+
+<span class="cm"># ── 5. Print scores ───────────────────────────────────────────────────</span>
+<span class="fn">print</span>(result)
+<span class="cm"># context_precision    0.92</span>
+<span class="cm"># context_recall       0.75  ← retrieval is missing some relevant chunks</span>
+<span class="cm"># faithfulness         0.98  ← generation stays in context</span>
+<span class="cm"># answer_relevancy     0.89</span>
+
+<span class="cm"># Per-question breakdown</span>
+df = result.<span class="fn">to_pandas</span>()
+<span class="fn">print</span>(df[[<span class="st">"question"</span>, <span class="st">"context_recall"</span>, <span class="st">"faithfulness"</span>]])</code></pre>
+        </div>
+
+        <h2 id="interpreting-results">Interpreting scores and fixing failures <a class="anchor" href="#interpreting-results">#</a></h2>
+        <p>Each metric failure maps to a specific pipeline component. The diagnostic workflow: run RAGAS, find the lowest-scoring metric, identify which questions score worst on that metric, examine those specific (question, context, answer) triples manually, then apply the fix from the table below.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem">RAGAS score → failure mode → fix</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem;font-size:13px">
+            <div style="display:grid;grid-template-columns:160px 200px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:start">
+              <div style="font-weight:600;color:var(--fg)">Context Precision &lt; 0.75</div>
+              <div style="font-weight:700;color:var(--phase-text)">Too many irrelevant chunks in context</div>
+              <div style="color:var(--fg-dim)">Add or upgrade reranker · reduce final_k · add metadata pre-filter · raise relevance_threshold</div>
+            </div>
+            <div style="display:grid;grid-template-columns:160px 200px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:start">
+              <div style="font-weight:600;color:var(--fg)">Context Recall &lt; 0.75</div>
+              <div style="font-weight:700;color:var(--phase-text)">Answer in corpus but not retrieved</div>
+              <div style="color:var(--fg-dim)">Increase retrieve_k · add hybrid BM25 search · try better embedding model · fix chunking (chunk too large/small) · try HyDE or multi-query</div>
+            </div>
+            <div style="display:grid;grid-template-columns:160px 200px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:start">
+              <div style="font-weight:600;color:var(--fg)">Faithfulness &lt; 0.8</div>
+              <div style="font-weight:700;color:var(--phase-text)">LLM hallucinating claims</div>
+              <div style="color:var(--fg-dim)">Strengthen system prompt ("do not use training data") · lower temperature · reduce max_tokens · upgrade to a larger LLM with better instruction following</div>
+            </div>
+            <div style="display:grid;grid-template-columns:160px 200px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:start">
+              <div style="font-weight:600;color:var(--fg)">Answer Relevancy &lt; 0.75</div>
+              <div style="font-weight:700;color:var(--phase-text)">Answer doesn't address the question</div>
+              <div style="color:var(--fg-dim)">Improve context recall (answer must be available) · clarify system prompt · check if question is out-of-corpus (should trigger "I don't know")</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">Target scores and typical production ranges</strong>
+            There are no universal thresholds — acceptable scores depend on the risk profile of your application. For a low-stakes FAQ bot: faithfulness &gt;0.85, context recall &gt;0.80. For an enterprise HR or legal policy bot where wrong answers have real consequences: faithfulness &gt;0.95, context recall &gt;0.90. A good baseline target for a well-built initial pipeline: all four metrics &gt;0.80. If any metric is &lt;0.65, that is a systematic failure requiring a specific fix before shipping to users.
+          </div>
+        </div>
+
+        <h2 id="without-ground-truth">Evaluating without ground truth <a class="anchor" href="#without-ground-truth">#</a></h2>
+        <p>Context Precision and Faithfulness do not require labeled ground truth — they can be computed purely from (question, answer, contexts). This means you can run them over real production traffic without a hand-labeled eval set, providing a continuous quality signal.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">production_monitor.py — faithfulness + precision on live traffic</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> datasets <span class="kw">import</span> Dataset
+<span class="kw">from</span> ragas <span class="kw">import</span> evaluate
+<span class="kw">from</span> ragas.metrics <span class="kw">import</span> context_precision, faithfulness
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI, OpenAIEmbeddings
+
+<span class="cm"># Log these fields on every production query</span>
+production_log = [
+    {
+        <span class="st">"question"</span>:  <span class="st">"How much is the internet allowance?"</span>,
+        <span class="st">"answer"</span>:    <span class="st">"Employees can claim $150 per month for home internet. (Source: HR Policy v3.2)"</span>,
+        <span class="st">"contexts"</span>:  [<span class="st">"Employees may claim $150/mo for home internet."</span>,
+                      <span class="st">"Claims submitted via Workday by the 5th."</span>],
+        <span class="st">"ground_truth"</span>: <span class="st">""</span>,  <span class="cm"># not available for real traffic</span>
+    },
+    <span class="cm"># … hundreds of rows from your production logs</span>
+]
+
+dataset = Dataset.<span class="fn">from_list</span>(production_log)
+
+result = <span class="fn">evaluate</span>(
+    dataset=dataset,
+    metrics=[context_precision, faithfulness],  <span class="cm"># these don't need ground_truth</span>
+    llm=<span class="fn">ChatOpenAI</span>(model=<span class="st">"gpt-4o-mini"</span>),
+    embeddings=<span class="fn">OpenAIEmbeddings</span>(),
+)
+
+<span class="fn">print</span>(<span class="st">f"Production faithfulness: {result['faithfulness']:.3f}"</span>)
+<span class="fn">print</span>(<span class="st">f"Production context_precision: {result['context_precision']:.3f}"</span>)
+
+<span class="cm"># Flag rows where faithfulness drops below threshold</span>
+df = result.<span class="fn">to_pandas</span>()
+low_faith = df[df[<span class="st">"faithfulness"</span>] < <span class="nm">0.7</span>]
+<span class="fn">print</span>(<span class="st">f"Potential hallucinations: {len(low_faith)} / {len(df)} queries"</span>)
+<span class="fn">print</span>(low_faith[[<span class="st">"question"</span>, <span class="st">"faithfulness"</span>]])</code></pre>
+        </div>
+
+        <div class="callout callout--note">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">RAGAS cost: each metric invokes LLM calls</strong>
+            Faithfulness and Answer Relevancy use an LLM judge. For a dataset of 100 questions with 5 context chunks each, expect 300–500 LLM API calls to gpt-4o-mini. At $0.15/1M input tokens this is ~$0.10–0.30 for a full eval run — cheap enough to run on every significant pipeline change. For large corpora (10k+ queries), batch your eval or run RAGAS on a sampled subset of 100–200 representative queries.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 4.8: Evaluating RAG</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~24 min · 3 live code demos</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 4:00</span><span class="script-action">DIAGRAM</span><span class="script-narration">"Four metrics, two retrieval, two generation. Context precision: are the chunks we retrieved actually relevant? Context recall: did we retrieve all the information the question needs? Faithfulness: did the LLM stick to what the context says? Answer relevancy: did the answer actually address the question? Each one tells you a different thing is broken."</span></div>
+          <div class="script-line"><span class="script-ts">4:00 – 12:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run build_eval_set.py. "I'm using an LLM to generate (question, answer) pairs from each chunk. This is 'testset generation.' In production you'd mix these synthetic pairs with real user queries from your logs. Show the output — four question/answer pairs, each linked to the source chunk that contains the answer." Then run ragas_eval.py. Show the output table — four scores. "Notice context_recall is 0.75. That means one in four questions, the relevant chunk was in the corpus but retrieval missed it."</span></div>
+          <div class="script-line"><span class="script-ts">12:00 – 18:00</span><span class="script-action">ANALYSIS</span><span class="script-narration">Pull up the per-question breakdown. "Which question had low recall? 'How much can I claim for a standing desk?' — the corpus contains $600 ergonomic furniture but uses the word furniture, not desk. That's a vocabulary mismatch. The fix: add hybrid BM25 search (module 4.5) or HyDE. After adding hybrid search, rerun RAGAS — context_recall goes from 0.75 to 0.91."</span></div>
+          <div class="script-line"><span class="script-ts">18:00 – 24:00</span><span class="script-action">TABLE + WRAP</span><span class="script-narration">"Here's the eval-driven iteration loop: (1) build eval set, (2) run RAGAS baseline, (3) identify lowest metric, (4) examine the worst-scoring questions manually, (5) apply the targeted fix, (6) rerun RAGAS, (7) repeat. This is how you systematically improve a RAG system. Without this loop you're guessing — making changes that feel like improvements but may have no measurable effect on quality."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>Your RAG system has context recall of 0.62 but faithfulness of 0.97. What does this tell you about your pipeline, and where should you focus your improvement effort?</summary>
+          <div class="selfcheck__a">Context recall of 0.62 means that in 38% of questions, the relevant information exists in your corpus but retrieval failed to include it in the context. The LLM cannot answer from context that was never retrieved — so these queries likely receive "I don't know" responses or answers synthesised from partial context. The high faithfulness (0.97) tells you that when the LLM does have context, it stays within it and doesn't hallucinate. So the generation component is working correctly; the problem is retrieval. Focus your effort on: (1) increase retrieve_k — the correct chunk may be ranked just outside the current cutoff; (2) add hybrid BM25 search — keyword mismatches are a common cause of recall failure; (3) examine the low-recall questions to identify the specific failure pattern (vocabulary mismatch, chunking boundary issue, or correct answer split across chunks).</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What is the difference between context precision and context recall, and why do you need both?</summary>
+          <div class="selfcheck__a">Context precision measures what fraction of retrieved chunks were actually relevant — it penalises retrieving too many irrelevant chunks (noisy context). Context recall measures what fraction of the information needed to answer was present in the retrieved chunks — it penalises missing relevant information (incomplete context). You need both because they represent opposite failure modes. A system that retrieves every chunk in the corpus has perfect recall (nothing is missed) but precision near zero (99%+ of context is noise). A system that retrieves only 1 highly-relevant chunk has perfect precision but poor recall for complex questions requiring multiple facts. A well-tuned pipeline balances both: retrieve enough to have high recall (large retrieve_k), then rerank aggressively to keep precision high (small final_k). A single metric cannot diagnose which failure mode you have.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>A faithfulness score of 0.78 indicates the LLM is sometimes hallucinating. Walk through the three most likely causes and fixes in priority order.</summary>
+          <div class="selfcheck__a"><strong>1. Weak system prompt (fix first):</strong> The most common cause. If the prompt does not explicitly say "do not use information from your training data," the LLM blends training knowledge with retrieved context. Add this prohibition and re-test — faithfulness often jumps 10–15 points. <strong>2. Noisy context (fix second):</strong> If context_precision is also low, the LLM context window contains many irrelevant chunks. With low-signal, high-noise context, the model has less to work with and is more likely to fill gaps from training. Fix: reranking and reducing final_k to deliver only high-relevance chunks. <strong>3. Insufficient context (fix third):</strong> Paradoxically, if context_recall is also low, the LLM may have the question but not the answer in its context. When forced to answer without relevant information (because the system prompt doesn't trigger a refusal clearly enough), it hallucinates. Fix: either improve retrieval so the answer is available, or make the "refuse if insufficient context" instruction clearer.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Which two RAGAS metrics can be computed on production traffic without labeled ground truth, and how would you use them in a monitoring system?</summary>
+          <div class="selfcheck__a">Context Precision and Faithfulness can be computed without ground truth — they only require (question, answer, contexts). Context precision asks: "are the retrieved chunks relevant to the question?" — the LLM judge can evaluate this without knowing the correct answer. Faithfulness asks: "are all claims in the answer supported by the contexts?" — again, no ground truth needed. In a monitoring system: (1) Log every production query's (question, answer, contexts) triplet. (2) Run RAGAS nightly or weekly on a sample of 100–500 queries from the log. (3) Alert if faithfulness drops below 0.80 — this signals the LLM has started hallucinating, which may indicate a prompt regression or a corpus update that made context less grounding. (4) Alert if context_precision drops below 0.70 — this signals retrieval quality regression. Track these as time-series metrics per deployment to detect regressions after pipeline changes.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Up next</div>
+          <div class="next-mod__title">4.9 · Advanced RAG Patterns</div>
+          <p class="next-mod__desc">Beyond the standard pipeline — agentic RAG with iterative retrieval, GraphRAG for relationship-heavy corpora, late chunking (ColBERT/PLAID), corrective RAG (CRAG), and self-RAG with answer verification.</p>
+        </div>
+        <a class="next-btn" href="module-4-9.html">Continue →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#four-metrics">The four RAGAS metrics</a>
+    <a href="#eval-set">Building an eval set</a>
+    <a href="#running-ragas">Running RAGAS</a>
+    <a href="#interpreting-results">Interpreting scores</a>
+    <a href="#without-ground-truth">Evaluating without ground truth</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 4.8 / 62<br/>Phase 4 · Week 11<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

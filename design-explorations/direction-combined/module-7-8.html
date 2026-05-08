@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 7.8 Debugging Multi-Agent Systems · by Harish Mondepu</title>
+<meta name="description" content="LangSmith tracing, diagnosing agents that talk past each other, breaking infinite loops, and stopping cost explosions before they hit your bill."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#c2410c;--phase-hi:#ea580c;--phase-soft:rgba(234,88,12,.1);--phase-text:#c2410c}
+[data-theme="dark"]{--phase:#f97316;--phase-hi:#fb923c;--phase-soft:rgba(249,115,22,.1);--phase-text:#fed7aa}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 7 · <strong>Debugging Multi-Agent Systems</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 52 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#1aada0"></span>Phase 1 · Python Foundations ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#06b6d4"></span>Phase 2 · LLM Mental Model ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#a78bfa"></span>Phase 3 · Prompt Engineering ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f06292"></span>Phase 4 · RAG + Evaluation ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#10b981"></span>Phase 5 · Tools, MCP &amp; Agents ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f59e0b"></span>Phase 6 · Memory &amp; Context ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 7 · Multi-Agent Orchestration
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-7-1.html"><span class="sidebar__mod-num">7.1</span>When Multi-Agent? ✓</a>
+        <a class="sidebar__mod done" href="module-7-2.html"><span class="sidebar__mod-num">7.2</span>LangGraph Fundamentals ✓</a>
+        <a class="sidebar__mod done" href="module-7-3.html"><span class="sidebar__mod-num">7.3</span>Common Patterns ✓</a>
+        <a class="sidebar__mod done" href="module-7-4.html"><span class="sidebar__mod-num">7.4</span>Agent-as-Tool ✓</a>
+        <a class="sidebar__mod done" href="module-7-5.html"><span class="sidebar__mod-num">7.5</span>State Management ✓</a>
+        <a class="sidebar__mod done" href="module-7-6.html"><span class="sidebar__mod-num">7.6</span>A2A Protocol ✓</a>
+        <a class="sidebar__mod done" href="module-7-7.html"><span class="sidebar__mod-num">7.7</span>Frameworks Compared ✓</a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">7.8</span>Debugging Multi-Agent</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 07</span>
+        <span class="tag tag--level">Expert</span>
+        <span class="tag tag--week">Week 22</span>
+      </div>
+      <h1 class="mod-head__title">Debugging <em>Multi-Agent Systems</em></h1>
+      <p class="mod-head__sub">Multi-agent bugs don't look like regular bugs. The system runs — it just produces wrong output, runs forever, or costs ten times what it should. This module covers the four failure modes that account for the majority of production incidents: agents that talk past each other (state design flaws), cycles that won't terminate (missing or broken exit conditions), cost explosions (unbounded token usage), and the observability tooling — LangSmith — that makes all of these diagnosable in under five minutes instead of five hours.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~22 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>5 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li><strong>LangSmith is non-negotiable:</strong> three env vars and you get a full trace of every node, every LLM call, and every tool invocation — debugging blind is not a viable alternative</li>
+          <li><strong>Agents talking past each other:</strong> root cause is almost always a state field that overwrites instead of accumulates, or a system prompt that doesn't tell the agent what inputs to expect</li>
+          <li><strong>Infinite loops:</strong> every cycle in a LangGraph must have a hard integer counter cap — never trust the LLM's self-assessment of "am I done?"</li>
+          <li><strong>Cost explosions:</strong> message lists grow with every node hop; token-count and truncate before the LLM call, not after</li>
+          <li><strong>The debugging workflow:</strong> trace first → isolate the failing node → reproduce with a unit test → fix state or routing → re-run full trace to confirm</li>
+        </ul>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="langsmith">LangSmith tracing <a class="anchor" href="#langsmith">#</a></h2>
+        <p>LangSmith is Langchain's observability platform. For a LangGraph workflow it captures every graph run as a nested trace: each node is a span, each LLM call is a child span, each tool invocation is a grandchild span. You can see exact inputs and outputs at every level, latency per node, and total cost per run.</p>
+        <p>Three environment variables are all it takes:</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">bash</span><span class="code-file">.env — enable LangSmith tracing</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="nm">LANGCHAIN_TRACING_V2</span>=<span class="st">true</span>
+<span class="nm">LANGCHAIN_API_KEY</span>=<span class="st">lsv2_pt_...</span>          <span class="cm"># from smith.langchain.com → Settings → API Keys</span>
+<span class="nm">LANGCHAIN_PROJECT</span>=<span class="st">my-agent-prod</span>         <span class="cm"># group traces by project</span></code></pre>
+        </div>
+
+        <p>After that every <code>graph.invoke()</code> and <code>graph.stream()</code> call auto-instruments. No code changes needed. In LangSmith's UI, open a trace and look for:</p>
+        <ul>
+          <li><strong>High-latency spans:</strong> a node taking 15 s while others take 1 s is your bottleneck</li>
+          <li><strong>Unexpected node visits:</strong> if a node appears 20 times in one run, your cycle isn't terminating</li>
+          <li><strong>Token counts on LLM spans:</strong> if input tokens are unexpectedly large, your message list is growing unchecked</li>
+          <li><strong>Tool errors:</strong> tool spans show the raw exception — no need to re-run locally to reproduce</li>
+        </ul>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">langsmith_tags.py — tagging runs for filtering</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> langchain_core.runnables <span class="kw">import</span> RunnableConfig
+
+<span class="cm"># Add metadata to any invoke call — shows up as filterable fields in LangSmith</span>
+config = <span class="tp">RunnableConfig</span>(
+    tags=[<span class="st">"production"</span>, <span class="st">"pipeline-v2"</span>],
+    metadata={
+        <span class="st">"user_id"</span>: user_id,
+        <span class="st">"request_id"</span>: request_id,
+        <span class="st">"workflow_version"</span>: <span class="st">"2.3.1"</span>,
+    },
+    run_name=<span class="st">f"research-pipeline-{request_id}"</span>,   <span class="cm"># readable name in trace list</span>
+)
+result = graph.<span class="fn">invoke</span>(initial_state, config=config)
+
+<span class="cm"># In LangSmith UI: filter by tag="production" or metadata.user_id="u-123"</span>
+<span class="cm"># to find all traces for a specific user's failed run</span></code></pre>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">✦</span>
+          <div>
+            <strong class="callout__title">Use run_name for instant identification</strong>
+            LangSmith's default run names are GUIDs. Set <code>run_name</code> to something human-readable like <code>f"research-{user_id}-{datetime.now():%H%M%S}"</code>. You'll find the failing run in two seconds instead of scanning a page of UUIDs.
+          </div>
+        </div>
+
+        <h2 id="talking-past">Why agents talk past each other <a class="anchor" href="#talking-past">#</a></h2>
+        <p>The symptom: Agent B produces output that doesn't use Agent A's work. The report ignores the research. The writer rewrites the brief from scratch. The validator approves without reading the content.</p>
+        <p>There are three root causes, in order of frequency:</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">talking_past_debug.py — three causes and their fixes</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="cm"># ── CAUSE 1: state field overwrites instead of accumulates ───────────</span>
+<span class="cm"># Bug: each node sets state["output"] — later nodes overwrite earlier ones</span>
+<span class="kw">class</span> <span class="tp">BrokenState</span>(<span class="tp">TypedDict</span>):
+    messages: <span class="tp">Annotated</span>[<span class="tp">list</span>, add_messages]
+    output: <span class="tp">str</span>                        <span class="cm"># ← single string, last writer wins</span>
+
+<span class="kw">def</span> <span class="fn">research_node</span>(state):
+    <span class="kw">return</span> {<span class="st">"output"</span>: research_result}  <span class="cm"># written here...</span>
+
+<span class="kw">def</span> <span class="fn">write_node</span>(state):
+    <span class="cm"># state["output"] is still the research_result here — good</span>
+    <span class="kw">return</span> {<span class="st">"output"</span>: report}            <span class="cm"># ...overwritten here</span>
+
+<span class="cm"># Fix: use named fields per concern, or a dict reducer</span>
+<span class="kw">class</span> <span class="tp">FixedState</span>(<span class="tp">TypedDict</span>):
+    messages:  <span class="tp">Annotated</span>[<span class="tp">list</span>, add_messages]
+    research:  <span class="tp">str</span>       <span class="cm"># set by research_node, read by write_node</span>
+    report:    <span class="tp">str</span>       <span class="cm"># set by write_node, read by validate_node</span>
+    approved:  <span class="tp">bool</span>
+    feedback:  <span class="tp">str</span>
+
+<span class="cm"># ── CAUSE 2: agent system prompt doesn't mention the state fields ─────</span>
+<span class="cm"># Bug: write_node builds its own content from the message history,</span>
+<span class="cm"># ignoring state["research"] entirely</span>
+
+WRITER_PROMPT_BAD = <span class="st">"""You are a technical writer. Write a report."""</span>
+<span class="cm"># The writer has no idea that state["research"] even exists</span>
+
+WRITER_PROMPT_GOOD = <span class="st">"""You are a technical writer.
+You will receive a research summary in the human message tagged &lt;research&gt;.
+Your job is to turn that summary into a polished report.
+Do not perform additional research — only use what is provided."""</span>
+
+<span class="kw">def</span> <span class="fn">write_node_fixed</span>(state: <span class="tp">FixedState</span>):
+    messages = [
+        {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: WRITER_PROMPT_GOOD},
+        {<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">f"&lt;research&gt;\n{state['research']}\n&lt;/research&gt;"</span>},
+    ]
+    response = llm.<span class="fn">invoke</span>(messages)
+    <span class="kw">return</span> {<span class="st">"report"</span>: response.content}
+
+<span class="cm"># ── CAUSE 3: wrong message role — "user" when "assistant" is expected ──</span>
+<span class="cm"># Bug: supervisor routes a worker's output back as a "user" message</span>
+<span class="cm"># The next worker sees "the user said X" instead of "assistant said X"</span>
+<span class="cm"># Fix: always preserve the original role when forwarding messages</span>
+<span class="kw">def</span> <span class="fn">format_worker_result</span>(worker_response: <span class="tp">str</span>) -&gt; <span class="tp">dict</span>:
+    <span class="kw">return</span> {<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: worker_response}  <span class="cm"># not "user"</span></code></pre>
+        </div>
+
+        <div class="callout callout--info">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">How to diagnose in LangSmith</strong>
+            Open the failing trace. Click the <strong>write_node</strong> span. Check "Inputs" — if <code>state["research"]</code> is present but the LLM's user message doesn't include it, that's Cause 2. If <code>state["research"]</code> is empty, that's Cause 1 (overwrite). If the role on an incoming message is wrong, that's Cause 3.
+          </div>
+        </div>
+
+        <h2 id="infinite-loops">Cycles that won't terminate <a class="anchor" href="#infinite-loops">#</a></h2>
+        <p>Reflection loops and ReAct agents both contain explicit cycles. They're supposed to terminate when the LLM says it's done or the critic approves. In practice the LLM will occasionally stay in a loop indefinitely — the critic always finds something to improve, or the ReAct agent keeps calling the same tool with the same arguments.</p>
+        <p>The fix is always the same: a hard integer counter that the routing function checks before consulting the LLM's judgment.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">loop_guard.py — every cycle needs a hard cap</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> typing <span class="kw">import</span> Annotated
+<span class="kw">import</span> operator
+
+<span class="kw">class</span> <span class="tp">ReflectionState</span>(<span class="tp">TypedDict</span>):
+    messages:      <span class="tp">Annotated</span>[<span class="tp">list</span>, add_messages]
+    draft:         <span class="tp">str</span>
+    approved:      <span class="tp">bool</span>
+    feedback:      <span class="tp">str</span>
+    revisions:     <span class="tp">Annotated</span>[<span class="tp">int</span>, operator.add]   <span class="cm"># accumulates, never resets</span>
+    max_revisions: <span class="tp">int</span>                              <span class="cm"># set once at graph entry</span>
+
+<span class="kw">def</span> <span class="fn">should_revise</span>(state: <span class="tp">ReflectionState</span>) -&gt; <span class="tp">str</span>:
+    <span class="cm"># Hard cap checked FIRST — before asking the LLM anything</span>
+    <span class="kw">if</span> state[<span class="st">"revisions"</span>] &gt;= state[<span class="st">"max_revisions"</span>]:
+        <span class="kw">return</span> <span class="st">"end"</span>                    <span class="cm"># forced exit regardless of approval status</span>
+    <span class="kw">if</span> state[<span class="st">"approved"</span>]:
+        <span class="kw">return</span> <span class="st">"end"</span>
+    <span class="kw">return</span> <span class="st">"generate"</span>
+
+<span class="cm"># For ReAct agents: use recursion_limit on the graph itself</span>
+graph = builder.<span class="fn">compile</span>(checkpointer=checkpointer)
+
+<span class="cm"># Set per-invocation — different workflows may need different limits</span>
+config = {
+    <span class="st">"configurable"</span>: {<span class="st">"thread_id"</span>: thread_id},
+    <span class="st">"recursion_limit"</span>: <span class="nm">25</span>,    <span class="cm"># LangGraph raises GraphRecursionError if exceeded</span>
+}
+<span class="kw">try</span>:
+    result = graph.<span class="fn">invoke</span>(state, config=config)
+<span class="kw">except</span> <span class="tp">GraphRecursionError</span>:
+    <span class="cm"># Surface this to monitoring — it means the termination logic is broken</span>
+    <span class="fn">log_error</span>(<span class="st">"graph_runner"</span>, <span class="st">"invoke"</span>, e, thread_id)
+    result = {<span class="st">"error"</span>: <span class="st">"max iterations exceeded"</span>, <span class="st">"partial_state"</span>: graph.<span class="fn">get_state</span>(config)}
+
+<span class="cm"># ── Detecting same-tool-same-args loops ───────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">detect_tool_loop</span>(messages: <span class="tp">list</span>, window: <span class="tp">int</span> = <span class="nm">4</span>) -&gt; <span class="tp">bool</span>:
+    <span class="cm">"""Return True if the last `window` tool calls are identical (name + args)."""</span>
+    tool_calls = [
+        (m.tool_calls[<span class="nm">0</span>].function.name, m.tool_calls[<span class="nm">0</span>].function.arguments)
+        <span class="kw">for</span> m <span class="kw">in</span> messages[-window:]
+        <span class="kw">if</span> <span class="fn">hasattr</span>(m, <span class="st">"tool_calls"</span>) <span class="kw">and</span> m.tool_calls
+    ]
+    <span class="kw">return</span> <span class="fn">len</span>(tool_calls) == window <span class="kw">and</span> <span class="fn">len</span>(<span class="fn">set</span>(tool_calls)) == <span class="nm">1</span></code></pre>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">Never use the LLM's judgment as the only exit condition</strong>
+            LLMs will occasionally claim they are done while continuing to produce tool calls, or claim they need more iterations when they've already found the answer. The integer cap is the safety net — the LLM's judgment is the happy path. Both must exist.
+          </div>
+        </div>
+
+        <h2 id="cost-explosions">Cost explosions <a class="anchor" href="#cost-explosions">#</a></h2>
+        <p>In a single-agent loop, each iteration adds one user message and one assistant message. In a multi-agent system, each node hop can add messages from multiple agents. After ten nodes the input to each subsequent LLM call has grown by the full output of every prior node. Token costs compound.</p>
+        <p>Three places to intervene:</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">cost_guard.py — three-layer cost defence</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> tiktoken
+
+ENCODER = tiktoken.<span class="fn">encoding_for_model</span>(<span class="st">"gpt-4o"</span>)
+
+<span class="kw">def</span> <span class="fn">count_tokens</span>(messages: <span class="tp">list</span>[<span class="tp">dict</span>]) -&gt; <span class="tp">int</span>:
+    <span class="kw">return</span> <span class="fn">sum</span>(<span class="fn">len</span>(ENCODER.<span class="fn">encode</span>(m.<span class="fn">get</span>(<span class="st">"content"</span>, <span class="st">""</span>))) <span class="kw">for</span> m <span class="kw">in</span> messages)
+
+<span class="cm"># ── Layer 1: trim the message list before each LLM call ───────────────</span>
+<span class="kw">def</span> <span class="fn">trim_to_budget</span>(messages: <span class="tp">list</span>[<span class="tp">dict</span>], budget: <span class="tp">int</span> = <span class="nm">8000</span>) -&gt; <span class="tp">list</span>[<span class="tp">dict</span>]:
+    <span class="cm">"""Keep the system message + most recent exchanges that fit in budget."""</span>
+    system = [m <span class="kw">for</span> m <span class="kw">in</span> messages <span class="kw">if</span> m.get(<span class="st">"role"</span>) == <span class="st">"system"</span>]
+    rest   = [m <span class="kw">for</span> m <span class="kw">in</span> messages <span class="kw">if</span> m.get(<span class="st">"role"</span>) != <span class="st">"system"</span>]
+    result = system[:]
+    <span class="kw">for</span> msg <span class="kw">in</span> <span class="fn">reversed</span>(rest):         <span class="cm"># most recent first</span>
+        <span class="kw">if</span> <span class="fn">count_tokens</span>(result + [msg]) &gt; budget:
+            <span class="kw">break</span>
+        result.insert(<span class="fn">len</span>(system), msg)  <span class="cm"># insert after system messages</span>
+    <span class="kw">return</span> result
+
+<span class="cm"># ── Layer 2: compress tool results before appending ───────────────────</span>
+<span class="kw">def</span> <span class="fn">compress_tool_result</span>(tool_name: <span class="tp">str</span>, raw: <span class="tp">str</span>, max_tokens: <span class="tp">int</span> = <span class="nm">200</span>) -&gt; <span class="tp">str</span>:
+    <span class="kw">if</span> <span class="fn">len</span>(ENCODER.<span class="fn">encode</span>(raw)) &lt;= max_tokens:
+        <span class="kw">return</span> raw
+    <span class="cm"># Ask the LLM to summarise the result — cheaper than passing the full raw output</span>
+    summary = llm.<span class="fn">invoke</span>([{
+        <span class="st">"role"</span>: <span class="st">"user"</span>,
+        <span class="st">"content"</span>: <span class="st">f"Summarise this {tool_name} result in ≤{max_tokens} tokens:\n\n{raw}"</span>
+    }])
+    <span class="kw">return</span> summary.content
+
+<span class="cm"># ── Layer 3: per-run budget with early exit ───────────────────────────</span>
+<span class="kw">class</span> <span class="tp">BudgetState</span>(<span class="tp">TypedDict</span>):
+    messages:        <span class="tp">Annotated</span>[<span class="tp">list</span>, add_messages]
+    tokens_used:     <span class="tp">Annotated</span>[<span class="tp">int</span>, operator.add]
+    token_budget:    <span class="tp">int</span>             <span class="cm"># set at graph entry, e.g. 50_000</span>
+    budget_exceeded: <span class="tp">bool</span>
+
+<span class="kw">def</span> <span class="fn">check_budget</span>(state: <span class="tp">BudgetState</span>) -&gt; <span class="tp">str</span>:
+    <span class="kw">if</span> state[<span class="st">"tokens_used"</span>] &gt; state[<span class="st">"token_budget"</span>]:
+        <span class="kw">return</span> <span class="st">"budget_exceeded"</span>
+    <span class="kw">return</span> <span class="st">"continue"</span>
+
+<span class="kw">def</span> <span class="fn">any_node</span>(state: <span class="tp">BudgetState</span>):
+    messages = <span class="fn">trim_to_budget</span>(state[<span class="st">"messages"</span>], budget=<span class="nm">8000</span>)
+    response = llm.<span class="fn">invoke</span>(messages)
+    tokens_this_call = response.usage_metadata[<span class="st">"total_tokens"</span>]
+    <span class="kw">return</span> {<span class="st">"messages"</span>: [response], <span class="st">"tokens_used"</span>: tokens_this_call}</code></pre>
+        </div>
+
+        <h2 id="debugging-workflow">The five-step debugging workflow <a class="anchor" href="#debugging-workflow">#</a></h2>
+        <p>When a multi-agent run produces wrong output, runs too long, or costs too much, follow this sequence:</p>
+
+        <div class="reveal" style="margin:1.5rem 0;overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border)">
+                <th style="text-align:left;padding:.5rem .7rem;color:var(--fg-dim);font-weight:600">Step</th>
+                <th style="text-align:left;padding:.5rem .7rem;color:var(--fg-dim);font-weight:600">Action</th>
+                <th style="text-align:left;padding:.5rem .7rem;color:var(--fg-dim);font-weight:600">Tool</th>
+                <th style="text-align:left;padding:.5rem .7rem;color:var(--fg-dim);font-weight:600">What you're looking for</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.5rem .7rem;font-weight:600;color:var(--phase-text)">1. Trace</td>
+                <td style="padding:.5rem .7rem">Open the LangSmith run</td>
+                <td style="padding:.5rem .7rem">LangSmith UI</td>
+                <td style="padding:.5rem .7rem">Unexpected node count, high-latency spans, large token counts</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.5rem .7rem;font-weight:600;color:var(--phase-text)">2. Isolate</td>
+                <td style="padding:.5rem .7rem">Find the first node whose output is wrong</td>
+                <td style="padding:.5rem .7rem">Trace inputs/outputs</td>
+                <td style="padding:.5rem .7rem">Empty state field, wrong message role, missing context</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.5rem .7rem;font-weight:600;color:var(--phase-text)">3. Reproduce</td>
+                <td style="padding:.5rem .7rem">Unit-test the failing node in isolation</td>
+                <td style="padding:.5rem .7rem">pytest</td>
+                <td style="padding:.5rem .7rem">Does the node produce wrong output given the exact state from the trace?</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.5rem .7rem;font-weight:600;color:var(--phase-text)">4. Fix</td>
+                <td style="padding:.5rem .7rem">Fix state schema, prompt, or routing</td>
+                <td style="padding:.5rem .7rem">Editor</td>
+                <td style="padding:.5rem .7rem">Named state fields, explicit context injection, hard loop caps</td>
+              </tr>
+              <tr>
+                <td style="padding:.5rem .7rem;font-weight:600;color:var(--phase-text)">5. Verify</td>
+                <td style="padding:.5rem .7rem">Run the full graph and compare traces</td>
+                <td style="padding:.5rem .7rem">LangSmith compare</td>
+                <td style="padding:.5rem .7rem">Fewer node hops, smaller token counts, correct final output</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">✦</span>
+          <div>
+            <strong class="callout__title">LangSmith "compare" mode</strong>
+            After a fix, run both the broken and the fixed version on the same input, then open them side-by-side in LangSmith's compare view. You can see token reduction, latency improvement, and node hop count changes in a single screen — useful for convincing yourself the fix didn't just move the bug.
+          </div>
+        </div>
+
+        <div class="callout callout--success reveal">
+          <span class="callout__icon">✓</span>
+          <div>
+            <strong class="callout__title">Phase 7 complete — Multi-Agent Orchestration</strong>
+            You've covered the full multi-agent stack: when to use it, LangGraph graph primitives, the five canonical patterns, agent-as-tool composition, stateful checkpointing, the A2A protocol, framework trade-offs, and debugging. Phase 8 moves to production hardening — guardrails, LLMOps, and evaluation pipelines.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: Guardrails &amp; LLMOps</div>
+            <div class="cta-block__sub">Phase 8 starts with the three-layer guardrail architecture — input validation, output filtering, and policy enforcement — then covers AWS Bedrock Guardrails, LLMOps observability, and evaluation in production.</div>
+          </div>
+          <a class="cta-block__btn" href="module-8-1.html">Phase 8 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#langsmith">LangSmith tracing</a></li>
+      <li><a class="toc__link" href="#talking-past">Agents talking past each other</a></li>
+      <li><a class="toc__link" href="#infinite-loops">Infinite loops</a></li>
+      <li><a class="toc__link" href="#cost-explosions">Cost explosions</a></li>
+      <li><a class="toc__link" href="#debugging-workflow">Debugging workflow</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){const h=document.documentElement;const dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');localStorage.setItem('ae-theme',dark?'light':'dark');document.getElementById('themeIcon').textContent=dark?'☀':'☾';document.getElementById('themeLabel').textContent=dark?'Light':'Dark';}
+(function(){const t=localStorage.getItem('ae-theme');if(t){document.documentElement.setAttribute('data-theme',t);const dark=t==='dark';document.getElementById('themeIcon').textContent=dark?'☾':'☀';document.getElementById('themeLabel').textContent=dark?'Dark':'Light';}})();
+function copyCode(btn){const code=btn.closest('.code-wrap').querySelector('pre code');navigator.clipboard.writeText(code.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{es.forEach(e=>{const id=e.target.id;if(!id)return;const link=document.querySelector(`.toc__link[href="#${id}"]`);if(!link)return;if(e.isIntersecting){document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));link.classList.add('active');}});},{rootMargin:'-20% 0px -70% 0px'});document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

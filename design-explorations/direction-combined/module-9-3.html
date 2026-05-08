@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 9.3 Networking &amp; Access · by Harish Mondepu</title>
+<meta name="description" content="VPC, subnets, security groups, IAM roles for ECS tasks, and API Gateway for exposing agent endpoints — minimum viable networking to deploy securely on AWS."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#3730a3;--phase-hi:#4338ca;--phase-soft:rgba(67,56,202,.1);--phase-text:#3730a3}
+[data-theme="dark"]{--phase:#818cf8;--phase-hi:#a5b4fc;--phase-soft:rgba(129,140,248,.1);--phase-text:#c7d2fe}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 9 · <strong>Networking &amp; Access</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 59 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#1aada0"></span>Phase 1 · Python Foundations ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#06b6d4"></span>Phase 2 · LLM Mental Model ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#a78bfa"></span>Phase 3 · Prompt Engineering ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f06292"></span>Phase 4 · RAG + Evaluation ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#10b981"></span>Phase 5 · Tools, MCP &amp; Agents ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f59e0b"></span>Phase 6 · Memory &amp; Context ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f97316"></span>Phase 7 · Multi-Agent Orchestration ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#eab308"></span>Phase 8 · Guardrails &amp; LLMOps ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 9 · Cloud Infrastructure
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-9-1.html"><span class="sidebar__mod-num">9.1</span>Storage &amp; Data ✓</a>
+        <a class="sidebar__mod done" href="module-9-2.html"><span class="sidebar__mod-num">9.2</span>Compute ✓</a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">9.3</span>Networking &amp; Access</a>
+        <a class="sidebar__mod" href="module-9-4.html"><span class="sidebar__mod-num">9.4</span>AI-Specific Services</a>
+        <a class="sidebar__mod" href="module-9-5.html"><span class="sidebar__mod-num">9.5</span>Deployment &amp; Realtime</a>
+        <a class="sidebar__mod" href="module-9-6.html"><span class="sidebar__mod-num">9.6</span>Cost &amp; Capacity</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 09</span>
+        <span class="tag tag--level">Advanced</span>
+        <span class="tag tag--week">Week 25</span>
+      </div>
+      <h1 class="mod-head__title">Networking <em>&amp; Access</em></h1>
+      <p class="mod-head__sub">The goal of this module is not to turn you into a network engineer — it's to give you the minimum viable VPC setup that keeps your agent services secure, lets them talk to each other, and exposes the right endpoints to the internet. One VPC, two public subnets, two private subnets, sensible security group rules, task-scoped IAM roles, and API Gateway to route traffic. That covers 90% of agent deployment scenarios.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~16 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>2 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li><strong>VPC layout:</strong> one VPC, two public subnets (ALB lives here), two private subnets (ECS tasks + RDS live here) across two availability zones — this is the standard pattern</li>
+          <li><strong>Security groups as firewalls:</strong> ALB SG allows 443 from 0.0.0.0/0; ECS task SG allows traffic only from the ALB SG; RDS SG allows 5432 only from the ECS task SG — each layer only speaks to the next</li>
+          <li><strong>IAM task roles:</strong> each ECS task gets its own IAM role with only the permissions it needs — never use an IAM user with static credentials in a container</li>
+          <li><strong>API Gateway:</strong> for serverless Lambda endpoints, use HTTP API (cheaper, lower latency than REST API); for WebSocket streaming, use WebSocket API</li>
+          <li><strong>Outbound from private subnets:</strong> ECS tasks need to reach external LLM APIs (OpenAI, Anthropic) — add a NAT Gateway in each public subnet, or use VPC endpoints for AWS services to avoid the internet</li>
+        </ul>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="vpc-layout">Minimum viable VPC layout <a class="anchor" href="#vpc-layout">#</a></h2>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">text</span><span class="code-file">vpc-layout.txt — standard agent deployment network topology</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>VPC: 10.0.0.0/16
+
+  Public subnets (ALB, NAT Gateway)
+  ├── 10.0.0.0/24  (us-east-1a)
+  └── 10.0.1.0/24  (us-east-1b)
+       ↑ Internet Gateway attached
+
+  Private subnets (ECS tasks, RDS, ElastiCache)
+  ├── 10.0.2.0/24  (us-east-1a)
+  └── 10.0.3.0/24  (us-east-1b)
+       ↑ NAT Gateway routes outbound internet traffic
+
+Security Groups:
+  alb-sg:       ingress 443/tcp from 0.0.0.0/0
+  ecs-task-sg:  ingress 8000/tcp from alb-sg only
+                egress  443/tcp  to 0.0.0.0/0  (LLM API calls)
+                egress  5432/tcp to rds-sg
+  rds-sg:       ingress 5432/tcp from ecs-task-sg only
+
+Flow:
+  Internet → ALB (public subnet) → ECS task (private subnet)
+  ECS task → NAT Gateway (public subnet) → OpenAI/Anthropic
+  ECS task → RDS (private subnet, same VPC)</code></pre>
+        </div>
+
+        <h2 id="iam">IAM roles for ECS tasks <a class="anchor" href="#iam">#</a></h2>
+        <p>ECS tasks use two IAM roles: the <strong>task execution role</strong> (used by the ECS agent to pull the container image and write logs to CloudWatch) and the <strong>task role</strong> (used by the application code inside the container). Never use a shared admin role — scope each task role to only the AWS resources it actually needs.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">json</span><span class="code-file">task-role-policy.json — principle of least privilege for an agent task</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "S3DocumentAccess",
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject"],
+      "Resource": "arn:aws:s3:::my-agent-prod/documents/*"
+    },
+    {
+      "Sid": "SecretsManagerRead",
+      "Effect": "Allow",
+      "Action": ["secretsmanager:GetSecretValue"],
+      "Resource": [
+        "arn:aws:secretsmanager:us-east-1:123456789012:secret:agent/db-password-*",
+        "arn:aws:secretsmanager:us-east-1:123456789012:secret:agent/openai-key-*"
+      ]
+    },
+    {
+      "Sid": "BedrockInvoke",
+      "Effect": "Allow",
+      "Action": ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"],
+      "Resource": "arn:aws:bedrock:us-east-1::foundation-model/anthropic.*"
+    },
+    {
+      "Sid": "CloudWatchLogs",
+      "Effect": "Allow",
+      "Action": ["logs:CreateLogStream", "logs:PutLogEvents"],
+      "Resource": "arn:aws:logs:us-east-1:123456789012:log-group:/ecs/agent-api:*"
+    }
+  ]
+}</code></pre>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">Never put AWS credentials in environment variables</strong>
+            ECS task roles inject temporary credentials automatically via the instance metadata service — your boto3 code picks them up without any configuration. If you put static IAM credentials (<code>AWS_ACCESS_KEY_ID</code>, <code>AWS_SECRET_ACCESS_KEY</code>) in an env var, a container escape vulnerability exposes them permanently. Use task roles instead.
+          </div>
+        </div>
+
+        <h2 id="api-gateway">API Gateway for Lambda endpoints <a class="anchor" href="#api-gateway">#</a></h2>
+        <p>API Gateway sits in front of Lambda functions and handles routing, authentication, rate limiting, and CORS. Use HTTP API (not REST API) — it's cheaper ($1 vs $3.50 per million requests), lower latency (~10ms vs ~50ms overhead), and supports Lambda proxy integration natively. Use REST API only if you need request/response transformation or a custom domain on an existing REST API.</p>
+        <p>For ECS Fargate services, an Application Load Balancer (ALB) plays the same role as API Gateway — it handles routing and health checks, and is required for Fargate anyway since tasks get private IPs. API Gateway can also route to ALB via VPC Link for unified traffic management.</p>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: AI-Specific Services</div>
+            <div class="cta-block__sub">Module 9.4 covers AWS Bedrock, AgentCore, Bedrock embeddings, and their equivalents on GCP (Vertex AI) and Azure (AI Foundry) — so you can navigate any cloud provider's AI service catalog.</div>
+          </div>
+          <a class="cta-block__btn" href="module-9-4.html">Module 9.4 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#vpc-layout">VPC layout</a></li>
+      <li><a class="toc__link" href="#iam">IAM task roles</a></li>
+      <li><a class="toc__link" href="#api-gateway">API Gateway</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){const h=document.documentElement;const dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');localStorage.setItem('ae-theme',dark?'light':'dark');document.getElementById('themeIcon').textContent=dark?'☀':'☾';document.getElementById('themeLabel').textContent=dark?'Light':'Dark';}
+(function(){const t=localStorage.getItem('ae-theme');if(t){document.documentElement.setAttribute('data-theme',t);const dark=t==='dark';document.getElementById('themeIcon').textContent=dark?'☾':'☀';document.getElementById('themeLabel').textContent=dark?'Dark':'Light';}})();
+function copyCode(btn){const code=btn.closest('.code-wrap').querySelector('pre code');navigator.clipboard.writeText(code.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{es.forEach(e=>{const id=e.target.id;if(!id)return;const link=document.querySelector(`.toc__link[href="#${id}"]`);if(!link)return;if(e.isIntersecting){document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));link.classList.add('active');}});},{rootMargin:'-20% 0px -70% 0px'});document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

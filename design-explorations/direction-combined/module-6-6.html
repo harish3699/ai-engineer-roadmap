@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 6.6 Context Compression · by Harish Mondepu</title>
+<meta name="description" content="Compress long agent traces without losing decision-relevant information — hierarchical summarisation, selective fact extraction, and compressing multi-step agentic workflows."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#d97706;--phase-hi:#f59e0b;--phase-soft:rgba(245,158,11,.1);--phase-text:#d97706}
+[data-theme="dark"]{--phase:#f59e0b;--phase-hi:#fbbf24;--phase-soft:rgba(251,191,36,.1);--phase-text:#fde68a}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 6 · <strong>Context Compression</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 43 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#f06292"></span>
+        Phase 4 · RAG + Evaluation ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#10b981"></span>
+        Phase 5 · Tools, MCP &amp; Agents ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 6 · Memory &amp; Context
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-6-1.html"><span class="sidebar__mod-num">6.1</span>Context Window ✓</a>
+        <a class="sidebar__mod done" href="module-6-2.html"><span class="sidebar__mod-num">6.2</span>Context Structure ✓</a>
+        <a class="sidebar__mod done" href="module-6-3.html"><span class="sidebar__mod-num">6.3</span>Short-Term Memory ✓</a>
+        <a class="sidebar__mod done" href="module-6-4.html"><span class="sidebar__mod-num">6.4</span>Semantic Caching ✓</a>
+        <a class="sidebar__mod done" href="module-6-5.html"><span class="sidebar__mod-num">6.5</span>Episodic Memory ✓</a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">6.6</span>Context Compression</a>
+        <a class="sidebar__mod" href="module-6-7.html"><span class="sidebar__mod-num">6.7</span>Long-Term Memory</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 06</span>
+        <span class="tag tag--level">Advanced</span>
+        <span class="tag tag--week">Week 19</span>
+      </div>
+      <h1 class="mod-head__title">Context <em>Compression</em></h1>
+      <p class="mod-head__sub">A 20-step agentic workflow produces a transcript that can easily exceed 30,000 tokens — tool calls, retrieved documents, intermediate reasoning, partial results. You cannot fit that history into the next turn without hitting the context limit. Context compression is the art of reducing token volume while preserving decision-relevant information. This module covers three techniques: hierarchical summarisation (progressively compress older turns), selective fact extraction (keep only the actionable conclusions), and trace compression (distill an entire agent run into a structured "what was decided" block).</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~22 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>4 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Compression is lossy by nature — you cannot perfectly summarise 10,000 tokens into 500. The goal is to preserve what the model <em>actually needs</em> to continue correctly, not everything that was said</li>
+          <li>Hierarchical summarisation compresses in layers: old turns → paragraph summary → one-line fact. Applying all three levels lets you represent hundreds of turns in ~300 tokens</li>
+          <li>Tool call results are the biggest compression wins — a 2,000-token API response often has one useful sentence. Extract the conclusion, discard the rest</li>
+          <li>Agent traces (Thought → Action → Observation loops) compress well into structured decision records: what was tried, what was found, what was decided</li>
+          <li>Never compress the most recent turns — the model needs verbatim access to what just happened. Only compress the middle of the context, not the edges</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Module 6.1 — context window mechanics (lost-in-the-middle)</li>
+            <li><div class="meta-list__dot">!</div>Module 6.3 — summary compression in short-term memory</li>
+            <li><div class="meta-list__dot">!</div>Module 5.4 — ReAct agent traces (Thought/Action/Observation)</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Apply hierarchical summarisation to a long conversation history</li>
+            <li><div class="meta-list__dot">2</div>Build a tool-result compressor that extracts the decision-relevant sentence</li>
+            <li><div class="meta-list__dot">3</div>Compress a full ReAct agent trace into a structured decision record</li>
+            <li><div class="meta-list__dot">4</div>Measure compression ratio and quality using token counts before and after</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="why-compress">Why compression beats truncation <a class="anchor" href="#why-compress">#</a></h2>
+        <p>Truncation (dropping old turns) is the default for most frameworks — it's simple and has zero latency overhead. The problem: it creates a hard cliff. Turn 1 might contain the user's original goal statement. Dropping it means the agent loses the task framing and starts optimising for local sub-tasks rather than the original objective. Compression replaces the cliff with a gradient: older content is still represented, just at lower resolution.</p>
+
+        <div class="reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.2rem">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--phase-text);margin-bottom:.75rem">Compression levels — same 10,000-token session</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem">
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div style="font-size:11px;color:var(--fg-dim);width:80px;text-align:right;flex-shrink:0">Verbatim</div>
+              <div style="flex:1;background:var(--phase-hi);height:10px;border-radius:3px"></div>
+              <div style="font-size:11px;color:var(--fg-dim);width:60px;text-align:right">10,000 tok</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div style="font-size:11px;color:var(--fg-dim);width:80px;text-align:right;flex-shrink:0">L1 summary</div>
+              <div style="width:30%;background:var(--phase-soft);border:1px solid var(--phase-hi);height:10px;border-radius:3px"></div>
+              <div style="font-size:11px;color:var(--fg-dim);width:60px;text-align:right">3,000 tok</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div style="font-size:11px;color:var(--fg-dim);width:80px;text-align:right;flex-shrink:0">L2 summary</div>
+              <div style="width:8%;background:var(--phase-soft);border:1px solid var(--phase-hi);height:10px;border-radius:3px"></div>
+              <div style="font-size:11px;color:var(--fg-dim);width:60px;text-align:right">800 tok</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div style="font-size:11px;color:var(--fg-dim);width:80px;text-align:right;flex-shrink:0">Decision rec.</div>
+              <div style="width:3%;background:var(--phase-soft);border:1px solid var(--phase-hi);height:10px;border-radius:3px"></div>
+              <div style="font-size:11px;color:var(--fg-dim);width:60px;text-align:right">300 tok</div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="hierarchical">Hierarchical summarisation <a class="anchor" href="#hierarchical">#</a></h2>
+        <p>Hierarchical summarisation applies compression in layers. The oldest turns get the most compression; recent turns stay verbatim. This matches the attention pattern from Module 6.1 — old content receives little attention anyway, so high compression there has minimal impact on quality.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">hierarchical_compress.py — tiered compression of long histories</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> tiktoken
+<span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+
+enc = tiktoken.<span class="fn">get_encoding</span>(<span class="st">"cl100k_base"</span>)
+client = <span class="tp">OpenAI</span>()
+
+<span class="kw">def</span> <span class="fn">compress_chunk</span>(messages: <span class="tp">list</span>[<span class="tp">dict</span>], level: <span class="tp">int</span>) -> <span class="tp">str</span>:
+    <span class="st">"""Level 1: paragraph summary. Level 2: single-sentence summary."""</span>
+    instruction = {
+        <span class="nm">1</span>: <span class="st">"Summarise the following conversation in 1-3 sentences. Preserve key facts, decisions, and user goals."</span>,
+        <span class="nm">2</span>: <span class="st">"Distill the following summary into ONE sentence capturing the core topic and key decision."</span>,
+    }[level]
+    raw = <span class="st">"\n"</span>.<span class="fn">join</span>(<span class="st">f"{m['role'].upper()}: {m['content']}"</span> <span class="kw">for</span> m <span class="kw">in</span> messages)
+    resp = client.chat.completions.<span class="fn">create</span>(
+        model=<span class="st">"gpt-4o-mini"</span>,
+        messages=[
+            {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: instruction},
+            {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: raw},
+        ],
+        max_tokens=<span class="nm">200</span>,
+    )
+    <span class="kw">return</span> resp.choices[<span class="nm">0</span>].message.content
+
+
+<span class="kw">def</span> <span class="fn">hierarchical_compress</span>(
+    history: <span class="tp">list</span>[<span class="tp">dict</span>],
+    budget: <span class="tp">int</span> = <span class="nm">2000</span>,
+    recent_pairs: <span class="tp">int</span> = <span class="nm">6</span>,
+) -> <span class="tp">list</span>[<span class="tp">dict</span>]:
+    <span class="st">"""Compress a long history into budget tokens, keeping recent_pairs verbatim."""</span>
+    total_tokens = <span class="fn">sum</span>(<span class="fn">len</span>(enc.<span class="fn">encode</span>(m[<span class="st">"content"</span>])) <span class="kw">for</span> m <span class="kw">in</span> history)
+    <span class="kw">if</span> total_tokens <= budget:
+        <span class="kw">return</span> history  <span class="cm"># no compression needed</span>
+
+    recent = history[-(recent_pairs * <span class="nm">2</span>):]
+    old     = history[:-(recent_pairs * <span class="nm">2</span>)]
+    <span class="kw">if</span> <span class="kw">not</span> old:
+        <span class="kw">return</span> history
+
+    <span class="cm"># Split old messages into two halves for two-level compression</span>
+    mid = <span class="fn">len</span>(old) // <span class="nm">2</span>
+    very_old = old[:mid]
+    less_old  = old[mid:]
+
+    compressed_parts = []
+    <span class="kw">if</span> very_old:
+        <span class="cm"># Level 2 compression for oldest chunk — one sentence</span>
+        summary = <span class="fn">compress_chunk</span>(very_old, level=<span class="nm">2</span>)
+        compressed_parts.<span class="fn">append</span>({<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: <span class="st">"[earlier context]"</span>})
+        compressed_parts.<span class="fn">append</span>({<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: summary})
+    <span class="kw">if</span> less_old:
+        <span class="cm"># Level 1 compression for middle chunk — paragraph</span>
+        summary = <span class="fn">compress_chunk</span>(less_old, level=<span class="nm">1</span>)
+        compressed_parts.<span class="fn">append</span>({<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: <span class="st">"[earlier context continued]"</span>})
+        compressed_parts.<span class="fn">append</span>({<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: summary})
+
+    <span class="kw">return</span> compressed_parts + recent  <span class="cm"># compressed summaries + verbatim recent turns</span></code></pre>
+        </div>
+
+        <h2 id="tool-result-compression">Tool result compression <a class="anchor" href="#tool-result-compression">#</a></h2>
+        <p>Tool call results are often verbose — a database query returns 50 rows when 1 was needed, an API response includes metadata fields the agent never looks at. The compression pattern: immediately after receiving a tool result, extract the decision-relevant conclusion before appending it to history.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">tool_compressor.py — extracting conclusions from verbose tool results</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>COMPRESS_TOOL_PROMPT = <span class="st">"""Extract the decision-relevant information from this tool result.
+Return 1-2 sentences only. Include: key numbers, status codes, names, dates, counts.
+Omit: boilerplate, repeated fields, empty values, debug metadata."""</span>
+
+<span class="kw">def</span> <span class="fn">compress_tool_result</span>(tool_name: <span class="tp">str</span>, raw_result: <span class="tp">str</span>, max_tokens: <span class="tp">int</span> = <span class="nm">150</span>) -> <span class="tp">str</span>:
+    <span class="kw">import</span> tiktoken
+    enc = tiktoken.<span class="fn">get_encoding</span>(<span class="st">"cl100k_base"</span>)
+    <span class="kw">if</span> <span class="fn">len</span>(enc.<span class="fn">encode</span>(raw_result)) <= max_tokens:
+        <span class="kw">return</span> raw_result  <span class="cm"># already short enough, don't waste an LLM call</span>
+    resp = client.chat.completions.<span class="fn">create</span>(
+        model=<span class="st">"gpt-4o-mini"</span>,
+        messages=[
+            {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: COMPRESS_TOOL_PROMPT},
+            {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: <span class="st">f"Tool: {tool_name}\n\nResult:\n{raw_result}"</span>},
+        ],
+        max_tokens=<span class="nm">100</span>,
+    )
+    compressed = resp.choices[<span class="nm">0</span>].message.content
+    <span class="kw">return</span> <span class="st">f"[compressed from {len(enc.encode(raw_result))} tokens] {compressed}"</span>
+
+
+<span class="cm"># In your tool loop — compress before storing in history</span>
+<span class="kw">for</span> call <span class="kw">in</span> msg.tool_calls:
+    raw = tool_map[call.function.name](**json.<span class="fn">loads</span>(call.function.arguments))
+    compressed = <span class="fn">compress_tool_result</span>(call.function.name, json.<span class="fn">dumps</span>(raw))
+    messages.<span class="fn">append</span>({<span class="st">"role"</span>: <span class="st">"tool"</span>, <span class="st">"tool_call_id"</span>: call.id, <span class="st">"content"</span>: compressed})</code></pre>
+        </div>
+
+        <h2 id="trace-compression">Agent trace compression <a class="anchor" href="#trace-compression">#</a></h2>
+        <p>A ReAct loop that runs for 15 steps produces 15 Thought/Action/Observation triples — thousands of tokens of reasoning that was correct at the time but is largely irrelevant to future steps. Compress a completed sub-task into a structured decision record before continuing:</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">trace_compress.py — distilling a ReAct trace into a decision record</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>TRACE_COMPRESS_PROMPT = <span class="st">"""You are summarising a completed sub-task in an agent's reasoning trace.
+Output a structured JSON object with these fields:
+- task: the original sub-task
+- outcome: "success" | "failure" | "partial"
+- key_findings: list of up to 3 key facts discovered (short strings)
+- decision: the action decided or conclusion reached
+- blockers: any obstacles encountered (empty list if none)
+
+Be extremely concise — this summary will be carried forward in context."""</span>
+
+<span class="kw">def</span> <span class="fn">compress_trace</span>(trace_messages: <span class="tp">list</span>[<span class="tp">dict</span>]) -> <span class="tp">str</span>:
+    raw = <span class="st">"\n"</span>.<span class="fn">join</span>(<span class="st">f"{m['role'].upper()}: {m['content']}"</span> <span class="kw">for</span> m <span class="kw">in</span> trace_messages)
+    resp = client.chat.completions.<span class="fn">create</span>(
+        model=<span class="st">"gpt-4o-mini"</span>,
+        messages=[
+            {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: TRACE_COMPRESS_PROMPT},
+            {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: raw},
+        ],
+        response_format={<span class="st">"type"</span>: <span class="st">"json_object"</span>},
+        max_tokens=<span class="nm">200</span>,
+    )
+    record = json.<span class="fn">loads</span>(resp.choices[<span class="nm">0</span>].message.content)
+    <span class="cm"># Format as a readable summary block to inject into context</span>
+    findings = <span class="st">"\n"</span>.<span class="fn">join</span>(<span class="st">f"  - {f}"</span> <span class="kw">for</span> f <span class="kw">in</span> record.<span class="fn">get</span>(<span class="st">"key_findings"</span>, []))
+    <span class="kw">return</span> (
+        <span class="st">f"[Sub-task: {record.get('task', 'unknown')}]\n"</span>
+        <span class="st">f"Outcome: {record.get('outcome', 'unknown')}\n"</span>
+        <span class="st">f"Key findings:\n{findings}\n"</span>
+        <span class="st">f"Decision: {record.get('decision', '')}"</span>
+    )</code></pre>
+        </div>
+
+        <h2 id="when-to-compress">When to trigger compression <a class="anchor" href="#when-to-compress">#</a></h2>
+
+        <div class="reveal" style="margin:1.5rem 0;overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border)">
+                <th style="text-align:left;padding:.6rem .8rem;color:var(--fg-dim);font-weight:600">Trigger</th>
+                <th style="text-align:left;padding:.6rem .8rem;color:var(--fg-dim);font-weight:600">Compress</th>
+                <th style="text-align:left;padding:.6rem .8rem;color:var(--fg-dim);font-weight:600">Method</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem">History tokens exceed 60% of budget</td>
+                <td style="padding:.6rem .8rem">Oldest 30% of history</td>
+                <td style="padding:.6rem .8rem">Hierarchical (L1)</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem">Tool result &gt; 150 tokens</td>
+                <td style="padding:.6rem .8rem">Tool result immediately</td>
+                <td style="padding:.6rem .8rem">Conclusion extraction</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem">Sub-task completes (ReAct finishes a loop)</td>
+                <td style="padding:.6rem .8rem">Entire sub-task trace</td>
+                <td style="padding:.6rem .8rem">Structured decision record</td>
+              </tr>
+              <tr>
+                <td style="padding:.6rem .8rem">Session ends</td>
+                <td style="padding:.6rem .8rem">Full session</td>
+                <td style="padding:.6rem .8rem">Episodic extraction (Module 6.5)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">Compression adds latency — be selective</strong>
+            Each compression step is an extra LLM call. In a fast agentic loop, compressing every tool result adds 200–500 ms per tool call. Apply compression selectively: only compress tool results above a token threshold, only compress history when you're approaching the budget limit. Measure the token savings versus the latency cost in your specific workload before making compression the default.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: Long-Term Memory — Phase 6 Finale</div>
+            <div class="cta-block__sub">Module 6.7 ties everything together — building a complete long-term memory system with a structured knowledge graph, memory prioritisation, and a recall pipeline that spans weeks and months of user interaction.</div>
+          </div>
+          <a class="cta-block__btn" href="module-6-7.html">Module 6.7 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#why-compress">Compression vs truncation</a></li>
+      <li><a class="toc__link" href="#hierarchical">Hierarchical summarisation</a></li>
+      <li><a class="toc__link" href="#tool-result-compression">Tool result compression</a></li>
+      <li><a class="toc__link" href="#trace-compression">Agent trace compression</a></li>
+      <li><a class="toc__link" href="#when-to-compress">When to trigger</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){
+  const h=document.documentElement;
+  const dark=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',dark?'light':'dark');
+  localStorage.setItem('ae-theme',dark?'light':'dark');
+  document.getElementById('themeIcon').textContent=dark?'☀':'☾';
+  document.getElementById('themeLabel').textContent=dark?'Light':'Dark';
+}
+(function(){
+  const t=localStorage.getItem('ae-theme');
+  if(t){
+    document.documentElement.setAttribute('data-theme',t);
+    const dark=t==='dark';
+    document.getElementById('themeIcon').textContent=dark?'☾':'☀';
+    document.getElementById('themeLabel').textContent=dark?'Dark':'Light';
+  }
+})();
+function copyCode(btn){
+  const code=btn.closest('.code-wrap').querySelector('pre code');
+  navigator.clipboard.writeText(code.innerText).then(()=>{
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent='Copy',2000);
+  });
+}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    const id=e.target.id;
+    if(!id)return;
+    const link=document.querySelector(`.toc__link[href="#${id}"]`);
+    if(!link)return;
+    if(e.isIntersecting){
+      document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));
+      link.classList.add('active');
+    }
+  });
+},{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

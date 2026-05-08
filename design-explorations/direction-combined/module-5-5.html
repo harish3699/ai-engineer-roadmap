@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 5.5 LangChain Agents · by Harish Mondepu</title>
+<meta name="description" content="Building production agents with LangChain — create_react_agent, the @tool decorator, parallel tool execution with asyncio, and structured outputs via Pydantic."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#059669;--phase-hi:#10b981;--phase-soft:rgba(16,185,129,.1);--phase-text:#059669}
+[data-theme="dark"]{--phase:#10b981;--phase-hi:#34d399;--phase-soft:rgba(16,185,129,.1);--phase-text:#a7f3d0}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 5 · <strong>LangChain Agents</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 34 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#f06292"></span>
+        Phase 4 · RAG + Evaluation ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 5 · Tools, MCP &amp; Agents
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-5-1.html"><span class="sidebar__mod-num">5.1</span>Function Calling<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-5-2.html"><span class="sidebar__mod-num">5.2</span>Tool Design Principles<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-5-3.html"><span class="sidebar__mod-num">5.3</span>MCP Protocol<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-5-4.html"><span class="sidebar__mod-num">5.4</span>The ReAct Pattern<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">5.5</span>LangChain Agents</a>
+        <a class="sidebar__mod" href="module-5-6.html"><span class="sidebar__mod-num">5.6</span>Human in the Loop</a>
+        <a class="sidebar__mod" href="module-5-7.html"><span class="sidebar__mod-num">5.7</span>Tool Security</a>
+        <a class="sidebar__mod" href="module-5-8.html"><span class="sidebar__mod-num">5.8</span>Computer Use &amp; App SDKs</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 05</span>
+        <span class="tag tag--level">Intermediate</span>
+        <span class="tag tag--week">Week 15</span>
+      </div>
+      <h1 class="mod-head__title">LangChain <em>Agents</em></h1>
+      <p class="mod-head__sub">In modules 5.1–5.4 you built tool-calling loops and ReAct agents from scratch. LangChain (specifically LangGraph, its stateful agent framework) provides production-ready scaffolding for these patterns — handling the message loop, tool dispatch, checkpointing, and streaming. This module covers the core LangGraph agent primitives: <code>create_react_agent</code>, the <code>@tool</code> decorator with automatic schema generation, parallel execution, and structured outputs.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~22 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>3 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li><code>create_react_agent(model, tools)</code> assembles a full ReAct loop — you write tools, it handles the message loop, parallel tool dispatch, and finish detection</li>
+          <li>The <code>@tool</code> decorator reads the function's docstring and type hints to auto-generate the JSON Schema tool definition — no manual schema writing</li>
+          <li>LangGraph's <code>MemorySaver</code> checkpoints agent state between calls — enables stateful multi-turn conversations with the same agent</li>
+          <li>Parallel tool execution is built-in — when the model calls multiple tools in one step, LangGraph executes them concurrently via <code>asyncio</code></li>
+          <li>Use <code>with_structured_output(PydanticModel)</code> when you need guaranteed JSON output — the model is forced to produce a schema-valid response</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Modules 5.1–5.4 — tool calling and ReAct</li>
+            <li><div class="meta-list__dot">!</div><code>pip install langchain langchain-openai langgraph pydantic</code></li>
+            <li><div class="meta-list__dot">!</div>OpenAI API key in environment</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Build a LangGraph ReAct agent with tools and memory</li>
+            <li><div class="meta-list__dot">2</div>Define tools using the @tool decorator</li>
+            <li><div class="meta-list__dot">3</div>Stream agent responses token by token</li>
+            <li><div class="meta-list__dot">4</div>Force structured output from an agent using Pydantic</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">LangGraph Agents — Building Production Agents with LangChain</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· search "LangGraph create_react_agent tutorial 2024"</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/l8_LTrMEPH4" title="LangGraph Agents" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ Complete walkthrough of LangGraph's create_react_agent with tools, memory, and streaming</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="create-react-agent">create_react_agent — the building block <a class="anchor" href="#create-react-agent">#</a></h2>
+        <p>LangGraph's <code>create_react_agent</code> assembles a complete ReAct loop from a model and a list of tools. It handles: the message history, detecting when the model wants to call tools, dispatching tool calls (in parallel if multiple), injecting results, and detecting when to stop. You write tools; LangGraph handles the loop.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">langgraph_agent.py — create_react_agent with tools and memory</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI
+<span class="kw">from</span> langchain.tools <span class="kw">import</span> tool
+<span class="kw">from</span> langgraph.prebuilt <span class="kw">import</span> create_react_agent
+<span class="kw">from</span> langgraph.checkpoint.memory <span class="kw">import</span> MemorySaver
+
+<span class="cm"># ── Step 1: Define tools with @tool decorator ─────────────────────────</span>
+<span class="op">@</span><span class="fn">tool</span>
+<span class="kw">def</span> <span class="fn">get_weather</span>(city: <span class="tp">str</span>, unit: <span class="tp">str</span> = <span class="st">"celsius"</span>) -> <span class="tp">dict</span>:
+    <span class="st">"""Get current weather for a city.
+
+    Call this when the user asks about weather, temperature, or conditions
+    for a specific location. Do NOT call for forecasts (use get_forecast).
+
+    Args:
+        city: City name in English, e.g. 'Berlin' or 'Tokyo'
+        unit: Temperature unit: 'celsius' or 'fahrenheit'
+    """</span>
+    <span class="kw">return</span> {<span class="st">"city"</span>: city, <span class="st">"temperature"</span>: <span class="nm">18</span>, <span class="st">"condition"</span>: <span class="st">"Partly cloudy"</span>, <span class="st">"unit"</span>: unit}
+
+<span class="op">@</span><span class="fn">tool</span>
+<span class="kw">def</span> <span class="fn">convert_currency</span>(amount: <span class="tp">float</span>, from_currency: <span class="tp">str</span>, to_currency: <span class="tp">str</span>) -> <span class="tp">dict</span>:
+    <span class="st">"""Convert an amount between currencies using current exchange rates.
+
+    Args:
+        amount: Amount to convert (positive number)
+        from_currency: Source currency code, e.g. 'USD', 'EUR', 'GBP'
+        to_currency: Target currency code
+    """</span>
+    rates = {(<span class="st">"USD"</span>, <span class="st">"EUR"</span>): <span class="nm">0.92</span>, (<span class="st">"EUR"</span>, <span class="st">"USD"</span>): <span class="nm">1.09</span>}
+    rate = rates.<span class="fn">get</span>((from_currency.<span class="fn">upper</span>(), to_currency.<span class="fn">upper</span>()), <span class="nm">1.0</span>)
+    <span class="kw">return</span> {<span class="st">"from"</span>: from_currency, <span class="st">"to"</span>: to_currency,
+             <span class="st">"amount"</span>: amount, <span class="st">"result"</span>: <span class="fn">round</span>(amount * rate, <span class="nm">2</span>), <span class="st">"rate"</span>: rate}
+
+<span class="cm"># ── Step 2: Build the agent ───────────────────────────────────────────</span>
+model = <span class="fn">ChatOpenAI</span>(model=<span class="st">"gpt-4o-mini"</span>)
+memory = <span class="fn">MemorySaver</span>()  <span class="cm"># enables multi-turn stateful conversations</span>
+
+agent = <span class="fn">create_react_agent</span>(
+    model=model,
+    tools=[get_weather, convert_currency],
+    checkpointer=memory,
+)
+
+<span class="cm"># ── Step 3: Invoke with thread_id for stateful sessions ───────────────</span>
+config = {<span class="st">"configurable"</span>: {<span class="st">"thread_id"</span>: <span class="st">"user-123"</span>}}
+
+result = agent.<span class="fn">invoke</span>(
+    {<span class="st">"messages"</span>: [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"What's the weather in Berlin, and how much is 100 EUR in USD?"</span>}]},
+    config=config,
+)
+<span class="fn">print</span>(result[<span class="st">"messages"</span>][-<span class="nm">1</span>].content)
+
+<span class="cm"># Follow-up in same thread — agent remembers the conversation</span>
+result2 = agent.<span class="fn">invoke</span>(
+    {<span class="st">"messages"</span>: [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"And what about Tokyo weather?"</span>}]},
+    config=config,  <span class="cm"># same thread_id = same conversation</span>
+)
+<span class="fn">print</span>(result2[<span class="st">"messages"</span>][-<span class="nm">1</span>].content)</code></pre>
+        </div>
+
+        <div class="callout callout--note">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">@tool reads your docstring as the tool description</strong>
+            The <code>@tool</code> decorator parses the function's docstring — the first paragraph becomes the tool description, and the Args section becomes parameter descriptions. This is the same principle as module 5.2: write docstrings as if you're writing a user-facing API spec. LangChain also reads type hints to infer JSON Schema types, so annotate all parameters.
+          </div>
+        </div>
+
+        <h2 id="streaming">Streaming agent responses <a class="anchor" href="#streaming">#</a></h2>
+        <p>For production UIs you want to stream tokens as they're generated rather than waiting for the complete response. LangGraph's <code>.stream()</code> method yields events including token chunks, tool call starts, tool results, and final messages.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">streaming_agent.py — streaming tokens and events from a LangGraph agent</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> sys
+
+<span class="cm"># Stream events from the agent</span>
+<span class="kw">for</span> event <span class="kw">in</span> agent.<span class="fn">stream</span>(
+    {<span class="st">"messages"</span>: [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"Weather in Berlin and convert 100 EUR to USD"</span>}]},
+    config=config,
+    stream_mode=<span class="st">"values"</span>,
+):
+    last_msg = event[<span class="st">"messages"</span>][-<span class="nm">1</span>]
+
+    <span class="kw">if</span> <span class="fn">hasattr</span>(last_msg, <span class="st">"tool_calls"</span>) <span class="kw">and</span> last_msg.tool_calls:
+        <span class="kw">for</span> tc <span class="kw">in</span> last_msg.tool_calls:
+            <span class="fn">print</span>(<span class="st">f"\n[Tool call] {tc['name']}({tc['args']})"</span>)
+
+    <span class="kw">elif</span> <span class="fn">hasattr</span>(last_msg, <span class="st">"content"</span>) <span class="kw">and</span> <span class="fn">isinstance</span>(last_msg.content, <span class="tp">str</span>):
+        <span class="cm"># Print final text content as it arrives</span>
+        sys.stdout.<span class="fn">write</span>(last_msg.content)
+        sys.stdout.<span class="fn">flush</span>()
+
+<span class="cm"># For token-level streaming, use stream_mode="messages":</span>
+<span class="kw">for</span> chunk, metadata <span class="kw">in</span> agent.<span class="fn">stream</span>(
+    {<span class="st">"messages"</span>: [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"What's 50 USD in EUR?"</span>}]},
+    config={<span class="st">"configurable"</span>: {<span class="st">"thread_id"</span>: <span class="st">"stream-demo"</span>}},
+    stream_mode=<span class="st">"messages"</span>,
+):
+    <span class="kw">if</span> chunk.content <span class="kw">and not</span> <span class="fn">isinstance</span>(chunk.content, <span class="tp">list</span>):
+        sys.stdout.<span class="fn">write</span>(chunk.content)
+        sys.stdout.<span class="fn">flush</span>()</code></pre>
+        </div>
+
+        <h2 id="structured-output">Structured output <a class="anchor" href="#structured-output">#</a></h2>
+        <p>Sometimes you need the agent to produce structured data rather than prose — for example, extracting a JSON report or filling in a form. <code>model.with_structured_output(PydanticModel)</code> forces the model to produce a schema-valid response. When combined with tools, the agent can gather information via tools and then output it in the exact schema you define.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">structured_agent.py — forcing Pydantic-schema output</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI
+<span class="kw">from</span> langchain.tools <span class="kw">import</span> tool
+
+<span class="kw">class</span> <span class="tp">WeatherReport</span>(BaseModel):
+    city: <span class="tp">str</span>
+    temperature_celsius: <span class="tp">float</span>
+    condition: <span class="tp">str</span>
+    recommendation: <span class="tp">str</span> = Field(description=<span class="st">"Clothing recommendation based on conditions"</span>)
+
+<span class="op">@</span><span class="fn">tool</span>
+<span class="kw">def</span> <span class="fn">get_weather_data</span>(city: <span class="tp">str</span>) -> <span class="tp">dict</span>:
+    <span class="st">"""Get raw weather data for a city."""</span>
+    <span class="kw">return</span> {<span class="st">"city"</span>: city, <span class="st">"temp"</span>: <span class="nm">8</span>, <span class="st">"condition"</span>: <span class="st">"Rainy"</span>}
+
+<span class="cm"># Bind structured output to the model</span>
+structured_model = <span class="fn">ChatOpenAI</span>(model=<span class="st">"gpt-4o-mini"</span>).<span class="fn">with_structured_output</span>(<span class="tp">WeatherReport</span>)
+
+<span class="cm"># Assemble agent that outputs a WeatherReport — NOT prose</span>
+structured_agent = <span class="fn">create_react_agent</span>(
+    model=structured_model,
+    tools=[get_weather_data],
+)
+
+result = structured_agent.<span class="fn">invoke</span>({
+    <span class="st">"messages"</span>: [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"Give me a weather report for Hamburg"</span>}]
+})
+
+report = result[<span class="st">"messages"</span>][-<span class="nm">1</span>].content
+<span class="kw">if</span> <span class="fn">isinstance</span>(report, <span class="tp">WeatherReport</span>):
+    <span class="fn">print</span>(<span class="st">f"City: {report.city}"</span>)
+    <span class="fn">print</span>(<span class="st">f"Temp: {report.temperature_celsius}°C, {report.condition}"</span>)
+    <span class="fn">print</span>(<span class="st">f"Wear: {report.recommendation}"</span>)</code></pre>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">LangChain abstracts the loop — but you still need to understand 5.1–5.4</strong>
+            LangChain and LangGraph change rapidly — their APIs have broken between minor versions multiple times. If you only know LangChain and not the underlying tool-calling protocol, you will be unable to debug when something breaks at the API level, unable to switch frameworks, and unable to implement custom behaviour not supported by LangChain's abstractions. Build from scratch first (modules 5.1–5.4), then use LangGraph for production velocity. Know the foundations.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 5.5: LangChain Agents</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~22 min · 3 live code demos</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 5:00</span><span class="script-action">INTRO</span><span class="script-narration">"In module 5.1 through 5.4 you built everything from scratch — the tool loop, the ReAct pattern, the stop tokens, the parallel execution. That was intentional. Now I'm going to show you LangGraph, which packages all of that into three lines of code. But because you understand the fundamentals, you'll know what's happening behind the scenes when something goes wrong."</span></div>
+          <div class="script-line"><span class="script-ts">5:00 – 13:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Build langgraph_agent.py from scratch. "create_react_agent(model, tools, checkpointer=memory) — that's the whole agent. The @tool decorator reads the docstring. Invoke with 'What's the weather in Berlin and how much is 100 EUR in USD?' — LangGraph calls both tools in parallel, which you can verify by adding print statements. Then invoke the follow-up 'And Tokyo?' with the same thread_id — the agent remembers Berlin was already asked."</span></div>
+          <div class="script-line"><span class="script-ts">13:00 – 22:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run streaming_agent.py, show tokens appearing character by character. "This is what you want in a UI — the user sees the response being written, not a loading spinner. Then show structured_agent.py: 'I gave the model a Pydantic schema, asked for Hamburg weather, and got back a WeatherReport object with fields I can access programmatically. No parsing, no regex, no hoping the model formatted its response correctly. Guaranteed structure.'"</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>What does MemorySaver do in a LangGraph agent, and what problem does it solve compared to a stateless agent invocation?</summary>
+          <div class="selfcheck__a">MemorySaver is a checkpointer that persists the agent's message state between invocations. Without it, every call to <code>agent.invoke()</code> is stateless — the agent starts fresh with no memory of prior turns. With MemorySaver and a <code>thread_id</code> in the config, the agent stores the full message history for each thread in memory (or a database if using a persistent checkpointer like SqliteSaver). When the user asks a follow-up question ("And what about Tokyo?"), the agent receives both the original conversation history and the new message, so it knows "Berlin was already covered" and doesn't repeat it. The thread_id is the session identifier — different thread_ids are separate conversations. In production, you'd use a persistent checkpointer (PostgreSQL-backed) rather than MemorySaver (in-process RAM only, lost on restart) so conversations survive server restarts.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>When does parallel tool execution happen in a LangGraph agent, and what is the performance benefit?</summary>
+          <div class="selfcheck__a">Parallel tool execution happens when the model returns multiple <code>tool_calls</code> in a single step — for example, when the user asks "Weather in Berlin and Tokyo" and the model decides both can be resolved independently. LangGraph detects that there are multiple tool calls and executes them concurrently using asyncio.gather (or a thread pool for sync tools), rather than executing them sequentially. The performance benefit: if each weather API call takes 500ms, sequential execution takes 1000ms, parallel takes ~500ms. For agents that make 3–5 API calls per reasoning step, this can reduce latency by 60–80%. The model controls whether parallel execution happens — it groups independent calls in a single response. You cannot force it (the model decides) but you can encourage it by having a system prompt that says "when you need information from multiple independent sources, call all relevant tools at once."</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>You're building an agent that extracts structured data from customer emails (sender, issue type, urgency, summary). Why use with_structured_output instead of asking the model to "reply in JSON"?</summary>
+          <div class="selfcheck__a"><code>with_structured_output(PydanticModel)</code> uses the OpenAI function-calling protocol to force structured output — the API enforces that the response matches the JSON Schema derived from the Pydantic model. If it doesn't, the API rejects it. "Reply in JSON" is a prompt instruction that the model tries to follow but occasionally fails: it may wrap the JSON in markdown code fences, add explanatory text before or after the JSON, use inconsistent key names, omit optional fields incorrectly, or produce JSON that's syntactically invalid. All of these require defensive parsing logic on your end, and failures surface silently at runtime. With structured_output, you get a typed Python object you can access with dot notation, a 400 error if the model fails (never a silently wrong object), and automatic documentation of the expected schema. For any production extraction pipeline, always use structured_output over prompt-based JSON instructions.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Next in Phase 5</div>
+          <div class="next-mod__title">5.6 · Human in the Loop</div>
+          <p class="next-mod__desc">When to pause an agent and ask a human. HumanInTheLoopMiddleware, LangGraph checkpointers for resumable pauses, and the decision framework for which tool calls require approval.</p>
+        </div>
+        <a class="next-btn" href="module-5-6.html">Next Module →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#create-react-agent">create_react_agent</a>
+    <a href="#streaming">Streaming responses</a>
+    <a href="#structured-output">Structured output</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 5.5 / 62<br/>Phase 5 · Week 15<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

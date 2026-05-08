@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 1.2 Object-Oriented Python · by Harish Mondepu</title>
+<meta name="description" content="Learn OOP for AI engineering — classes, inheritance, dataclasses, and Pydantic models that every LLM framework depends on."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ════════════════════════════════════════════
+   DESIGN TOKENS
+   ════════════════════════════════════════════ */
+:root {
+  --bg:          #f7f5f0;
+  --bg-elev:     #efece5;
+  --bg-sidebar:  #f0ede6;
+  --bg-card:     #ffffff;
+  --bg-code:     #1a1b26;
+  --bg-inline:   rgba(26,24,20,.07);
+  --fg:          #1a1714;
+  --fg-dim:      rgba(26,23,20,.62);
+  --fg-faint:    rgba(26,23,20,.38);
+  --phase:       #0a6e6e;
+  --phase-hi:    #0a6e6e;
+  --phase-soft:  rgba(10,110,110,.09);
+  --phase-text:  #0a6e6e;
+  --line:        rgba(26,24,20,.10);
+  --line-strong: rgba(26,24,20,.20);
+  --cn-bg:  rgba(10,100,160,.08);  --cn-b: #2e90cc;
+  --cw-bg:  rgba(180,120,0,.10);   --cw-b: #b87e00;
+  --ct-bg:  rgba(30,140,90,.10);   --ct-b: #1e8c5a;
+  --ce-bg:  rgba(200,50,50,.10);   --ce-b: #c23232;
+  --cr-bg:  rgba(100,50,180,.10);  --cr-b: #7040b4;
+  --radius:  10px;
+  --ease:    cubic-bezier(.22,1,.36,1);
+  --mono:    'JetBrains Mono', 'Fira Code', monospace;
+  --serif:   'Instrument Serif', Georgia, serif;
+  --sans:    'Inter Tight', system-ui, sans-serif;
+}
+
+[data-theme="dark"] {
+  --bg:          #0f0e13;
+  --bg-elev:     #161520;
+  --bg-sidebar:  #13121a;
+  --bg-card:     #1a1925;
+  --bg-code:     #0d0c14;
+  --bg-inline:   rgba(255,255,255,.08);
+  --fg:          #ede9e0;
+  --fg-dim:      rgba(237,233,224,.65);
+  --fg-faint:    rgba(237,233,224,.35);
+  --phase:       #1aada0;
+  --phase-hi:    #2dd4c8;
+  --phase-soft:  rgba(26,173,160,.12);
+  --phase-text:  #2dd4c8;
+  --line:        rgba(255,255,255,.08);
+  --line-strong: rgba(255,255,255,.16);
+  --cn-bg: rgba(46,144,204,.12); --cn-b: #58b3e8;
+  --cw-bg: rgba(200,140,0,.12);  --cw-b: #e8ad28;
+  --ct-bg: rgba(40,180,110,.12); --ct-b: #2db87c;
+  --ce-bg: rgba(220,60,60,.12);  --ce-b: #e85454;
+  --cr-bg: rgba(140,80,220,.12); --cr-b: #a06bdc;
+}
+
+/* ════════════════════════════════════════════
+   RESET + BASE
+   ════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;scroll-behavior:smooth;scroll-padding-top:64px}
+body{
+  background:var(--bg);color:var(--fg);
+  font-family:var(--sans);line-height:1.7;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+a{color:var(--phase-text);text-decoration:none}
+a:hover{text-decoration:underline;text-underline-offset:3px}
+:where(button,a):focus-visible{outline:2px solid var(--phase-hi);outline-offset:3px;border-radius:4px}
+
+/* ════════════════════════════════════════════
+   TOP NAV
+   ════════════════════════════════════════════ */
+.nav{
+  position:sticky;top:0;z-index:200;
+  height:56px;display:flex;align-items:center;
+  padding:0 1.5rem;gap:1rem;
+  background:var(--bg);
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.nav__brand{
+  display:flex;align-items:center;gap:.5rem;
+  font-weight:700;font-size:15px;color:var(--fg);
+  text-decoration:none;flex-shrink:0;
+}
+.nav__brand-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--phase-hi);flex-shrink:0;
+}
+.nav__sep{color:var(--fg-faint);font-size:18px;line-height:1}
+.nav__crumb{font-size:13px;color:var(--fg-dim)}
+.nav__crumb strong{color:var(--fg);font-weight:500}
+.nav__right{margin-left:auto;display:flex;align-items:center;gap:.75rem}
+.nav__progress{font-size:12px;color:var(--fg-faint);font-family:var(--mono)}
+.nav__search{
+  display:flex;align-items:center;gap:.4rem;
+  background:var(--bg-elev);border:1px solid var(--line-strong);
+  border-radius:7px;padding:5px 10px;
+  font-size:12px;color:var(--fg-faint);cursor:pointer;
+}
+.nav__kbd{
+  background:var(--bg);border:1px solid var(--line-strong);
+  border-radius:4px;padding:1px 6px;font-size:10px;
+  font-family:var(--mono);color:var(--fg-faint);
+}
+.theme-toggle{
+  display:flex;align-items:center;gap:.4rem;
+  background:var(--bg-elev);border:1px solid var(--line);
+  border-radius:20px;padding:4px 12px 4px 8px;
+  cursor:pointer;font-size:12px;color:var(--fg-dim);
+  font-family:var(--sans);transition:background 200ms;
+}
+.theme-toggle:hover{background:var(--bg-card)}
+.theme-toggle__icon{font-size:14px}
+
+/* ════════════════════════════════════════════
+   LAYOUT
+   ════════════════════════════════════════════ */
+.layout{
+  display:grid;
+  grid-template-columns:264px minmax(0,1fr) 196px;
+  max-width:1360px;margin:0 auto;
+  min-height:calc(100vh - 56px);
+}
+@media(max-width:1100px){.layout{grid-template-columns:240px minmax(0,1fr)}.toc{display:none}}
+@media(max-width:768px){.layout{grid-template-columns:1fr}.sidebar{display:none}}
+
+/* ════════════════════════════════════════════
+   SIDEBAR
+   ════════════════════════════════════════════ */
+.sidebar{
+  border-right:1px solid var(--line);
+  position:sticky;top:56px;
+  height:calc(100vh - 56px);overflow-y:auto;
+  padding:1.5rem 0 2rem;
+  background:var(--bg-sidebar);
+}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:2px}
+.sidebar__phase{margin-bottom:.25rem}
+.sidebar__phase-btn{
+  display:flex;align-items:center;gap:.6rem;
+  width:100%;padding:7px 1.25rem;
+  background:none;border:none;cursor:pointer;
+  font-family:var(--sans);font-size:13px;font-weight:600;
+  color:var(--fg-dim);text-align:left;
+  transition:color 150ms;
+}
+.sidebar__phase-btn:hover{color:var(--fg)}
+.sidebar__phase-indicator{
+  width:8px;height:8px;border-radius:50%;
+  background:currentColor;flex-shrink:0;opacity:.5;
+}
+.sidebar__phase-btn[data-active="true"] .sidebar__phase-indicator{opacity:1}
+.sidebar__modules{padding:0 0 .25rem .75rem}
+.sidebar__mod{
+  display:flex;align-items:center;gap:.6rem;
+  padding:5px 1.25rem 5px 0;
+  border-radius:0 8px 8px 0;
+  font-size:12.5px;color:var(--fg-faint);
+  text-decoration:none;line-height:1.35;
+  transition:background 120ms,color 120ms;
+  margin:1px 4px 1px 0;
+}
+.sidebar__mod:hover{background:var(--bg-elev);color:var(--fg);text-decoration:none}
+.sidebar__mod.active{
+  background:var(--phase-soft);
+  color:var(--phase-text);font-weight:600;
+}
+.sidebar__mod-num{
+  font-family:var(--mono);font-size:10px;
+  color:var(--fg-faint);min-width:26px;flex-shrink:0;
+}
+.sidebar__mod.active .sidebar__mod-num{color:var(--phase-text);opacity:.7}
+.sidebar__check{
+  margin-left:auto;margin-right:.75rem;
+  width:14px;height:14px;border-radius:50%;
+  border:1.5px solid var(--line-strong);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:8px;
+}
+.sidebar__mod.done .sidebar__check{
+  background:var(--ct-b);border-color:var(--ct-b);color:#fff;
+}
+.sidebar__mod.active .sidebar__check{
+  background:var(--phase-hi);border-color:var(--phase-hi);color:#fff;
+}
+
+/* ════════════════════════════════════════════
+   MAIN CONTENT
+   ════════════════════════════════════════════ */
+.content{padding:0 0 6rem}
+.phase-bar{
+  height:3px;
+  background:linear-gradient(90deg,var(--phase-hi),transparent);
+}
+.mod-head{
+  padding:2.5rem 3rem 2rem;
+  border-bottom:1px solid var(--line);
+}
+.mod-head__tags{display:flex;align-items:center;gap:.5rem;margin-bottom:.9rem}
+.tag{
+  display:inline-flex;align-items:center;
+  font-family:var(--mono);font-size:10.5px;font-weight:500;
+  padding:2px 9px;border-radius:4px;
+  border:1px solid;
+  letter-spacing:.02em;
+}
+.tag--phase{background:var(--phase-soft);color:var(--phase-text);border-color:var(--phase-hi);opacity:.9}
+.tag--level{background:var(--ct-bg);color:var(--ct-b);border-color:var(--ct-b)}
+.tag--week{background:var(--bg-inline);color:var(--fg-dim);border-color:var(--line-strong)}
+.mod-head__title{
+  font-family:var(--serif);font-size:clamp(2rem,4vw,2.75rem);
+  font-weight:400;line-height:1.12;letter-spacing:-.025em;
+  margin-bottom:.6rem;
+}
+.mod-head__title em{color:var(--phase-text);font-style:italic}
+.mod-head__sub{
+  font-size:15px;color:var(--fg-dim);line-height:1.6;
+  max-width:58ch;margin-bottom:1.25rem;
+}
+.mod-head__meta{
+  display:flex;flex-wrap:wrap;gap:1.5rem;
+  font-size:12.5px;color:var(--fg-faint);font-family:var(--mono);
+}
+.mod-head__meta span{display:flex;align-items:center;gap:.4rem}
+
+/* Content body */
+.body{padding:2.5rem 3rem 3rem;max-width:none}
+
+/* ════════════════════════════════════════════
+   KEY TAKEAWAYS
+   ════════════════════════════════════════════ */
+.takeaways{
+  background:var(--phase-soft);
+  border:1px solid var(--phase-hi);
+  border-left-width:4px;
+  border-radius:var(--radius);
+  padding:1.4rem 1.6rem;
+  margin-bottom:2.5rem;
+}
+.takeaways__label{
+  font-size:10.5px;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--phase-text);
+  margin-bottom:.75rem;
+  display:flex;align-items:center;gap:.4rem;
+}
+.takeaways__label::before{content:'★';font-size:12px}
+.takeaways__list{list-style:none;display:flex;flex-direction:column;gap:.45rem}
+.takeaways__list li{
+  font-size:14px;color:var(--fg-dim);
+  display:flex;align-items:flex-start;gap:.6rem;
+}
+.takeaways__list li::before{
+  content:'→';color:var(--phase-hi);
+  font-family:var(--mono);font-size:12px;
+  flex-shrink:0;margin-top:2px;
+}
+
+/* ════════════════════════════════════════════
+   PREREQS + OUTCOMES
+   ════════════════════════════════════════════ */
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2.5rem}
+@media(max-width:600px){.meta-grid{grid-template-columns:1fr}}
+.meta-card{
+  background:var(--bg-card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:1.25rem;
+}
+.meta-card__label{
+  font-size:10px;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--fg-faint);
+  margin-bottom:.75rem;
+  display:flex;align-items:center;gap:.35rem;
+}
+.meta-card__label::before{font-size:12px}
+.meta-card--prereq .meta-card__label::before{content:'◈';color:var(--cw-b)}
+.meta-card--outcomes .meta-card__label::before{content:'◉';color:var(--ct-b)}
+.meta-list{list-style:none;display:flex;flex-direction:column;gap:.4rem}
+.meta-list li{
+  font-size:13.5px;color:var(--fg-dim);
+  display:flex;align-items:flex-start;gap:.5rem;
+  line-height:1.5;
+}
+.meta-list__dot{
+  width:18px;height:18px;border-radius:50%;flex-shrink:0;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;
+}
+.meta-card--prereq .meta-list__dot{background:var(--cw-bg);color:var(--cw-b)}
+.meta-card--outcomes .meta-list__dot{background:var(--ct-bg);color:var(--ct-b)}
+
+/* ════════════════════════════════════════════
+   VIDEO EMBED
+   ════════════════════════════════════════════ */
+.video-block{margin:2rem 0 2.5rem}
+.video-block__header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:.65rem;
+}
+.video-block__title{font-size:14px;font-weight:600;color:var(--fg)}
+.video-block__source{
+  display:flex;align-items:center;gap:.35rem;
+  font-size:11px;font-family:var(--mono);color:var(--fg-faint);
+}
+.yt-badge{
+  display:inline-flex;align-items:center;gap:.3rem;
+  background:#ff0000;color:#fff;
+  font-size:9px;font-weight:700;letter-spacing:.06em;
+  padding:2px 7px;border-radius:3px;text-transform:uppercase;
+}
+.video-wrap{
+  position:relative;padding-bottom:56.25%;height:0;
+  border-radius:var(--radius);overflow:hidden;
+  border:1px solid var(--line);
+}
+.video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+.video-caption{
+  font-size:12px;color:var(--fg-faint);font-family:var(--mono);
+  margin-top:.5rem;text-align:center;letter-spacing:.02em;
+}
+
+/* ════════════════════════════════════════════
+   PROSE
+   ════════════════════════════════════════════ */
+.prose{max-width:72ch}
+.prose h2{
+  font-family:var(--serif);
+  font-size:1.65rem;font-weight:400;line-height:1.2;
+  letter-spacing:-.02em;
+  margin:3rem 0 .9rem;
+  padding-bottom:.6rem;
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:baseline;gap:.5rem;
+  max-width:none;
+}
+.prose h2 .anchor{
+  font-family:var(--mono);font-size:.6em;
+  color:var(--fg-faint);opacity:0;
+  transition:opacity 200ms;margin-left:.25rem;
+}
+.prose h2:hover .anchor{opacity:1}
+.prose h3{
+  font-size:1.05rem;font-weight:600;
+  margin:2rem 0 .5rem;color:var(--fg);
+}
+.prose p{margin-bottom:1.15rem;font-size:15px;color:var(--fg-dim)}
+.prose p strong{color:var(--fg);font-weight:600}
+.prose a{color:var(--phase-text)}
+.prose ul,.prose ol{padding-left:1.4rem;margin-bottom:1.15rem}
+.prose li{font-size:15px;color:var(--fg-dim);margin-bottom:.35rem;line-height:1.65}
+code{
+  font-family:var(--mono);font-size:.86em;
+  background:var(--bg-inline);
+  padding:1px 6px;border-radius:4px;
+  border:1px solid var(--line);
+  color:var(--fg);
+}
+
+/* ════════════════════════════════════════════
+   ANIMATED SVG DIAGRAM
+   ════════════════════════════════════════════ */
+.diagram-block{
+  margin:2rem 0 2.5rem;
+  background:var(--bg-card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  overflow:hidden;
+}
+.diagram-block__header{
+  padding:.75rem 1.25rem;
+  border-bottom:1px solid var(--line);
+  font-size:11px;font-family:var(--mono);
+  color:var(--fg-faint);letter-spacing:.08em;text-transform:uppercase;
+  display:flex;align-items:center;gap:.4rem;
+}
+.diagram-block__header::before{content:'◆';color:var(--phase-hi);font-size:10px}
+.diagram-svg-wrap{
+  padding:1.5rem;display:flex;justify-content:center;align-items:center;
+  min-height:160px;
+}
+svg.diagram{overflow:visible;width:100%;max-width:640px;height:auto}
+@keyframes flow-pulse{0%,100%{opacity:.3;transform:translateX(-6px)}50%{opacity:1;transform:translateX(0)}}
+@keyframes glow-in{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:scale(1)}}
+@keyframes dash-march{to{stroke-dashoffset:-20}}
+.flow-dot{animation:flow-pulse 1.8s ease-in-out infinite}
+.flow-dot:nth-child(2){animation-delay:.6s}
+.flow-dot:nth-child(3){animation-delay:1.2s}
+.dash-line{stroke-dasharray:4 4;animation:dash-march 1s linear infinite}
+.box-reveal{animation:glow-in .5s var(--ease) both}
+.box-reveal:nth-child(1){animation-delay:.1s}
+.box-reveal:nth-child(2){animation-delay:.3s}
+.box-reveal:nth-child(3){animation-delay:.5s}
+.box-reveal:nth-child(4){animation-delay:.7s}
+.box-reveal:nth-child(5){animation-delay:.9s}
+.box-reveal:nth-child(6){animation-delay:1.1s}
+.box-reveal:nth-child(7){animation-delay:1.3s}
+
+/* ════════════════════════════════════════════
+   CODE BLOCKS
+   ════════════════════════════════════════════ */
+.code-wrap{
+  margin:1.5rem 0;
+  border-radius:var(--radius);overflow:hidden;
+  border:1px solid var(--line);
+}
+.code-head{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:7px 14px;
+  background:var(--bg-card);
+  border-bottom:1px solid var(--line);
+}
+.code-lang{font-family:var(--mono);font-size:11px;color:var(--fg-faint);letter-spacing:.06em}
+.code-file{font-family:var(--mono);font-size:11px;color:var(--phase-text);margin-left:.5rem}
+.copy-btn{
+  background:var(--bg-elev);border:1px solid var(--line-strong);
+  border-radius:5px;padding:3px 11px;
+  cursor:pointer;font-size:11px;font-weight:500;
+  color:var(--fg-dim);font-family:var(--sans);
+  transition:background 150ms,color 150ms;
+}
+.copy-btn:hover{background:var(--phase-soft);color:var(--phase-text)}
+.copy-btn.done{color:var(--ct-b)}
+pre{
+  background:var(--bg-code);
+  padding:1.2rem 1.5rem;overflow-x:auto;
+  font-family:var(--mono);font-size:13px;line-height:1.7;
+  margin:0;color:#cdd6f4;
+}
+.kw{color:#cba6f7}
+.fn{color:#89b4fa}
+.st{color:#a6e3a1}
+.cm{color:#585b70;font-style:italic}
+.nm{color:#fab387}
+.tp{color:#89dceb}
+.op{color:#89dceb}
+.dk{color:#cdd6f4}
+
+/* ════════════════════════════════════════════
+   CALLOUTS
+   ════════════════════════════════════════════ */
+.callout{
+  display:grid;grid-template-columns:auto 1fr;gap:.75rem;
+  padding:1rem 1.25rem;border-radius:var(--radius);
+  margin:1.5rem 0;border:1px solid;
+  font-size:14px;line-height:1.65;
+}
+.callout--note{background:var(--cn-bg);border-color:var(--cn-b);color:var(--fg-dim)}
+.callout--warn{background:var(--cw-bg);border-color:var(--cw-b);color:var(--fg-dim)}
+.callout--tip {background:var(--ct-bg);border-color:var(--ct-b);color:var(--fg-dim)}
+.callout--err {background:var(--ce-bg);border-color:var(--ce-b);color:var(--fg-dim)}
+.callout--example{background:var(--cr-bg);border-color:var(--cr-b);color:var(--fg-dim)}
+.callout__icon{font-size:16px;line-height:1.65;flex-shrink:0}
+.callout__title{
+  font-size:10px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;display:block;margin-bottom:.2rem;
+}
+.callout--note .callout__title{color:var(--cn-b)}
+.callout--warn .callout__title{color:var(--cw-b)}
+.callout--tip  .callout__title{color:var(--ct-b)}
+.callout--err  .callout__title{color:var(--ce-b)}
+.callout--example .callout__title{color:var(--cr-b)}
+
+/* ════════════════════════════════════════════
+   WRONG / RIGHT COMPARE
+   ════════════════════════════════════════════ */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.5rem 0}
+@media(max-width:640px){.compare{grid-template-columns:1fr}}
+.compare__side{border-radius:var(--radius);overflow:hidden;border:1px solid var(--line)}
+.compare__label{padding:6px 12px;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.compare__side--wrong .compare__label{background:var(--ce-bg);color:var(--ce-b);border-bottom:1px solid var(--ce-b)}
+.compare__side--right .compare__label{background:var(--ct-bg);color:var(--ct-b);border-bottom:1px solid var(--ct-b)}
+
+/* ════════════════════════════════════════════
+   RECORDING SCRIPT
+   ════════════════════════════════════════════ */
+.script-block{
+  margin:2.5rem 0;border:1px solid var(--line);
+  border-radius:var(--radius);overflow:hidden;
+}
+.script-block summary{
+  display:flex;align-items:center;gap:.65rem;
+  padding:1rem 1.25rem;cursor:pointer;
+  background:var(--bg-card);
+  font-size:14px;font-weight:600;
+  list-style:none;user-select:none;
+  transition:background 150ms;
+}
+.script-block summary::-webkit-details-marker{display:none}
+.script-block summary:hover{background:var(--bg-elev)}
+.script-block[open] summary{border-bottom:1px solid var(--line)}
+.script-icon{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--cr-bg);color:var(--cr-b);
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+  flex-shrink:0;
+}
+.script-badge{
+  margin-left:auto;font-size:10px;font-family:var(--mono);
+  background:var(--cr-bg);color:var(--cr-b);
+  padding:2px 8px;border-radius:4px;border:1px solid var(--cr-b);
+}
+.script-body{padding:1.25rem 1.5rem;background:var(--bg-code)}
+.script-line{
+  display:grid;grid-template-columns:90px auto 1fr;
+  gap:.75rem;padding:.5rem 0;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  font-family:var(--mono);font-size:12.5px;line-height:1.55;
+  color:#a6adc8;
+}
+.script-line:last-child{border-bottom:none}
+.script-ts{color:#585b70;flex-shrink:0}
+.script-action{
+  background:rgba(137,184,250,.1);color:#89b4fa;
+  padding:0 7px;border-radius:3px;font-size:11px;font-weight:500;
+  display:inline-flex;align-items:center;height:fit-content;
+  margin-top:2px;flex-shrink:0;white-space:nowrap;
+}
+.script-narration{color:#cdd6f4}
+
+/* ════════════════════════════════════════════
+   SELF-CHECK
+   ════════════════════════════════════════════ */
+.selfcheck{margin:2rem 0}
+.selfcheck__q{
+  border:1px solid var(--line);border-radius:8px;
+  margin-bottom:.5rem;overflow:hidden;
+}
+.selfcheck__q summary{
+  padding:.85rem 1.1rem;cursor:pointer;
+  font-size:14px;font-weight:500;
+  list-style:none;display:flex;align-items:center;gap:.5rem;
+  background:var(--bg-card);transition:background 150ms;
+}
+.selfcheck__q summary::-webkit-details-marker{display:none}
+.selfcheck__q summary:hover{background:var(--bg-elev)}
+.selfcheck__q summary::before{
+  content:'?';width:20px;height:20px;border-radius:50%;
+  background:var(--bg-elev);color:var(--fg-faint);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;flex-shrink:0;
+}
+.selfcheck__q[open] summary::before{content:'✓';background:var(--ct-bg);color:var(--ct-b)}
+.selfcheck__q[open] summary{border-bottom:1px solid var(--line)}
+.selfcheck__a{
+  padding:1rem 1.1rem;background:var(--bg-card);
+  font-size:13.5px;color:var(--fg-dim);line-height:1.65;
+}
+
+/* ════════════════════════════════════════════
+   NEXT MODULE
+   ════════════════════════════════════════════ */
+.next-mod{
+  display:grid;grid-template-columns:1fr auto;
+  align-items:center;gap:1.5rem;
+  margin:3rem 0 2rem;padding:1.5rem;
+  background:var(--bg-card);border:1px solid var(--line);
+  border-radius:var(--radius);
+  border-left:4px solid var(--phase-hi);
+}
+@media(max-width:480px){.next-mod{grid-template-columns:1fr}}
+.next-mod__label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fg-faint);margin-bottom:.4rem}
+.next-mod__title{font-size:1.1rem;font-weight:600;margin-bottom:.3rem}
+.next-mod__desc{font-size:13.5px;color:var(--fg-dim);line-height:1.55}
+.next-btn{
+  display:inline-flex;align-items:center;gap:.4rem;
+  background:var(--phase-hi);color:var(--bg);
+  padding:10px 22px;border-radius:8px;
+  font-size:14px;font-weight:600;
+  white-space:nowrap;transition:opacity 200ms;
+  text-decoration:none;flex-shrink:0;
+}
+.next-btn:hover{opacity:.88;text-decoration:none}
+
+/* ════════════════════════════════════════════
+   AUTHOR CARD
+   ════════════════════════════════════════════ */
+.author{
+  display:flex;align-items:flex-start;gap:1.1rem;
+  padding:1.5rem;margin-top:1rem;
+  background:var(--bg-card);border:1px solid var(--line);
+  border-radius:var(--radius);
+}
+.author__photo{
+  width:52px;height:52px;border-radius:50%;flex-shrink:0;
+  overflow:hidden;background:var(--bg-elev);
+  border:2px solid var(--line-strong);
+}
+.author__photo img{width:100%;height:100%;object-fit:cover}
+.author__name{font-size:15px;font-weight:700;margin-bottom:.15rem}
+.author__title{font-size:11.5px;color:var(--phase-text);font-family:var(--mono);margin-bottom:.45rem}
+.author__bio{font-size:13px;color:var(--fg-dim);line-height:1.6}
+
+/* ════════════════════════════════════════════
+   RIGHT TOC
+   ════════════════════════════════════════════ */
+.toc{
+  border-left:1px solid var(--line);
+  position:sticky;top:56px;
+  height:calc(100vh - 56px);overflow-y:auto;
+  padding:1.75rem 1.1rem;font-size:12.5px;
+}
+.toc__label{
+  font-size:9.5px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--fg-faint);margin-bottom:.75rem;
+}
+.toc a{
+  display:block;color:var(--fg-faint);text-decoration:none;
+  padding:3px 0 3px 10px;
+  border-left:2px solid transparent;
+  transition:color 120ms,border-color 120ms;
+  line-height:1.4;margin-bottom:1px;
+}
+.toc a:hover{color:var(--fg);border-color:var(--line-strong)}
+.toc a.active{color:var(--phase-text);border-color:var(--phase-hi);font-weight:500}
+.toc__divider{height:1px;background:var(--line);margin:.9rem 0}
+.toc__meta{font-size:11px;color:var(--fg-faint);padding-left:10px;line-height:1.7;font-family:var(--mono)}
+
+/* ════════════════════════════════════════════
+   SCROLL REVEAL
+   ════════════════════════════════════════════ */
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+
+/* ════════════════════════════════════════════
+   RESPONSIVE
+   ════════════════════════════════════════════ */
+@media(max-width:768px){
+  .mod-head,.body{padding-left:1.25rem;padding-right:1.25rem}
+  .mod-head__title{font-size:1.9rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ NAV ══════════════════════════════════ -->
+<header class="nav">
+  <a class="nav__brand" href="../../index.html">
+    <span class="nav__brand-dot"></span>
+    Agent Engineer
+  </a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 1 · <strong>Object-Oriented Python</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 2 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<!-- ══ LAYOUT ════════════════════════════════ -->
+<div class="layout">
+
+  <!-- ── SIDEBAR ──────────────────────────── -->
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 1 · Python Foundations
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="index.html">
+          <span class="sidebar__mod-num">1.1</span>Core Python
+          <span class="sidebar__check">✓</span>
+        </a>
+        <a class="sidebar__mod active" href="#">
+          <span class="sidebar__mod-num">1.2</span>Object-Oriented Python
+          <span class="sidebar__check">✓</span>
+        </a>
+        <a class="sidebar__mod" href="#">
+          <span class="sidebar__mod-num">1.3</span>Data Structures
+          <span class="sidebar__check"></span>
+        </a>
+        <a class="sidebar__mod" href="#">
+          <span class="sidebar__mod-num">1.4</span>Error &amp; File Handling
+          <span class="sidebar__check"></span>
+        </a>
+        <a class="sidebar__mod" href="#">
+          <span class="sidebar__mod-num">1.5</span>HTTP APIs
+          <span class="sidebar__check"></span>
+        </a>
+        <a class="sidebar__mod" href="#">
+          <span class="sidebar__mod-num">1.6</span>Database Connectivity
+          <span class="sidebar__check"></span>
+        </a>
+        <a class="sidebar__mod" href="#">
+          <span class="sidebar__mod-num">1.7</span>FastAPI
+          <span class="sidebar__check"></span>
+        </a>
+        <a class="sidebar__mod" href="#">
+          <span class="sidebar__mod-num">1.8</span>Async Programming
+          <span class="sidebar__check"></span>
+        </a>
+      </div>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn">
+        <span class="sidebar__phase-indicator" style="background:#8865a3"></span>
+        Phase 2 · LLM Mental Model
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn">
+        <span class="sidebar__phase-indicator" style="background:#e85a7a"></span>
+        Phase 3 · Prompt Engineering
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn">
+        <span class="sidebar__phase-indicator" style="background:#e85a7a;opacity:.5"></span>
+        Phase 4 · RAG + Evaluation
+      </button>
+    </div>
+  </nav>
+
+  <!-- ── MAIN CONTENT ─────────────────────── -->
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+
+    <!-- MODULE HEADER -->
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 01</span>
+        <span class="tag tag--level">Beginner</span>
+        <span class="tag tag--week">Week 1–3</span>
+      </div>
+      <h1 class="mod-head__title">Object-Oriented <em>Python</em></h1>
+      <p class="mod-head__sub">
+        Pydantic, LangChain, and LangGraph are all built on Python classes. This module gives you
+        the OOP vocabulary to read framework code, extend it with confidence, and build the
+        Pydantic models every production agent depends on for type-safe tool calls.
+      </p>
+      <div class="mod-head__meta">
+        <span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          ~35 min read
+        </span>
+        <span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          1 video · 1 recording script
+        </span>
+        <span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          5 runnable code examples
+        </span>
+        <span>Last updated 2026-05-06</span>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="body">
+
+      <!-- KEY TAKEAWAYS -->
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Every AI framework is a class hierarchy — learning OOP means learning to read and extend the tools themselves</li>
+          <li>Pydantic validates data at <strong>runtime</strong> using type hints — it is the bridge between Python types and production safety</li>
+          <li><code>@dataclass</code> eliminates <code>__init__</code> boilerplate while keeping type hints and IDE support</li>
+          <li>The <code>@classmethod</code> factory pattern is how frameworks construct complex objects from JSON and config dicts</li>
+          <li>Inheritance lets you extend <code>BaseModel</code>, <code>BaseTool</code>, and <code>BaseAgent</code> without rewriting them</li>
+        </ul>
+      </div>
+
+      <!-- PREREQS + OUTCOMES -->
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Module 1.1 complete — type hints, decorators</li>
+            <li><div class="meta-list__dot">!</div>Comfortable defining and calling functions</li>
+            <li><div class="meta-list__dot">!</div><code>pip install pydantic</code> before the Pydantic section</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Write a class with <code>__init__</code>, instance, class, and static methods</li>
+            <li><div class="meta-list__dot">2</div>Build an inheritance chain matching real framework patterns</li>
+            <li><div class="meta-list__dot">3</div>Replace verbose <code>__init__</code> boilerplate with <code>@dataclass</code></li>
+            <li><div class="meta-list__dot">4</div>Build and validate a Pydantic <code>BaseModel</code> for tool inputs</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- VIDEO -->
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">Python OOP Tutorial — Corey Schafer</div>
+          <div class="video-block__source">
+            <span class="yt-badge">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 22s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>
+              YouTube
+            </span>
+            <span>· 6-part series · Corey Schafer</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/ZDa-Z5JzLYM" title="Python OOP Tutorial — Corey Schafer" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ Corey Schafer's OOP series — the clearest explanation of Python classes on YouTube · timestamps in the script below</div>
+      </div>
+
+      <!-- ─ SECTION 1: CLASSES ─ -->
+      <div class="prose">
+        <h2 id="classes">Classes and <code>__init__</code> — the building block <a class="anchor" href="#classes">#</a></h2>
+        <p>
+          A <strong>class</strong> is a blueprint. An <strong>instance</strong> is an object built from that blueprint.
+          When you call <code>LangChain</code>'s <code>ChatOpenAI(model="gpt-4o")</code>, you are instantiating a class.
+          When you write <code>class SearchInput(BaseModel):</code>, you are extending one.
+          You need to understand what happens inside both.
+        </p>
+        <p>
+          The <code>__init__</code> method runs automatically when you create an instance.
+          Its job is simple: store the arguments you pass as <strong>instance variables</strong> on <code>self</code>.
+          Everything in the class can then access those variables via <code>self</code>.
+        </p>
+
+        <!-- ANIMATED DIAGRAM: class vs instance -->
+        <div class="diagram-block reveal">
+          <div class="diagram-block__header">Diagram · Class (blueprint) → Instance (object in memory)</div>
+          <div class="diagram-svg-wrap">
+            <svg class="diagram" viewBox="0 0 620 160" xmlns="http://www.w3.org/2000/svg" aria-label="Class vs instance diagram">
+              <defs>
+                <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L7,3 z" fill="var(--phase-hi)"/>
+                </marker>
+              </defs>
+
+              <!-- Class box -->
+              <g class="box-reveal">
+                <rect x="20" y="30" width="180" height="100" rx="8" fill="var(--bg-card)" stroke="var(--line-strong)" stroke-width="1.5"/>
+                <text x="110" y="52" fill="var(--fg-faint)" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle" letter-spacing=".08em">CLASS (blueprint)</text>
+                <rect x="30" y="58" width="160" height="22" rx="4" fill="var(--phase-soft)" stroke="var(--phase-hi)" stroke-width="1"/>
+                <text x="110" y="73" fill="var(--phase-text)" font-family="JetBrains Mono,monospace" font-size="10" text-anchor="middle" font-weight="600">Message</text>
+                <text x="35" y="97" fill="var(--fg-dim)" font-family="JetBrains Mono,monospace" font-size="9.5">__init__(role, content)</text>
+                <text x="35" y="113" fill="var(--fg-dim)" font-family="JetBrains Mono,monospace" font-size="9.5">word_count() → int</text>
+                <text x="35" y="127" fill="var(--fg-dim)" font-family="JetBrains Mono,monospace" font-size="9.5">__repr__() → str</text>
+              </g>
+
+              <!-- Arrow -->
+              <line x1="200" y1="80" x2="248" y2="80" stroke="var(--phase-hi)" stroke-width="1.5" marker-end="url(#arr2)" class="dash-line"/>
+              <text x="224" y="72" fill="var(--fg-faint)" font-family="JetBrains Mono,monospace" font-size="8.5" text-anchor="middle">instantiate</text>
+
+              <!-- Instance 1 -->
+              <g class="box-reveal">
+                <rect x="252" y="20" width="160" height="75" rx="8" fill="var(--bg-elev)" stroke="var(--line-strong)" stroke-width="1.5"/>
+                <text x="332" y="40" fill="var(--fg-faint)" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle" letter-spacing=".08em">INSTANCE 1</text>
+                <text x="262" y="58" fill="var(--fg-dim)" font-family="JetBrains Mono,monospace" font-size="9.5">role = "human"</text>
+                <text x="262" y="73" fill="var(--fg-dim)" font-family="JetBrains Mono,monospace" font-size="9.5">content = "What is..."</text>
+                <text x="262" y="88" fill="var(--phase-text)" font-family="JetBrains Mono,monospace" font-size="9">msg1 = Message(...)</text>
+              </g>
+
+              <!-- Instance 2 -->
+              <g class="box-reveal">
+                <rect x="252" y="105" width="160" height="55" rx="8" fill="var(--bg-elev)" stroke="var(--line-strong)" stroke-width="1.5"/>
+                <text x="332" y="124" fill="var(--fg-faint)" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle" letter-spacing=".08em">INSTANCE 2</text>
+                <text x="262" y="141" fill="var(--fg-dim)" font-family="JetBrains Mono,monospace" font-size="9.5">role = "assistant"</text>
+                <text x="262" y="156" fill="var(--phase-text)" font-family="JetBrains Mono,monospace" font-size="9">msg2 = Message(...)</text>
+              </g>
+
+              <!-- Second arrow -->
+              <line x1="200" y1="105" x2="248" y2="132" stroke="var(--phase-hi)" stroke-width="1.5" marker-end="url(#arr2)" class="dash-line"/>
+
+              <!-- Note -->
+              <g class="box-reveal">
+                <rect x="435" y="40" width="175" height="80" rx="8" fill="var(--cn-bg)" stroke="var(--cn-b)" stroke-width="1"/>
+                <text x="522" y="60" fill="var(--cn-b)" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle" letter-spacing=".06em" font-weight="700">KEY INSIGHT</text>
+                <text x="445" y="78" fill="var(--fg-dim)" font-family="JetBrains Mono,monospace" font-size="9">Both instances share the</text>
+                <text x="445" y="92" fill="var(--fg-dim)" font-family="JetBrains Mono,monospace" font-size="9">same methods (class), but</text>
+                <text x="445" y="106" fill="var(--fg-dim)" font-family="JetBrains Mono,monospace" font-size="9">hold different data (self).</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head">
+            <span><span class="code-lang">python</span><span class="code-file">classes.py</span></span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="cm"># A Message class — the kind you will build in every chat application</span>
+<span class="kw">class</span> <span class="tp">Message</span>:
+    <span class="cm"># Class variable — shared by ALL instances of Message</span>
+    role_options: <span class="tp">list</span>[<span class="tp">str</span>] = [<span class="st">"human"</span>, <span class="st">"assistant"</span>, <span class="st">"system"</span>]
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="tp">self</span>, role: <span class="tp">str</span>, content: <span class="tp">str</span>) -> <span class="kw">None</span>:
+        <span class="kw">if</span> role <span class="kw">not in</span> <span class="tp">self</span>.role_options:
+            <span class="kw">raise</span> <span class="tp">ValueError</span>(<span class="st">f"role must be one of {self.role_options}"</span>)
+        <span class="cm"># Instance variables — unique to THIS specific message object</span>
+        <span class="tp">self</span>.role    = role
+        <span class="tp">self</span>.content = content
+        <span class="tp">self</span>._tokens: <span class="tp">int</span> | <span class="kw">None</span> = <span class="kw">None</span>  <span class="cm"># _ prefix = private by convention</span>
+
+    <span class="kw">def</span> <span class="fn">word_count</span>(<span class="tp">self</span>) -> <span class="tp">int</span>:
+        <span class="st">"""Instance method — reads this specific message's content."""</span>
+        <span class="kw">return</span> <span class="fn">len</span>(<span class="tp">self</span>.content.<span class="fn">split</span>())
+
+    <span class="kw">def</span> <span class="fn">__repr__</span>(<span class="tp">self</span>) -> <span class="tp">str</span>:
+        <span class="kw">return</span> <span class="st">f"Message(role={self.role!r}, content={self.content[:40]!r})"</span>
+
+
+<span class="cm"># Instantiate two independent Message objects from the same blueprint</span>
+msg1 = <span class="fn">Message</span>(<span class="st">"human"</span>, <span class="st">"What is the capital of France?"</span>)
+msg2 = <span class="fn">Message</span>(<span class="st">"assistant"</span>, <span class="st">"The capital of France is Paris."</span>)
+
+<span class="fn">print</span>(msg1.<span class="fn">word_count</span>())   <span class="cm"># 6</span>
+<span class="fn">print</span>(msg2.<span class="fn">word_count</span>())   <span class="cm"># 6</span>
+<span class="fn">print</span>(msg1.role)           <span class="cm"># "human"  — each has its own data</span>
+<span class="fn">print</span>(msg2.role)           <span class="cm"># "assistant"</span></code></pre>
+        </div>
+
+        <div class="callout callout--note">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">What is <code>self</code>?</strong>
+            <code>self</code> is just a reference to the specific instance being used.
+            When you call <code>msg1.word_count()</code>, Python passes <code>msg1</code> as <code>self</code> automatically.
+            The name <code>self</code> is a convention, not a keyword — but break this convention and everyone who reads your code will hate you.
+          </div>
+        </div>
+
+        <!-- ─ SECTION 2: METHODS ─ -->
+        <h2 id="methods">Instance, class, and static methods <a class="anchor" href="#methods">#</a></h2>
+        <p>
+          Python has three kinds of methods and choosing the wrong one is a subtle bug that makes
+          frameworks harder to extend. AI framework source code uses all three heavily —
+          especially <code>@classmethod</code> as a factory pattern for constructing objects from JSON and config.
+        </p>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">🎯</span>
+          <div>
+            <strong class="callout__title">Decision rule</strong>
+            Needs <code>self</code> (this object's data)? → instance method.
+            Needs <code>cls</code> (the class itself, to construct a new instance)? → <code>@classmethod</code>.
+            Needs neither (pure utility function that belongs logically in the class)? → <code>@staticmethod</code>.
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head">
+            <span><span class="code-lang">python</span><span class="code-file">methods.py — all three method types with real-world use cases</span></span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="kw">from</span> datetime <span class="kw">import</span> datetime
+
+<span class="kw">class</span> <span class="tp">ChatSession</span>:
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="tp">self</span>, session_id: <span class="tp">str</span>) -> <span class="kw">None</span>:
+        <span class="tp">self</span>.session_id = session_id
+        <span class="tp">self</span>.messages: <span class="tp">list</span>[<span class="tp">dict</span>] = []
+        <span class="tp">self</span>.created_at = datetime.<span class="fn">now</span>()
+
+    <span class="cm"># ── Instance method — needs self (this session's messages) ──────────</span>
+    <span class="kw">def</span> <span class="fn">add_message</span>(<span class="tp">self</span>, role: <span class="tp">str</span>, content: <span class="tp">str</span>) -> <span class="kw">None</span>:
+        <span class="tp">self</span>.messages.<span class="fn">append</span>({<span class="st">"role"</span>: role, <span class="st">"content"</span>: content})
+
+    <span class="cm"># ── Class method — factory constructor (very common in frameworks) ───</span>
+    <span class="kw">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">from_dict</span>(cls, data: <span class="tp">dict</span>) -> <span class="st">"ChatSession"</span>:
+        <span class="st">"""Reconstruct a ChatSession from a JSON-deserialized dict.
+
+        cls is the class itself, not an instance.
+        This lets subclasses override from_dict and still work correctly.
+        """</span>
+        session = <span class="fn">cls</span>(data[<span class="st">"session_id"</span>])   <span class="cm"># calls __init__ via cls()</span>
+        <span class="kw">for</span> msg <span class="kw">in</span> data.<span class="fn">get</span>(<span class="st">"messages"</span>, []):
+            session.<span class="fn">add_message</span>(msg[<span class="st">"role"</span>], msg[<span class="st">"content"</span>])
+        <span class="kw">return</span> session
+
+    <span class="cm"># ── Static method — pure utility, no self or cls needed ─────────────</span>
+    <span class="kw">@staticmethod</span>
+    <span class="kw">def</span> <span class="fn">is_valid_role</span>(role: <span class="tp">str</span>) -> <span class="tp">bool</span>:
+        <span class="kw">return</span> role <span class="kw">in</span> {<span class="st">"human"</span>, <span class="st">"assistant"</span>, <span class="st">"system"</span>}
+
+
+<span class="cm"># Instance method — called on an instance</span>
+s = <span class="fn">ChatSession</span>(<span class="st">"sess-001"</span>)
+s.<span class="fn">add_message</span>(<span class="st">"human"</span>, <span class="st">"Hello"</span>)
+
+<span class="cm"># Class method — factory, no manual __init__ needed</span>
+payload = {<span class="st">"session_id"</span>: <span class="st">"sess-002"</span>, <span class="st">"messages"</span>: [{<span class="st">"role"</span>: <span class="st">"human"</span>, <span class="st">"content"</span>: <span class="st">"Hi"</span>}]}
+s2 = ChatSession.<span class="fn">from_dict</span>(payload)
+
+<span class="cm"># Static method — can be called on class OR instance, no difference</span>
+<span class="fn">print</span>(ChatSession.<span class="fn">is_valid_role</span>(<span class="st">"human"</span>))    <span class="cm"># True</span>
+<span class="fn">print</span>(ChatSession.<span class="fn">is_valid_role</span>(<span class="st">"unknown"</span>))  <span class="cm"># False</span></code></pre>
+        </div>
+
+        <!-- ─ SECTION 3: INHERITANCE ─ -->
+        <h2 id="inheritance">Inheritance, encapsulation, polymorphism <a class="anchor" href="#inheritance">#</a></h2>
+        <p>
+          LangChain's message objects — <code>HumanMessage</code>, <code>AIMessage</code>, <code>SystemMessage</code> —
+          are all subclasses of <code>BaseMessage</code>. You use them constantly without thinking about this,
+          until you need to extend them or understand why <code>isinstance(msg, BaseMessage)</code>
+          returns <code>True</code> for all of them.
+        </p>
+        <p>
+          <strong>Inheritance</strong> lets a child class reuse everything from a parent.
+          <strong>Encapsulation</strong> hides internal state behind a controlled interface.
+          <strong>Polymorphism</strong> means the same method name does the right thing for each type.
+          Together these three make framework extension clean instead of copy-paste.
+        </p>
+
+        <!-- ANIMATED DIAGRAM: inheritance tree -->
+        <div class="diagram-block reveal">
+          <div class="diagram-block__header">Diagram · LangChain-style message inheritance hierarchy</div>
+          <div class="diagram-svg-wrap">
+            <svg class="diagram" viewBox="0 0 620 180" xmlns="http://www.w3.org/2000/svg" aria-label="Class inheritance tree diagram">
+              <defs>
+                <marker id="arr3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L7,3 z" fill="var(--phase-hi)"/>
+                </marker>
+              </defs>
+
+              <!-- BaseMessage — root -->
+              <g class="box-reveal">
+                <rect x="210" y="10" width="200" height="40" rx="8" fill="var(--phase-soft)" stroke="var(--phase-hi)" stroke-width="2"/>
+                <text x="310" y="28" fill="var(--phase-text)" font-family="JetBrains Mono,monospace" font-size="11" text-anchor="middle" font-weight="700">BaseMessage</text>
+                <text x="310" y="43" fill="var(--phase-text)" font-family="JetBrains Mono,monospace" font-size="8.5" text-anchor="middle" opacity=".7">content · _role · to_dict()</text>
+              </g>
+
+              <!-- Arrows down from BaseMessage -->
+              <line x1="260" y1="50" x2="130" y2="110" stroke="var(--phase-hi)" stroke-width="1.5" marker-end="url(#arr3)" class="dash-line"/>
+              <line x1="310" y1="50" x2="310" y2="110" stroke="var(--phase-hi)" stroke-width="1.5" marker-end="url(#arr3)" class="dash-line"/>
+              <line x1="360" y1="50" x2="490" y2="110" stroke="var(--phase-hi)" stroke-width="1.5" marker-end="url(#arr3)" class="dash-line"/>
+
+              <!-- HumanMessage -->
+              <g class="box-reveal">
+                <rect x="40" y="110" width="180" height="38" rx="8" fill="var(--bg-card)" stroke="var(--line-strong)" stroke-width="1.5"/>
+                <text x="130" y="128" fill="var(--fg)" font-family="JetBrains Mono,monospace" font-size="10.5" text-anchor="middle" font-weight="600">HumanMessage</text>
+                <text x="130" y="143" fill="var(--fg-faint)" font-family="JetBrains Mono,monospace" font-size="8.5" text-anchor="middle">role = "human"</text>
+              </g>
+
+              <!-- AIMessage -->
+              <g class="box-reveal">
+                <rect x="220" y="110" width="180" height="38" rx="8" fill="var(--bg-card)" stroke="var(--line-strong)" stroke-width="1.5"/>
+                <text x="310" y="128" fill="var(--fg)" font-family="JetBrains Mono,monospace" font-size="10.5" text-anchor="middle" font-weight="600">AIMessage</text>
+                <text x="310" y="143" fill="var(--fg-faint)" font-family="JetBrains Mono,monospace" font-size="8.5" text-anchor="middle">role = "assistant" + to_dict() override</text>
+              </g>
+
+              <!-- SystemMessage -->
+              <g class="box-reveal">
+                <rect x="400" y="110" width="180" height="38" rx="8" fill="var(--bg-card)" stroke="var(--line-strong)" stroke-width="1.5"/>
+                <text x="490" y="128" fill="var(--fg)" font-family="JetBrains Mono,monospace" font-size="10.5" text-anchor="middle" font-weight="600">SystemMessage</text>
+                <text x="490" y="143" fill="var(--fg-faint)" font-family="JetBrains Mono,monospace" font-size="8.5" text-anchor="middle">role = "system"</text>
+              </g>
+
+              <!-- Polymorphism label -->
+              <text x="310" y="172" fill="var(--fg-faint)" font-family="JetBrains Mono,monospace" font-size="9" text-anchor="middle" letter-spacing=".06em">All three are isinstance(msg, BaseMessage) == True · each has its own to_dict()</text>
+            </svg>
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head">
+            <span><span class="code-lang">python</span><span class="code-file">inheritance.py — mirrors LangChain's actual message hierarchy</span></span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="cm"># ─ Base class ─────────────────────────────────────────────────────────</span>
+<span class="kw">class</span> <span class="tp">BaseMessage</span>:
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="tp">self</span>, content: <span class="tp">str</span>, role: <span class="tp">str</span>) -> <span class="kw">None</span>:
+        <span class="tp">self</span>.content = content
+        <span class="tp">self</span>._role   = role  <span class="cm"># _ signals: set by subclass, not externally</span>
+
+    <span class="kw">def</span> <span class="fn">to_dict</span>(<span class="tp">self</span>) -> <span class="tp">dict</span>:
+        <span class="kw">return</span> {<span class="st">"role"</span>: <span class="tp">self</span>._role, <span class="st">"content"</span>: <span class="tp">self</span>.content}
+
+    <span class="kw">def</span> <span class="fn">__repr__</span>(<span class="tp">self</span>) -> <span class="tp">str</span>:
+        <span class="kw">return</span> <span class="st">f"{type(self).__name__}(content={self.content[:40]!r})"</span>
+
+
+<span class="cm"># ─ Subclasses ─────────────────────────────────────────────────────────</span>
+<span class="kw">class</span> <span class="tp">HumanMessage</span>(<span class="tp">BaseMessage</span>):
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="tp">self</span>, content: <span class="tp">str</span>) -> <span class="kw">None</span>:
+        <span class="kw">super</span>().<span class="fn">__init__</span>(content, role=<span class="st">"human"</span>)  <span class="cm"># ALWAYS call super().__init__</span>
+
+
+<span class="kw">class</span> <span class="tp">AIMessage</span>(<span class="tp">BaseMessage</span>):
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="tp">self</span>, content: <span class="tp">str</span>) -> <span class="kw">None</span>:
+        <span class="kw">super</span>().<span class="fn">__init__</span>(content, role=<span class="st">"assistant"</span>)
+
+    <span class="cm"># Polymorphism — override the parent's to_dict to add extra fields</span>
+    <span class="kw">def</span> <span class="fn">to_dict</span>(<span class="tp">self</span>) -> <span class="tp">dict</span>:
+        base = <span class="kw">super</span>().<span class="fn">to_dict</span>()   <span class="cm"># start with parent's result</span>
+        base[<span class="st">"source"</span>] = <span class="st">"llm"</span>     <span class="cm"># extend it</span>
+        <span class="kw">return</span> base
+
+
+<span class="kw">class</span> <span class="tp">SystemMessage</span>(<span class="tp">BaseMessage</span>):
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="tp">self</span>, content: <span class="tp">str</span>) -> <span class="kw">None</span>:
+        <span class="kw">super</span>().<span class="fn">__init__</span>(content, role=<span class="st">"system"</span>)
+
+
+<span class="cm"># ─ Polymorphism in action ──────────────────────────────────────────────</span>
+messages: <span class="tp">list</span>[<span class="tp">BaseMessage</span>] = [
+    <span class="fn">SystemMessage</span>(<span class="st">"You are a helpful assistant."</span>),
+    <span class="fn">HumanMessage</span>(<span class="st">"What is LangChain?"</span>),
+    <span class="fn">AIMessage</span>(<span class="st">"LangChain is a framework for LLM applications."</span>),
+]
+
+<span class="kw">for</span> msg <span class="kw">in</span> messages:
+    <span class="fn">print</span>(msg.<span class="fn">to_dict</span>())
+<span class="cm"># {'role': 'system',    'content': 'You are...'}</span>
+<span class="cm"># {'role': 'human',     'content': 'What is LangChain?'}</span>
+<span class="cm"># {'role': 'assistant', 'content': 'LangChain is...', 'source': 'llm'}</span>
+
+<span class="fn">print</span>(<span class="fn">isinstance</span>(messages[<span class="nm">2</span>], <span class="tp">BaseMessage</span>))  <span class="cm"># True — all three are</span></code></pre>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠️</span>
+          <div>
+            <strong class="callout__title">Don't skip <code>super().__init__()</code></strong>
+            Forgetting to call <code>super().__init__()</code> in a subclass is one of the most common OOP bugs.
+            The parent's <code>__init__</code> sets up internal state the parent's methods depend on.
+            Skip it and you'll get <code>AttributeError</code> deep inside framework code that's hard to trace back to your class.
+          </div>
+        </div>
+
+        <!-- ─ SECTION 4: DATACLASSES ─ -->
+        <h2 id="dataclasses">Dataclasses — boilerplate-free data containers <a class="anchor" href="#dataclasses">#</a></h2>
+        <p>
+          A large portion of classes in AI engineering code are just data containers:
+          they hold fields, maybe have one or two methods, and don't need complex logic.
+          For these, writing a full <code>__init__</code> that assigns every argument to <code>self.field</code>
+          is pure boilerplate. <code>@dataclass</code> generates it for you.
+        </p>
+        <p>
+          It also solves the mutable default argument bug from Module 1.1.
+          You cannot use <code>= []</code> as a default in a <code>@dataclass</code> — Python forces you
+          to use <code>field(default_factory=list)</code>, which creates a fresh list per instance.
+        </p>
+
+        <h3>Side-by-side: regular class vs dataclass</h3>
+        <div class="compare reveal">
+          <div class="compare__side compare__side--wrong">
+            <div class="compare__label">Regular class — 12 lines of boilerplate</div>
+            <pre style="background:var(--bg-code);padding:1rem;font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#cdd6f4"><code><span class="kw">class</span> <span class="tp">Chunk</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(
+        <span class="tp">self</span>,
+        text:   <span class="tp">str</span>,
+        source: <span class="tp">str</span>,
+        page:   <span class="tp">int</span> = <span class="nm">0</span>,
+        meta:   <span class="tp">dict</span> | <span class="kw">None</span> = <span class="kw">None</span>,
+    ) -> <span class="kw">None</span>:
+        <span class="tp">self</span>.text   = text
+        <span class="tp">self</span>.source = source
+        <span class="tp">self</span>.page   = page
+        <span class="cm"># must handle mutable default manually</span>
+        <span class="tp">self</span>.meta   = meta <span class="kw">if</span> meta <span class="kw">is not None</span> <span class="kw">else</span> {}</code></pre>
+          </div>
+          <div class="compare__side compare__side--right">
+            <div class="compare__label">Dataclass — same result, 4 lines</div>
+            <pre style="background:var(--bg-code);padding:1rem;font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#cdd6f4"><code><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field
+
+<span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="tp">Chunk</span>:
+    text:   <span class="tp">str</span>
+    source: <span class="tp">str</span>
+    page:   <span class="tp">int</span>  = <span class="nm">0</span>
+    meta:   <span class="tp">dict</span> = <span class="fn">field</span>(default_factory=<span class="tp">dict</span>)
+    <span class="cm"># field() forces a fresh {} per instance</span>
+    <span class="cm"># can't use = {} here — Python will error</span></code></pre>
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head">
+            <span><span class="code-lang">python</span><span class="code-file">dataclasses.py — full example with frozen and field()</span></span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field
+
+<span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="tp">Chunk</span>:
+    <span class="st">"""A document chunk in a RAG pipeline."""</span>
+    text:     <span class="tp">str</span>
+    source:   <span class="tp">str</span>
+    page:     <span class="tp">int</span>  = <span class="nm">0</span>
+    metadata: <span class="tp">dict</span> = <span class="fn">field</span>(default_factory=<span class="tp">dict</span>)  <span class="cm"># fresh {} per instance</span>
+
+    <span class="kw">def</span> <span class="fn">word_count</span>(<span class="tp">self</span>) -> <span class="tp">int</span>:
+        <span class="kw">return</span> <span class="fn">len</span>(<span class="tp">self</span>.text.<span class="fn">split</span>())
+
+
+<span class="cm"># frozen=True makes the instance immutable and hashable</span>
+<span class="cm"># Use this when you need to store chunks as dict keys or in sets</span>
+<span class="kw">@dataclass</span>(frozen=<span class="kw">True</span>)
+<span class="kw">class</span> <span class="tp">ChunkId</span>:
+    source: <span class="tp">str</span>
+    page:   <span class="tp">int</span>
+    index:  <span class="tp">int</span>
+
+
+<span class="cm"># Usage</span>
+c = <span class="fn">Chunk</span>(text=<span class="st">"Embeddings map text to vectors."</span>, source=<span class="st">"rag-guide.pdf"</span>, page=<span class="nm">3</span>)
+<span class="fn">print</span>(c)              <span class="cm"># Chunk(text='Embeddings...', source='rag-guide.pdf', page=3, metadata={})</span>
+<span class="fn">print</span>(c.<span class="fn">word_count</span>()) <span class="cm"># 5</span>
+
+<span class="cm"># Two chunks do NOT share the same metadata dict</span>
+c1 = <span class="fn">Chunk</span>(text=<span class="st">"a"</span>, source=<span class="st">"x"</span>)
+c2 = <span class="fn">Chunk</span>(text=<span class="st">"b"</span>, source=<span class="st">"y"</span>)
+c1.metadata[<span class="st">"entity"</span>] = <span class="st">"Paris"</span>
+<span class="fn">print</span>(c2.metadata)    <span class="cm"># {} — separate dict, not shared</span>
+
+<span class="cm"># Frozen chunk as a dict key</span>
+cid = <span class="fn">ChunkId</span>(source=<span class="st">"rag-guide.pdf"</span>, page=<span class="nm">3</span>, index=<span class="nm">0</span>)
+cache = {cid: <span class="st">"cached embedding"</span>}</code></pre>
+        </div>
+
+        <!-- ─ SECTION 5: PYDANTIC ─ -->
+        <h2 id="pydantic">Pydantic models — the AI engineer's superpower <a class="anchor" href="#pydantic">#</a></h2>
+        <p>
+          <strong>Pydantic</strong> is the most important library in AI engineering after the model SDKs.
+          LangChain's tools, LangGraph's state, FastAPI's request bodies, and every
+          agent's tool schemas are Pydantic models.
+        </p>
+        <p>
+          The key difference from a regular class or <code>@dataclass</code>: Pydantic validates data
+          <strong>at runtime</strong>. Pass a string where an <code>int</code> is expected and Pydantic raises
+          a <code>ValidationError</code> immediately, with a precise error message, before any of your code runs.
+          This is runtime safety on top of the static type hints Python's <code>mypy</code> checks at build time.
+        </p>
+
+        <div class="callout callout--example">
+          <span class="callout__icon">🔗</span>
+          <div>
+            <strong class="callout__title">Why this connects back to Module 1.1</strong>
+            Pydantic reads your type hints and docstrings using Python's <code>inspect</code> module —
+            the same mechanism LangChain's <code>@tool</code> decorator uses.
+            <code>BaseModel</code> is also a class, inheriting from Pydantic's internals.
+            Everything in this module connects: classes → inheritance → type hints → Pydantic → tool schemas.
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head">
+            <span><span class="code-lang">python</span><span class="code-file">pydantic.py — runtime validation + tool schema pattern</span></span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field, field_validator
+
+<span class="cm"># ─ Tool input schema — LangChain reads this to tell the LLM what your tool needs ─</span>
+<span class="kw">class</span> <span class="tp">SearchInput</span>(<span class="tp">BaseModel</span>):
+    query:   <span class="tp">str</span>            = <span class="fn">Field</span>(..., description=<span class="st">"The search query"</span>)
+    top_k:   <span class="tp">int</span>            = <span class="fn">Field</span>(<span class="nm">5</span>, ge=<span class="nm">1</span>, le=<span class="nm">20</span>, description=<span class="st">"Number of results (1–20)"</span>)
+    filters: <span class="tp">dict</span>[<span class="tp">str</span>, <span class="tp">str</span>] = <span class="fn">Field</span>(default_factory=<span class="tp">dict</span>)
+
+    <span class="kw">@field_validator</span>(<span class="st">"query"</span>)
+    <span class="kw">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">query_not_empty</span>(cls, v: <span class="tp">str</span>) -> <span class="tp">str</span>:
+        <span class="kw">if not</span> v.<span class="fn">strip</span>():
+            <span class="kw">raise</span> <span class="tp">ValueError</span>(<span class="st">"query cannot be empty or whitespace"</span>)
+        <span class="kw">return</span> v.<span class="fn">strip</span>()  <span class="cm"># validators can also transform the value</span>
+
+
+<span class="cm"># ─ Validation at runtime ──────────────────────────────────────────────────────</span>
+<span class="kw">try</span>:
+    bad = <span class="fn">SearchInput</span>(query=<span class="st">""</span>, top_k=<span class="nm">5</span>)
+<span class="kw">except</span> <span class="tp">Exception</span> <span class="kw">as</span> e:
+    <span class="fn">print</span>(e)
+    <span class="cm"># 1 validation error: query · query cannot be empty or whitespace</span>
+
+<span class="kw">try</span>:
+    bad2 = <span class="fn">SearchInput</span>(query=<span class="st">"test"</span>, top_k=<span class="nm">99</span>)  <span class="cm"># violates le=20 constraint</span>
+<span class="kw">except</span> <span class="tp">Exception</span> <span class="kw">as</span> e:
+    <span class="fn">print</span>(e)
+    <span class="cm"># 1 validation error: top_k · Input should be less than or equal to 20</span>
+
+<span class="cm"># ─ Correct usage ──────────────────────────────────────────────────────────────</span>
+inp = <span class="fn">SearchInput</span>(query=<span class="st">"  RAG pipeline best practices  "</span>, top_k=<span class="nm">3</span>)
+<span class="fn">print</span>(inp.query)          <span class="cm"># "RAG pipeline best practices" ← stripped by validator</span>
+
+<span class="cm"># Serialize to dict (for logging, sending to APIs)</span>
+<span class="fn">print</span>(inp.<span class="fn">model_dump</span>())
+<span class="cm"># {'query': 'RAG pipeline best practices', 'top_k': 3, 'filters': {}}</span>
+
+<span class="cm"># Deserialize from dict (from API payloads, JSON responses)</span>
+payload = {<span class="st">"query"</span>: <span class="st">"embeddings"</span>, <span class="st">"top_k"</span>: <span class="nm">10</span>}
+validated = SearchInput.<span class="fn">model_validate</span>(payload)
+<span class="fn">print</span>(validated.top_k)    <span class="cm"># 10 (int, not string "10" — Pydantic coerces it)</span></code></pre>
+        </div>
+
+        <h3>Why Pydantic beats a plain dict for tool inputs</h3>
+        <div class="compare reveal">
+          <div class="compare__side compare__side--wrong">
+            <div class="compare__label">✗ Plain dict — silent failure waiting to happen</div>
+            <pre style="background:var(--bg-code);padding:1rem;font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#cdd6f4"><code><span class="kw">def</span> <span class="fn">search_docs</span>(inp: <span class="tp">dict</span>) -> <span class="tp">list</span>:
+    <span class="cm"># KeyError if "query" is missing</span>
+    query = inp[<span class="st">"query"</span>]
+    <span class="cm"># None if "top_k" absent — passed to DB</span>
+    top_k = inp.<span class="fn">get</span>(<span class="st">"top_k"</span>)
+    <span class="cm"># top_k might be "5" (str) not 5 (int)</span>
+    <span class="cm"># DB query fails at 3am on Saturday</span>
+    ...</code></pre>
+          </div>
+          <div class="compare__side compare__side--right">
+            <div class="compare__label">✓ Pydantic model — validated at the boundary</div>
+            <pre style="background:var(--bg-code);padding:1rem;font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#cdd6f4"><code><span class="kw">def</span> <span class="fn">search_docs</span>(inp: <span class="tp">SearchInput</span>) -> <span class="tp">list</span>:
+    <span class="cm"># inp.query is always a non-empty str</span>
+    <span class="cm"># inp.top_k is always int, 1–20</span>
+    <span class="cm"># No defensive checks needed here</span>
+    <span class="kw">return</span> vector_db.<span class="fn">search</span>(
+        inp.query,
+        top_k=inp.top_k,
+    )</code></pre>
+          </div>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">🎯</span>
+          <div>
+            <strong class="callout__title">Pydantic v1 vs v2</strong>
+            This module uses Pydantic v2 (<code>pip install pydantic&gt;=2</code>), which is what LangChain 0.2+ uses.
+            If you see <code>.dict()</code> instead of <code>.model_dump()</code>, or <code>@validator</code> instead of
+            <code>@field_validator</code>, you're looking at v1 code. The concepts are identical — the API changed.
+            Always check your project's <code>requirements.txt</code>.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <!-- ─ RECORDING SCRIPT ─ -->
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 1.2: Object-Oriented Python</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">Instructor video guide · ~35 min · screen + narration cues</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem">
+            <span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span>
+          </div>
+          <div class="script-line">
+            <span class="script-ts">0:00 – 0:30</span>
+            <span class="script-action">TITLE CARD</span>
+            <span class="script-narration">"Welcome to Module 1.2 — Object-Oriented Python. By the end of this video you'll understand how LangChain's message objects work under the hood, how to build your own Pydantic models for tool inputs, and why the @dataclass decorator exists. Let's start with a simple question: what is a class?"</span>
+          </div>
+          <div class="script-line">
+            <span class="script-ts">0:30 – 4:00</span>
+            <span class="script-action">LIVE CODE</span>
+            <span class="script-narration">Open a new file <code>classes.py</code>. Write the Message class live. Emphasize <code>self</code>. "self is just Python passing the instance to the method automatically. When you write msg1.word_count(), Python secretly calls Message.word_count(msg1). Once you see that, everything else clicks."</span>
+          </div>
+          <div class="script-line">
+            <span class="script-ts">4:00 – 9:00</span>
+            <span class="script-action">LIVE CODE</span>
+            <span class="script-narration">Write <code>methods.py</code>. Show all three method types. Then say: "The from_dict classmethod is the most important pattern here. Every time you see SomeClass.from_something() in LangChain source code, this is what's happening. cls() calls __init__ just like you would from outside."</span>
+          </div>
+          <div class="script-line">
+            <span class="script-ts">9:00 – 18:00</span>
+            <span class="script-action">LIVE CODE</span>
+            <span class="script-narration">Write <code>inheritance.py</code>. Build BaseMessage first, then HumanMessage. Call super().__init__() explicitly. "Forget this line and you'll get an AttributeError deep inside framework code. It's frustrating to debug because the error points to LangChain source, not your subclass." Run the loop, show polymorphism.</span>
+          </div>
+          <div class="script-line">
+            <span class="script-ts">18:00 – 24:00</span>
+            <span class="script-action">LIVE CODE</span>
+            <span class="script-narration">Write <code>dataclasses.py</code>. Show the before/after comparison on screen. Then try <code>page: int = []</code> in a dataclass. "See the error? Python actually prevents the mutable default bug here — which is a feature. That's why field(default_factory=list) exists." Then show frozen=True.</span>
+          </div>
+          <div class="script-line">
+            <span class="script-ts">24:00 – 33:00</span>
+            <span class="script-action">LIVE CODE</span>
+            <span class="script-narration">Write <code>pydantic.py</code>. Install pydantic first if needed. Define SearchInput. Then deliberately pass query="" and show the ValidationError. "This is the moment Pydantic earns its place. Your function body never runs. The error is clear and precise. No 3am debugging."</span>
+          </div>
+          <div class="script-line">
+            <span class="script-ts">33:00 – 35:00</span>
+            <span class="script-action">WRAP</span>
+            <span class="script-narration">"In Module 1.3 we cover data structures — lists, dicts, sets, and the collections module. These are what Pydantic models serialize to and from. See you there."</span>
+          </div>
+        </div>
+      </details>
+
+      <!-- ─ SELF CHECK ─ -->
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+        <p>Five questions. If you can answer all five without looking back, you're ready for 1.3.</p>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>What is the difference between <code>@classmethod</code> and <code>@staticmethod</code>?</summary>
+          <div class="selfcheck__a">
+            A <code>@classmethod</code> receives the class itself as its first argument (<code>cls</code>), so it can call <code>cls()</code> to construct a new instance — making it ideal as a factory constructor. A <code>@staticmethod</code> receives neither <code>self</code> nor <code>cls</code>; it's a pure function that happens to live in the class namespace. Use <code>@classmethod</code> when you need to create instances. Use <code>@staticmethod</code> for utilities that belong logically in the class but don't need class or instance data.
+          </div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Why must you call <code>super().__init__()</code> in a subclass <code>__init__</code>?</summary>
+          <div class="selfcheck__a">
+            The parent's <code>__init__</code> sets up instance variables the parent's other methods depend on. If you skip it, those instance variables are never created, and any parent method that tries to access them will raise an <code>AttributeError</code>. This is especially important when extending Pydantic's <code>BaseModel</code> or LangChain's base classes — their internals rely on <code>__init__</code> to wire up validation, field tracking, and serialization hooks.
+          </div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>How does <code>field(default_factory=list)</code> in a dataclass fix the mutable default problem?</summary>
+          <div class="selfcheck__a">
+            <code>field(default_factory=list)</code> stores a callable, not a value. Every time a new instance is created, Python calls <code>list()</code> to produce a fresh, independent list. With a plain <code>= []</code> default, Python would create the list once at class definition time and share that single list across all instances. The <code>@dataclass</code> decorator actually enforces this — it raises a <code>ValueError</code> if you try to use a mutable value directly as a default, forcing you to use <code>field(default_factory=...)</code>.
+          </div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What does Pydantic do at runtime that Python's built-in type hints do NOT?</summary>
+          <div class="selfcheck__a">
+            Python's type hints are purely static annotations — they are completely ignored at runtime unless something explicitly reads them. <code>mypy</code> and your editor check them at build/edit time, but Python itself does not enforce them. Pydantic reads those same type hints at runtime and actively validates incoming data against them — raising a detailed <code>ValidationError</code> with field names and error messages if validation fails. It also coerces compatible types (e.g. the string <code>"5"</code> becomes the integer <code>5</code> for an <code>int</code> field).
+          </div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>You pass <code>{"query": "test", "top_k": "five"}</code> to <code>SearchInput.model_validate()</code>. What happens?</summary>
+          <div class="selfcheck__a">
+            Pydantic first tries to coerce the string <code>"five"</code> to <code>int</code>. Since <code>"five"</code> cannot be cast to an integer, it raises a <code>ValidationError</code> with a message like: <em>"top_k: Input should be a valid integer, unable to parse string as an integer"</em>. If you had passed <code>"5"</code> instead, Pydantic would silently coerce it to <code>5</code> — this coercion behaviour is intentional and can be disabled with <code>model_config = ConfigDict(strict=True)</code> if you want strict type matching.
+          </div>
+        </details>
+      </div>
+
+      <!-- ─ NEXT MODULE ─ -->
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Up next</div>
+          <div class="next-mod__title">1.3 · Data Structures</div>
+          <p class="next-mod__desc">
+            The Python built-ins every AI engineer reaches for daily: lists, tuples, sets, dicts,
+            and the <code>collections</code> module. Understanding which structure to use
+            determines whether your RAG pipeline runs in 20ms or 20 seconds.
+          </p>
+        </div>
+        <a class="next-btn" href="#">Continue →</a>
+      </div>
+
+      <!-- ─ AUTHOR ─ -->
+      <div class="author reveal">
+        <div class="author__photo">
+          <img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg"
+               alt="Harish Mondepu"
+               onerror="this.parentElement.style.display='flex';this.parentElement.style.alignItems='center';this.parentElement.style.justifyContent='center';this.parentElement.innerHTML='H';this.parentElement.style.fontSize='20px';this.parentElement.style.fontWeight='700';this.parentElement.style.color='var(--phase-text)';this.remove()" />
+        </div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">
+            9+ years building production enterprise systems across healthcare, SaaS, and financial services.
+            16× Salesforce certified. Making the move into AI engineering — and building the roadmap
+            I wish had existed when I started. Every module is what I actually needed to know.
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /body -->
+  </main>
+
+  <!-- ── RIGHT TOC ─────────────────────────── -->
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#classes">Classes &amp; __init__</a>
+    <a href="#methods">Instance / class / static</a>
+    <a href="#inheritance">Inheritance</a>
+    <a href="#dataclasses">Dataclasses</a>
+    <a href="#pydantic">Pydantic models</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">
+      Module 1.2 / 62<br/>
+      Phase 1 · Week 1–3<br/>
+      Author: Harish Mondepu<br/>
+      Updated: 2026-05-06
+    </div>
+  </aside>
+
+</div><!-- /layout -->
+
+<script>
+/* ── Theme ─────────────────────── */
+(function(){
+  const stored = localStorage.getItem('ae-theme');
+  if(stored) document.documentElement.dataset.theme = stored;
+})();
+function toggleTheme(){
+  const h = document.documentElement;
+  const next = h.dataset.theme === 'dark' ? 'light' : 'dark';
+  h.dataset.theme = next;
+  localStorage.setItem('ae-theme', next);
+  document.getElementById('themeIcon').textContent = next === 'dark' ? '☾' : '☀';
+  document.getElementById('themeLabel').textContent = next === 'dark' ? 'Dark' : 'Light';
+}
+
+/* ── Copy button ───────────────── */
+function copyCode(btn){
+  const pre = btn.closest('.code-wrap').querySelector('pre');
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copied';
+    btn.classList.add('done');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 2000);
+  });
+}
+
+/* ── Scroll reveal ─────────────── */
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+/* ── TOC active ────────────────── */
+const headings = document.querySelectorAll('h2[id]');
+const tocLinks = document.querySelectorAll('.toc a');
+const tocIO = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      tocLinks.forEach(a => a.classList.remove('active'));
+      const active = document.querySelector(`.toc a[href="#${e.target.id}"]`);
+      if(active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+headings.forEach(h => tocIO.observe(h));
+</script>
+</body>
+</html>

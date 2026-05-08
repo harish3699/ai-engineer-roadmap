@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 6.4 Semantic Caching · by Harish Mondepu</title>
+<meta name="description" content="Cache LLM responses by semantic similarity — so identical questions phrased differently hit the cache instead of the model, cutting latency and cost by 30–70% in FAQ-heavy workloads."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#d97706;--phase-hi:#f59e0b;--phase-soft:rgba(245,158,11,.1);--phase-text:#d97706}
+[data-theme="dark"]{--phase:#f59e0b;--phase-hi:#fbbf24;--phase-soft:rgba(251,191,36,.1);--phase-text:#fde68a}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 6 · <strong>Semantic Caching</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 41 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#f06292"></span>
+        Phase 4 · RAG + Evaluation ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#10b981"></span>
+        Phase 5 · Tools, MCP &amp; Agents ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 6 · Memory &amp; Context
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-6-1.html"><span class="sidebar__mod-num">6.1</span>Context Window ✓</a>
+        <a class="sidebar__mod done" href="module-6-2.html"><span class="sidebar__mod-num">6.2</span>Context Structure ✓</a>
+        <a class="sidebar__mod done" href="module-6-3.html"><span class="sidebar__mod-num">6.3</span>Short-Term Memory ✓</a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">6.4</span>Semantic Caching</a>
+        <a class="sidebar__mod" href="module-6-5.html"><span class="sidebar__mod-num">6.5</span>Episodic Memory</a>
+        <a class="sidebar__mod" href="module-6-6.html"><span class="sidebar__mod-num">6.6</span>Context Compression</a>
+        <a class="sidebar__mod" href="module-6-7.html"><span class="sidebar__mod-num">6.7</span>Long-Term Memory</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 06</span>
+        <span class="tag tag--level">Advanced</span>
+        <span class="tag tag--week">Week 18</span>
+      </div>
+      <h1 class="mod-head__title">Semantic <em>Caching</em></h1>
+      <p class="mod-head__sub">Exact-match caching doesn't work for LLM applications — "what is the return policy?" and "how do I return an item?" are the same question. Semantic caching stores responses keyed by embedding vectors and retrieves them by cosine similarity, so near-duplicate queries hit the cache rather than the model. In FAQ-heavy workloads this cuts LLM costs by 30–70% and reduces p50 latency to under 50 ms. This module covers the full implementation: embedding queries, similarity thresholds, TTL management, and cache invalidation strategies.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~22 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>3 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Exact-match caching misses semantically identical questions phrased differently — semantic caching matches by cosine similarity on query embeddings instead</li>
+          <li>The similarity threshold is the critical hyperparameter — too high (0.99) → almost no cache hits; too low (0.80) → stale/wrong answers returned</li>
+          <li>Cache entries need TTL (time-to-live) — facts change, and a cached "what is the price?" from yesterday may be wrong today</li>
+          <li>Only cache on the current query, not the full conversation history — two users asking the same question in different conversation contexts should get the same cached answer</li>
+          <li>Never cache personalised, sensitive, or user-specific responses — cache is shared across users; a user-specific answer is a data leak waiting to happen</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Module 4.1 — embeddings and cosine similarity</li>
+            <li><div class="meta-list__dot">!</div>Module 6.3 — conversation buffer (you know what a session looks like)</li>
+            <li><div class="meta-list__dot">!</div><code>pip install openai numpy</code></li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Explain why exact-match caching fails for natural language queries</li>
+            <li><div class="meta-list__dot">2</div>Build a semantic cache with embedding-based lookup and configurable threshold</li>
+            <li><div class="meta-list__dot">3</div>Add TTL-based expiry and manual cache invalidation</li>
+            <li><div class="meta-list__dot">4</div>Identify query types that should be excluded from caching</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="how-it-works">How semantic caching works <a class="anchor" href="#how-it-works">#</a></h2>
+        <p>The standard cache lookup is a dictionary key lookup: hash the query string, return the stored value if it exists. Semantic caching replaces the key lookup with an embedding similarity search. On every incoming query, you embed the query text, search the cache store for the most similar stored embedding, and if the cosine similarity exceeds a threshold, return the cached response. Otherwise, call the LLM, store the new (query embedding, response) pair, and return the fresh response.</p>
+
+        <div class="reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.2rem">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--phase-text);margin-bottom:1rem">Semantic Cache Flow</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem;font-size:13px">
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div style="width:24px;height:24px;border-radius:50%;background:var(--phase-soft);border:1px solid var(--phase-hi);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--phase-text);flex-shrink:0">1</div>
+              <div>Incoming query → embed with <code>text-embedding-3-small</code> → get 1536-dim vector</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div style="width:24px;height:24px;border-radius:50%;background:var(--phase-soft);border:1px solid var(--phase-hi);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--phase-text);flex-shrink:0">2</div>
+              <div>Search cache store: find entry with highest cosine similarity to query vector</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div style="width:24px;height:24px;border-radius:50%;background:var(--phase-soft);border:1px solid var(--phase-hi);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--phase-text);flex-shrink:0">3</div>
+              <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                <span style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.4);color:#34d399;padding:.15rem .5rem;border-radius:4px;font-size:12px">similarity ≥ threshold</span>
+                <span>→ return cached response (cache HIT)</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div style="width:24px;height:24px;border-radius:50%;background:var(--phase-soft);border:1px solid var(--phase-hi);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--phase-text);flex-shrink:0">4</div>
+              <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                <span style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);color:#f87171;padding:.15rem .5rem;border-radius:4px;font-size:12px">similarity &lt; threshold</span>
+                <span>→ call LLM → store (embedding, response, TTL) → return</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="implementation">Core implementation <a class="anchor" href="#implementation">#</a></h2>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">semantic_cache.py — embedding-based cache with TTL</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> time, numpy <span class="kw">as</span> np
+<span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field
+<span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+
+client = <span class="tp">OpenAI</span>()
+
+@dataclass
+<span class="kw">class</span> <span class="tp">CacheEntry</span>:
+    query: <span class="tp">str</span>
+    embedding: np.<span class="tp">ndarray</span>
+    response: <span class="tp">str</span>
+    created_at: <span class="tp">float</span> = field(default_factory=time.time)
+    hits: <span class="tp">int</span> = <span class="nm">0</span>
+
+
+<span class="kw">class</span> <span class="tp">SemanticCache</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(
+        self,
+        threshold: <span class="tp">float</span> = <span class="nm">0.92</span>,    <span class="cm"># cosine similarity required for a cache hit</span>
+        ttl_seconds: <span class="tp">int</span> = <span class="nm">3600</span>,    <span class="cm"># 1-hour TTL by default</span>
+        embed_model: <span class="tp">str</span> = <span class="st">"text-embedding-3-small"</span>,
+    ):
+        self.threshold = threshold
+        self.ttl = ttl_seconds
+        self.embed_model = embed_model
+        self._entries: <span class="tp">list</span>[<span class="tp">CacheEntry</span>] = []
+
+    <span class="kw">def</span> <span class="fn">_embed</span>(self, text: <span class="tp">str</span>) -> np.<span class="tp">ndarray</span>:
+        resp = client.embeddings.<span class="fn">create</span>(model=self.embed_model, input=text)
+        vec = np.<span class="fn">array</span>(resp.data[<span class="nm">0</span>].embedding, dtype=np.<span class="tp">float32</span>)
+        <span class="kw">return</span> vec / np.linalg.<span class="fn">norm</span>(vec)  <span class="cm"># normalise for cosine similarity</span>
+
+    <span class="kw">def</span> <span class="fn">_cosine</span>(self, a: np.<span class="tp">ndarray</span>, b: np.<span class="tp">ndarray</span>) -> <span class="tp">float</span>:
+        <span class="kw">return</span> <span class="tp">float</span>(np.<span class="fn">dot</span>(a, b))  <span class="cm"># both vectors normalised → dot = cosine</span>
+
+    <span class="kw">def</span> <span class="fn">_evict_expired</span>(self) -> <span class="kw">None</span>:
+        now = time.<span class="fn">time</span>()
+        self._entries = [e <span class="kw">for</span> e <span class="kw">in</span> self._entries <span class="kw">if</span> now - e.created_at < self.ttl]
+
+    <span class="kw">def</span> <span class="fn">lookup</span>(self, query: <span class="tp">str</span>) -> <span class="tp">str</span> | <span class="kw">None</span>:
+        self.<span class="fn">_evict_expired</span>()
+        <span class="kw">if</span> <span class="kw">not</span> self._entries:
+            <span class="kw">return</span> <span class="kw">None</span>
+        q_vec = self.<span class="fn">_embed</span>(query)
+        best_entry, best_score = <span class="kw">None</span>, -<span class="nm">1.0</span>
+        <span class="kw">for</span> entry <span class="kw">in</span> self._entries:
+            score = self.<span class="fn">_cosine</span>(q_vec, entry.embedding)
+            <span class="kw">if</span> score > best_score:
+                best_score, best_entry = score, entry
+        <span class="kw">if</span> best_entry <span class="kw">and</span> best_score >= self.threshold:
+            best_entry.hits += <span class="nm">1</span>
+            <span class="kw">return</span> best_entry.response
+        <span class="kw">return</span> <span class="kw">None</span>
+
+    <span class="kw">def</span> <span class="fn">store</span>(self, query: <span class="tp">str</span>, response: <span class="tp">str</span>) -> <span class="kw">None</span>:
+        vec = self.<span class="fn">_embed</span>(query)
+        self._entries.<span class="fn">append</span>(<span class="tp">CacheEntry</span>(query=query, embedding=vec, response=response))
+
+    <span class="kw">def</span> <span class="fn">invalidate</span>(self, keyword: <span class="tp">str</span>) -> <span class="tp">int</span>:
+        <span class="cm">"""Remove all entries whose query contains keyword (for manual invalidation)."""</span>
+        before = <span class="fn">len</span>(self._entries)
+        self._entries = [e <span class="kw">for</span> e <span class="kw">in</span> self._entries <span class="kw">if</span> keyword.<span class="fn">lower</span>() <span class="kw">not</span> <span class="kw">in</span> e.query.<span class="fn">lower</span>()]
+        <span class="kw">return</span> before - <span class="fn">len</span>(self._entries)
+
+    @property
+    <span class="kw">def</span> <span class="fn">stats</span>(self) -> <span class="tp">dict</span>:
+        <span class="kw">return</span> {<span class="st">"entries"</span>: <span class="fn">len</span>(self._entries), <span class="st">"total_hits"</span>: <span class="fn">sum</span>(e.hits <span class="kw">for</span> e <span class="kw">in</span> self._entries)}</code></pre>
+        </div>
+
+        <h2 id="wrapping-llm">Wrapping the LLM call with semantic cache <a class="anchor" href="#wrapping-llm">#</a></h2>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">cached_agent.py — LLM call wrapped with semantic cache lookup</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>cache = <span class="tp">SemanticCache</span>(threshold=<span class="nm">0.92</span>, ttl_seconds=<span class="nm">3600</span>)
+
+<span class="kw">async def</span> <span class="fn">ask</span>(user_query: <span class="tp">str</span>, system_prompt: <span class="tp">str</span>) -> <span class="tp">str</span>:
+    <span class="cm"># Step 1: check cache (embedding lookup — ~10-30 ms vs 800-2000 ms for LLM call)</span>
+    cached = cache.<span class="fn">lookup</span>(user_query)
+    <span class="kw">if</span> cached:
+        <span class="kw">return</span> cached  <span class="cm"># cache HIT — return immediately, no LLM call</span>
+
+    <span class="cm"># Step 2: cache MISS — call the LLM</span>
+    resp = <span class="kw">await</span> client.chat.completions.<span class="fn">acreate</span>(
+        model=<span class="st">"gpt-4o-mini"</span>,
+        messages=[
+            {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: system_prompt},
+            {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: user_query},
+        ],
+    )
+    response_text = resp.choices[<span class="nm">0</span>].message.content
+
+    <span class="cm"># Step 3: store in cache for future similar queries</span>
+    cache.<span class="fn">store</span>(user_query, response_text)
+    <span class="kw">return</span> response_text
+
+
+<span class="cm"># Behaviour in practice:</span>
+<span class="cm"># "What is the return policy?"       → cache MISS (first time) → LLM call</span>
+<span class="cm"># "How do I return a product?"       → similarity 0.94 → cache HIT (no LLM)</span>
+<span class="cm"># "Can I return something I bought?" → similarity 0.91 → cache HIT (no LLM)</span>
+<span class="cm"># "What is the weather today?"       → similarity 0.31 → cache MISS → LLM call</span></code></pre>
+        </div>
+
+        <h2 id="threshold-tuning">Tuning the similarity threshold <a class="anchor" href="#threshold-tuning">#</a></h2>
+        <p>The threshold is a precision-recall tradeoff. A high threshold (0.97+) means only near-identical queries hit the cache — safe but low hit rate. A low threshold (0.80) caches aggressively — high hit rate but risks returning answers to slightly different questions.</p>
+
+        <div class="reveal" style="margin:1.5rem 0;overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border)">
+                <th style="text-align:left;padding:.6rem .8rem;color:var(--fg-dim);font-weight:600">Threshold</th>
+                <th style="text-align:left;padding:.6rem .8rem;color:var(--fg-dim);font-weight:600">Behaviour</th>
+                <th style="text-align:left;padding:.6rem .8rem;color:var(--fg-dim);font-weight:600">Risk</th>
+                <th style="text-align:left;padding:.6rem .8rem;color:var(--fg-dim);font-weight:600">Best for</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem"><code>≥ 0.97</code></td>
+                <td style="padding:.6rem .8rem">Near-exact rewording only</td>
+                <td style="padding:.6rem .8rem">Very low hit rate</td>
+                <td style="padding:.6rem .8rem">General-purpose Q&A</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem"><code>0.92–0.96</code></td>
+                <td style="padding:.6rem .8rem">Same intent, different phrasing</td>
+                <td style="padding:.6rem .8rem">Low — recommended range</td>
+                <td style="padding:.6rem .8rem">Customer support FAQ</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem"><code>0.85–0.91</code></td>
+                <td style="padding:.6rem .8rem">Topically related queries</td>
+                <td style="padding:.6rem .8rem">Medium — test carefully</td>
+                <td style="padding:.6rem .8rem">Static domain knowledge</td>
+              </tr>
+              <tr>
+                <td style="padding:.6rem .8rem"><code>&lt; 0.85</code></td>
+                <td style="padding:.6rem .8rem">Broad topic match</td>
+                <td style="padding:.6rem .8rem">High — wrong answers served</td>
+                <td style="padding:.6rem .8rem">Avoid in production</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">What must never be cached</strong>
+            <ul style="margin:.4rem 0 0 1rem;padding:0">
+              <li><strong>User-specific questions:</strong> "What is my account balance?" — the answer differs per user; caching it leaks one user's data to another</li>
+              <li><strong>Real-time queries:</strong> "What is the weather right now?" — the answer changes by the minute</li>
+              <li><strong>Queries with user-provided context:</strong> If the user says "given that my order was placed yesterday, what's the status?" — the context makes the question unique</li>
+            </ul>
+            Add a <code>cacheable(query: str) → bool</code> function that checks for personalisation signals before performing the cache lookup.
+          </div>
+        </div>
+
+        <h2 id="production-backends">Production backends <a class="anchor" href="#production-backends">#</a></h2>
+        <p>The in-memory implementation above is good for development. In production, use a vector store as the cache backend — this gives you persistence across restarts, horizontal scaling, and faster ANN (approximate nearest-neighbour) lookups at large cache sizes:</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">redis_cache.py — using Redis with vector search as production cache backend</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="cm"># GPTCache (pip install gptcache) wraps any LLM call with semantic caching</span>
+<span class="cm"># and supports Redis, Milvus, Weaviate, and Qdrant as backends.</span>
+
+<span class="kw">from</span> gptcache <span class="kw">import</span> cache
+<span class="kw">from</span> gptcache.adapter <span class="kw">import</span> openai <span class="kw">as</span> cached_openai
+<span class="kw">from</span> gptcache.embedding <span class="kw">import</span> OpenAI <span class="kw">as</span> CacheEmbedding
+<span class="kw">from</span> gptcache.manager <span class="kw">import</span> get_data_manager, CacheBase, VectorBase
+<span class="kw">from</span> gptcache.similarity_evaluation.distance <span class="kw">import</span> SearchDistanceEvaluation
+
+<span class="cm"># Initialise once at startup</span>
+cache.<span class="fn">init</span>(
+    embedding_func=<span class="tp">CacheEmbedding</span>().<span class="fn">to_embeddings</span>,
+    data_manager=<span class="fn">get_data_manager</span>(
+        <span class="tp">CacheBase</span>(<span class="st">"sqlite"</span>),              <span class="cm"># metadata store</span>
+        <span class="tp">VectorBase</span>(<span class="st">"faiss"</span>, dimension=<span class="nm">1536</span>), <span class="cm"># vector store</span>
+    ),
+    similarity_evaluation=<span class="tp">SearchDistanceEvaluation</span>(),
+)
+
+<span class="cm"># Drop-in replacement for the openai client — same API, cache applied transparently</span>
+response = cached_openai.ChatCompletion.<span class="fn">create</span>(
+    model=<span class="st">"gpt-4o-mini"</span>,
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: user_query}],
+)
+
+<span class="cm"># First call: cache miss → LLM call → result stored in SQLite + FAISS</span>
+<span class="cm"># Second call (similar query): cache hit → result returned from FAISS lookup</span></code></pre>
+        </div>
+
+        <div class="callout callout--info">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">Cache vs prompt caching — two different things</strong>
+            Don't confuse semantic caching (this module) with prompt prefix caching (Module 6.2). <strong>Semantic caching</strong> caches the full response and avoids the LLM call entirely. <strong>Prompt caching</strong> (Anthropic/OpenAI feature) still calls the LLM but caches the KV state for the stable prefix of your prompt, reducing input token costs. Use both simultaneously — they are complementary.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: Episodic Memory</div>
+            <div class="cta-block__sub">Module 6.5 covers episodic memory — storing facts about past interactions in a vector database so agents can recall "the user mentioned they prefer Python" from session 14, even when session 14 is no longer in the context window.</div>
+          </div>
+          <a class="cta-block__btn" href="module-6-5.html">Module 6.5 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#how-it-works">How it works</a></li>
+      <li><a class="toc__link" href="#implementation">Core implementation</a></li>
+      <li><a class="toc__link" href="#wrapping-llm">Wrapping the LLM call</a></li>
+      <li><a class="toc__link" href="#threshold-tuning">Threshold tuning</a></li>
+      <li><a class="toc__link" href="#production-backends">Production backends</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){
+  const h=document.documentElement;
+  const dark=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',dark?'light':'dark');
+  localStorage.setItem('ae-theme',dark?'light':'dark');
+  document.getElementById('themeIcon').textContent=dark?'☀':'☾';
+  document.getElementById('themeLabel').textContent=dark?'Light':'Dark';
+}
+(function(){
+  const t=localStorage.getItem('ae-theme');
+  if(t){
+    document.documentElement.setAttribute('data-theme',t);
+    const dark=t==='dark';
+    document.getElementById('themeIcon').textContent=dark?'☾':'☀';
+    document.getElementById('themeLabel').textContent=dark?'Dark':'Light';
+  }
+})();
+function copyCode(btn){
+  const code=btn.closest('.code-wrap').querySelector('pre code');
+  navigator.clipboard.writeText(code.innerText).then(()=>{
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent='Copy',2000);
+  });
+}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    const id=e.target.id;
+    if(!id)return;
+    const link=document.querySelector(`.toc__link[href="#${id}"]`);
+    if(!link)return;
+    if(e.isIntersecting){
+      document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));
+      link.classList.add('active');
+    }
+  });
+},{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

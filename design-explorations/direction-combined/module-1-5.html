@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 1.5 HTTP APIs · by Harish Mondepu</title>
+<meta name="description" content="The requests library, authentication patterns, and production-grade retry logic with tenacity — the foundation for calling any LLM or external API."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 1 · <strong>HTTP APIs</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 5 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 1 · Python Foundations
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="index.html"><span class="sidebar__mod-num">1.1</span>Core Python<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-1-2.html"><span class="sidebar__mod-num">1.2</span>Object-Oriented Python<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-1-3.html"><span class="sidebar__mod-num">1.3</span>Data Structures<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-1-4.html"><span class="sidebar__mod-num">1.4</span>Error &amp; File Handling<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">1.5</span>HTTP APIs<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod" href="module-1-6.html"><span class="sidebar__mod-num">1.6</span>Database Connectivity<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-1-7.html"><span class="sidebar__mod-num">1.7</span>FastAPI<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-1-8.html"><span class="sidebar__mod-num">1.8</span>Async Programming<span class="sidebar__check"></span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#8865a3"></span>Phase 2 · LLM Mental Model</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#e85a7a"></span>Phase 3 · Prompt Engineering</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#e85a7a;opacity:.5"></span>Phase 4 · RAG + Evaluation</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 01</span>
+        <span class="tag tag--level">Beginner</span>
+        <span class="tag tag--week">Week 1–3</span>
+      </div>
+      <h1 class="mod-head__title">Working with <em>HTTP APIs</em></h1>
+      <p class="mod-head__sub">Every LLM, vector database, and tool you'll integrate in this roadmap is accessed via HTTP. This module gives you the <code>requests</code> library, authentication patterns, and the production retry logic that keeps your agent alive when APIs hiccup.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~25 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>3 code examples</span>
+        <span>Last updated 2026-05-06</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Always check <code>response.raise_for_status()</code> — a 200 response doesn't guarantee correct data; a 4xx/5xx without this call silently returns garbage</li>
+          <li>Use a <code>requests.Session()</code> for multiple calls to the same host — it reuses TCP connections and applies headers globally</li>
+          <li>API keys belong in environment variables, never in code — use <code>os.environ</code> or <code>python-dotenv</code></li>
+          <li><code>tenacity</code> retry decorators are the production standard — they handle exponential backoff, jitter, and per-exception retry rules in four lines</li>
+          <li>Always set a <code>timeout=</code> on every request — an LLM API can hang for 60+ seconds without one</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Modules 1.1–1.4 complete</li>
+            <li><div class="meta-list__dot">!</div><code>pip install requests tenacity python-dotenv</code></li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Make GET and POST requests with headers, params, and JSON body</li>
+            <li><div class="meta-list__dot">2</div>Authenticate with Bearer tokens and API keys correctly</li>
+            <li><div class="meta-list__dot">3</div>Add exponential backoff retry with <code>tenacity</code></li>
+            <li><div class="meta-list__dot">4</div>Use <code>requests.Session</code> for efficient multi-call workflows</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">Python Requests Library — Tech With Tim</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· Python Requests — Tech With Tim</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/tb8gHvYlCFs" title="Python Requests — Tech With Tim" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ requests library fundamentals — 20 min · timestamps in script below</div>
+      </div>
+
+      <div class="prose">
+        <h2 id="requests-basics">GET and POST with <code>requests</code> <a class="anchor" href="#requests-basics">#</a></h2>
+        <p>The <code>requests</code> library is the standard for synchronous HTTP in Python. Phase 5 will introduce <code>httpx</code> for async — for now, <code>requests</code> covers everything you need.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">http_basics.py</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> requests
+
+<span class="cm"># ── GET — query parameters ────────────────────────────────────────────</span>
+resp = requests.<span class="fn">get</span>(
+    <span class="st">"https://api.openai.com/v1/models"</span>,
+    headers={<span class="st">"Authorization"</span>: <span class="st">"Bearer sk-..."</span>},
+    timeout=<span class="nm">10</span>,              <span class="cm"># ALWAYS set — prevents indefinite hangs</span>
+)
+resp.<span class="fn">raise_for_status</span>()    <span class="cm"># raises HTTPError on 4xx/5xx — never skip this</span>
+models = resp.<span class="fn">json</span>()       <span class="cm"># parses response body as JSON</span>
+
+<span class="cm"># ── POST — JSON body ──────────────────────────────────────────────────</span>
+payload = {
+    <span class="st">"model"</span>: <span class="st">"gpt-4o"</span>,
+    <span class="st">"messages"</span>: [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"Hello"</span>}],
+    <span class="st">"max_tokens"</span>: <span class="nm">100</span>,
+}
+resp = requests.<span class="fn">post</span>(
+    <span class="st">"https://api.openai.com/v1/chat/completions"</span>,
+    headers={<span class="st">"Authorization"</span>: <span class="st">"Bearer sk-..."</span>, <span class="st">"Content-Type"</span>: <span class="st">"application/json"</span>},
+    json=payload,             <span class="cm"># use json= not data= — sets Content-Type automatically</span>
+    timeout=<span class="nm">30</span>,
+)
+resp.<span class="fn">raise_for_status</span>()
+reply = resp.<span class="fn">json</span>()[<span class="st">"choices"</span>][<span class="nm">0</span>][<span class="st">"message"</span>][<span class="st">"content"</span>]
+
+<span class="cm"># ── Session — reuse connection + set base headers once ───────────────</span>
+session = requests.<span class="fn">Session</span>()
+session.headers.<span class="fn">update</span>({<span class="st">"Authorization"</span>: <span class="st">"Bearer sk-..."</span>})
+
+r1 = session.<span class="fn">get</span>(<span class="st">"https://api.openai.com/v1/models"</span>, timeout=<span class="nm">10</span>)
+r2 = session.<span class="fn">post</span>(<span class="st">"https://api.openai.com/v1/chat/completions"</span>, json=payload, timeout=<span class="nm">30</span>)
+<span class="cm"># Both calls share the auth header — no repetition, and TCP is reused</span></code></pre>
+        </div>
+
+        <h2 id="auth">Authentication patterns <a class="anchor" href="#auth">#</a></h2>
+        <p>Every LLM API uses one of two auth patterns. Know both, and know how to store secrets safely.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">auth.py — Bearer token + API key + env var loading</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> os
+<span class="kw">from</span> dotenv <span class="kw">import</span> load_dotenv
+<span class="kw">import</span> requests
+
+load_dotenv()   <span class="cm"># reads .env file into os.environ — never commit .env to git</span>
+
+<span class="cm"># ── Pattern 1: Bearer token (OpenAI, Anthropic, most LLM APIs) ───────</span>
+openai_key = os.<span class="fn">environ</span>[<span class="st">"OPENAI_API_KEY"</span>]   <span class="cm"># KeyError if missing — fail fast</span>
+
+headers_bearer = {<span class="st">"Authorization"</span>: <span class="st">f"Bearer {openai_key}"</span>}
+
+<span class="cm"># ── Pattern 2: API key in header (Pinecone, many vector DBs) ─────────</span>
+pinecone_key = os.<span class="fn">environ</span>[<span class="st">"PINECONE_API_KEY"</span>]
+
+headers_apikey = {<span class="st">"Api-Key"</span>: pinecone_key}   <span class="cm"># header name varies by service</span>
+
+<span class="cm"># ── Anthropic — x-api-key header (non-standard) ──────────────────────</span>
+anthropic_key = os.<span class="fn">environ</span>[<span class="st">"ANTHROPIC_API_KEY"</span>]
+
+headers_anthropic = {
+    <span class="st">"x-api-key"</span>: anthropic_key,
+    <span class="st">"anthropic-version"</span>: <span class="st">"2023-06-01"</span>,
+    <span class="st">"content-type"</span>: <span class="st">"application/json"</span>,
+}
+
+<span class="cm"># Note: in production you will use the SDK (anthropic.Anthropic()),</span>
+<span class="cm"># not raw requests. This shows you what the SDK is doing underneath.</span></code></pre>
+        </div>
+
+        <div class="callout callout--err">
+          <span class="callout__icon">🚫</span>
+          <div>
+            <strong class="callout__title">API keys in code = instant security incident</strong>
+            Never write <code>api_key = "sk-abc123..."</code> in your source code. It will end up in git history, a pastebin, or a public repo. Always load from environment variables. Add <code>.env</code> to <code>.gitignore</code> on day one.
+          </div>
+        </div>
+
+        <h2 id="rate-limits">Rate limits and retry with tenacity <a class="anchor" href="#rate-limits">#</a></h2>
+        <p>LLM APIs return <code>429 Too Many Requests</code> when you exceed rate limits. The correct response is exponential backoff with jitter — wait longer after each failure, add randomness to avoid thundering-herd when multiple processes retry simultaneously. <code>tenacity</code> handles all of this in one decorator.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">retry.py — production retry pattern with tenacity</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> requests
+<span class="kw">from</span> tenacity <span class="kw">import</span> (
+    retry, stop_after_attempt, wait_exponential_jitter,
+    retry_if_exception_type, before_sleep_log
+)
+<span class="kw">import</span> logging
+
+logger = logging.<span class="fn">getLogger</span>(__name__)
+
+<span class="kw">@retry</span>(
+    retry=<span class="fn">retry_if_exception_type</span>(requests.exceptions.<span class="tp">HTTPError</span>),
+    stop=<span class="fn">stop_after_attempt</span>(<span class="nm">5</span>),
+    wait=<span class="fn">wait_exponential_jitter</span>(initial=<span class="nm">1</span>, max=<span class="nm">60</span>),   <span class="cm"># 1s → 2s → 4s… + jitter</span>
+    before_sleep=<span class="fn">before_sleep_log</span>(logger, logging.<span class="tp">WARNING</span>),
+    reraise=<span class="kw">True</span>,
+)
+<span class="kw">def</span> <span class="fn">call_llm</span>(prompt: <span class="tp">str</span>, model: <span class="tp">str</span> = <span class="st">"gpt-4o"</span>) -> <span class="tp">str</span>:
+    <span class="st">"""Call the OpenAI chat API with automatic retry on rate limit."""</span>
+    resp = requests.<span class="fn">post</span>(
+        <span class="st">"https://api.openai.com/v1/chat/completions"</span>,
+        headers={<span class="st">"Authorization"</span>: <span class="st">"Bearer ..."</span>},
+        json={<span class="st">"model"</span>: model, <span class="st">"messages"</span>: [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: prompt}]},
+        timeout=<span class="nm">30</span>,
+    )
+    resp.<span class="fn">raise_for_status</span>()   <span class="cm"># 429 raises HTTPError → triggers retry</span>
+    <span class="kw">return</span> resp.<span class="fn">json</span>()[<span class="st">"choices"</span>][<span class="nm">0</span>][<span class="st">"message"</span>][<span class="st">"content"</span>]
+
+
+<span class="cm"># Only retry on transient errors — not on 401 (bad key) or 400 (bad request)</span>
+<span class="kw">@retry</span>(
+    retry=<span class="fn">retry_if_exception_type</span>(requests.exceptions.<span class="tp">ConnectionError</span>),
+    stop=<span class="fn">stop_after_attempt</span>(<span class="nm">3</span>),
+    wait=<span class="fn">wait_exponential_jitter</span>(initial=<span class="nm">2</span>, max=<span class="nm">30</span>),
+    reraise=<span class="kw">True</span>,
+)
+<span class="kw">def</span> <span class="fn">fetch_embeddings</span>(texts: <span class="tp">list</span>[<span class="tp">str</span>]) -> <span class="tp">list</span>[<span class="tp">list</span>[<span class="tp">float</span>]]:
+    <span class="st">"""Retry only on network errors, not on HTTP errors."""</span>
+    ...</code></pre>
+        </div>
+
+        <div class="callout callout--note">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">When to use the SDK vs raw requests</strong>
+            In production, use the official SDK (<code>openai</code>, <code>anthropic</code>) — they handle auth, retry, streaming, and model-specific quirks. Use raw <code>requests</code> when: you're calling an API with no SDK, you need full control over the HTTP layer, or you're learning how it works. The concepts here apply to both.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 1.5: HTTP APIs</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~25 min · screen + narration cues</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 1:00</span><span class="script-action">TITLE CARD</span><span class="script-narration">"Module 1.5 — Working with HTTP APIs. Every LLM, every vector database, every tool you'll integrate in this roadmap speaks HTTP. This module makes that conversation reliable."</span></div>
+          <div class="script-line"><span class="script-ts">1:00 – 9:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Make a real API call to a public endpoint (JSONPlaceholder or similar). Show .raise_for_status() in action — deliberately call a bad URL and show the response without it (silent garbage), then with it (HTTPError). "This is the most commonly skipped line in beginner API code. Don't be that person."</span></div>
+          <div class="script-line"><span class="script-ts">9:00 – 14:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Write auth.py with a .env file. Show os.environ["KEY"] failing when the key is missing. "The KeyError is intentional — fail fast at startup rather than at 2am when the first API call is made."</span></div>
+          <div class="script-line"><span class="script-ts">14:00 – 23:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Write retry.py. Add the decorator and then deliberately cause a retryable error by mocking the response. Show the log output from before_sleep_log. "See the WARNING: attempt 1 failed, sleeping 1.3s. That's your retry logic. Four decorator lines saved you from writing 40."</span></div>
+          <div class="script-line"><span class="script-ts">23:00 – 25:00</span><span class="script-action">WRAP</span><span class="script-narration">"Module 1.6 is database connectivity — psycopg2 for raw PostgreSQL and SQLAlchemy ORM. Your RAG pipeline will need a place to store state, and your capstone will run on RDS."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>What does <code>response.raise_for_status()</code> do and why should you always call it?</summary>
+          <div class="selfcheck__a">It raises an <code>HTTPError</code> exception if the response status code indicates a failure (4xx or 5xx). Without it, your code sees a Response object regardless of whether the API call succeeded — <code>response.json()</code> on a 429 rate-limit response will return the error body (or raise a decode error), not your expected data. Always call <code>raise_for_status()</code> immediately after every request so failures surface explicitly rather than causing silent downstream corruption.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Why use <code>requests.Session()</code> instead of top-level <code>requests.get()</code>?</summary>
+          <div class="selfcheck__a">A Session persists headers, auth, and cookies across multiple requests, so you don't repeat them on every call. More importantly, it maintains a connection pool — TCP connections to the same host are reused rather than re-established on each request. For a pipeline that calls an embedding API 100 times, connection reuse can halve latency.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What is exponential backoff with jitter and why does "jitter" matter?</summary>
+          <div class="selfcheck__a">Exponential backoff waits progressively longer between retries (1s → 2s → 4s → 8s). Jitter adds a random amount to each wait. Without jitter, if 100 clients hit a rate limit simultaneously and all retry at exactly 2 seconds, they cause another burst at 2 seconds — the thundering herd problem. Jitter spreads retries across the wait window, smoothing out the load on the API and increasing the chance of success.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What is the difference between passing <code>json=payload</code> vs <code>data=payload</code> to <code>requests.post()</code>?</summary>
+          <div class="selfcheck__a"><code>json=payload</code> serializes the dict to a JSON string and automatically sets <code>Content-Type: application/json</code>. <code>data=payload</code> form-encodes the dict (like an HTML form submission) and sets <code>Content-Type: application/x-www-form-urlencoded</code>. LLM APIs expect JSON — always use <code>json=</code> for them. Using <code>data=</code> by mistake is a common source of cryptic 400 errors.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Up next</div>
+          <div class="next-mod__title">1.6 · Database Connectivity</div>
+          <p class="next-mod__desc">Raw PostgreSQL with psycopg2, SQLAlchemy ORM for structured queries, and connection pooling — because your RAG pipeline needs persistent state and your agent capstone runs on RDS.</p>
+        </div>
+        <a class="next-btn" href="module-1-6.html">Continue →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#requests-basics">GET &amp; POST</a>
+    <a href="#auth">Authentication</a>
+    <a href="#rate-limits">Retry with tenacity</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 1.5 / 62<br/>Phase 1 · Week 1–3<br/>Author: Harish Mondepu<br/>Updated: 2026-05-06</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 7.2 LangGraph Fundamentals · by Harish Mondepu</title>
+<meta name="description" content="Nodes, edges, StateGraph, reducers, conditional routing, cycles, and termination conditions — the complete LangGraph primitives for building multi-agent graphs."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#c2410c;--phase-hi:#ea580c;--phase-soft:rgba(234,88,12,.1);--phase-text:#c2410c}
+[data-theme="dark"]{--phase:#f97316;--phase-hi:#fb923c;--phase-soft:rgba(249,115,22,.1);--phase-text:#fed7aa}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 7 · <strong>LangGraph Fundamentals</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 46 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#1aada0"></span>Phase 1 · Python Foundations ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#06b6d4"></span>Phase 2 · LLM Mental Model ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#a78bfa"></span>Phase 3 · Prompt Engineering ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f06292"></span>Phase 4 · RAG + Evaluation ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#10b981"></span>Phase 5 · Tools, MCP &amp; Agents ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f59e0b"></span>Phase 6 · Memory &amp; Context ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 7 · Multi-Agent Orchestration
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-7-1.html"><span class="sidebar__mod-num">7.1</span>When Multi-Agent? ✓</a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">7.2</span>LangGraph Fundamentals</a>
+        <a class="sidebar__mod" href="module-7-3.html"><span class="sidebar__mod-num">7.3</span>Common Patterns</a>
+        <a class="sidebar__mod" href="module-7-4.html"><span class="sidebar__mod-num">7.4</span>Agent-as-Tool</a>
+        <a class="sidebar__mod" href="module-7-5.html"><span class="sidebar__mod-num">7.5</span>State Management</a>
+        <a class="sidebar__mod" href="module-7-6.html"><span class="sidebar__mod-num">7.6</span>A2A Protocol</a>
+        <a class="sidebar__mod" href="module-7-7.html"><span class="sidebar__mod-num">7.7</span>Frameworks Compared</a>
+        <a class="sidebar__mod" href="module-7-8.html"><span class="sidebar__mod-num">7.8</span>Debugging Multi-Agent</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 07</span>
+        <span class="tag tag--level">Expert</span>
+        <span class="tag tag--week">Week 20</span>
+      </div>
+      <h1 class="mod-head__title">LangGraph <em>Fundamentals</em></h1>
+      <p class="mod-head__sub">LangGraph is a library for building stateful, multi-step agent workflows as directed graphs. Each node is a function that reads from and writes to a shared typed state object. Edges define control flow between nodes — they can be static (always go from A to B) or conditional (go to B or C based on the current state). This module covers every primitive you need: <code>StateGraph</code>, <code>TypedDict</code> state, reducers, <code>add_node</code>, <code>add_edge</code>, <code>add_conditional_edges</code>, <code>START</code>/<code>END</code>, and the compile + invoke pattern.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~25 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>4 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>A LangGraph graph is a <code>StateGraph</code> — nodes read from and write to a shared <code>TypedDict</code> state; edges define control flow</li>
+          <li>Reducers define how a field in state is updated when multiple nodes write to it — the default is last-write-wins; <code>operator.add</code> accumulates lists</li>
+          <li>Conditional edges take a function <code>(state) → str</code> that returns the name of the next node — this is how routing decisions live in the graph</li>
+          <li>Cycles (loops) are native to LangGraph — a ReAct agent is just a node that loops back to itself until a termination condition fires</li>
+          <li>Always define a clear termination condition — a missing <code>END</code> edge is the most common cause of infinite loops in LangGraph</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Module 7.1 — you've decided multi-agent is justified</li>
+            <li><div class="meta-list__dot">!</div>Module 5.5 — LangChain agents and <code>@tool</code> decorator</li>
+            <li><div class="meta-list__dot">!</div><code>pip install langgraph langchain-openai</code></li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Define a typed state schema and build a <code>StateGraph</code> from scratch</li>
+            <li><div class="meta-list__dot">2</div>Add nodes, static edges, and conditional edges with a routing function</li>
+            <li><div class="meta-list__dot">3</div>Implement a cycle with a termination condition</li>
+            <li><div class="meta-list__dot">4</div>Compile a graph, invoke it, and stream its intermediate state</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="mental-model">The mental model <a class="anchor" href="#mental-model">#</a></h2>
+        <p>LangGraph is fundamentally a state machine where each state transition is an LLM call or a function. The state is a shared dictionary that all nodes can read and write. Edges are the arrows on the whiteboard — they say "after node A finishes, go to node B." Conditional edges say "after node A, look at the state and decide which node to go to next."</p>
+
+        <div class="reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.2rem">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--phase-text);margin-bottom:.75rem">LangGraph Primitives</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;font-size:12px">
+            <div style="background:var(--surface-0);border:1px solid var(--border);border-radius:6px;padding:.75rem">
+              <div style="font-weight:700;color:var(--phase-text);margin-bottom:.3rem">Node</div>
+              <div style="color:var(--fg)">A Python function that takes <code>state</code> and returns a dict of state updates. Can call an LLM, a tool, or any logic.</div>
+            </div>
+            <div style="background:var(--surface-0);border:1px solid var(--border);border-radius:6px;padding:.75rem">
+              <div style="font-weight:700;color:var(--phase-text);margin-bottom:.3rem">Edge</div>
+              <div style="color:var(--fg)">Connects two nodes. Static edge: always goes A→B. Conditional edge: calls a router function to decide next node.</div>
+            </div>
+            <div style="background:var(--surface-0);border:1px solid var(--border);border-radius:6px;padding:.75rem">
+              <div style="font-weight:700;color:var(--phase-text);margin-bottom:.3rem">State</div>
+              <div style="color:var(--fg)">A <code>TypedDict</code> that persists across all nodes. Reducers define merge behaviour when nodes write to the same field.</div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="first-graph">Your first graph <a class="anchor" href="#first-graph">#</a></h2>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">first_graph.py — minimal StateGraph with two nodes and a conditional edge</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> langgraph.graph <span class="kw">import</span> StateGraph, START, END
+<span class="kw">from</span> langgraph.graph.message <span class="kw">import</span> add_messages
+<span class="kw">from</span> typing <span class="kw">import</span> TypedDict, Annotated
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI
+<span class="kw">from</span> langchain_core.messages <span class="kw">import</span> HumanMessage, AIMessage
+
+<span class="cm"># ── 1. Define state ────────────────────────────────────────────────────</span>
+<span class="kw">class</span> <span class="tp">AgentState</span>(<span class="tp">TypedDict</span>):
+    <span class="cm"># Annotated[list, add_messages] means: append new messages, not replace</span>
+    messages: <span class="tp">Annotated</span>[<span class="tp">list</span>, add_messages]
+    next_node: <span class="tp">str</span>
+    analysis: <span class="tp">str</span>
+
+llm = <span class="tp">ChatOpenAI</span>(model=<span class="st">"gpt-4o-mini"</span>)
+
+<span class="cm"># ── 2. Define nodes ────────────────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">analyse_node</span>(state: <span class="tp">AgentState</span>) -> <span class="tp">dict</span>:
+    <span class="st">"""Analyse the user request and decide which worker to route to."""</span>
+    response = llm.<span class="fn">invoke</span>([
+        *state[<span class="st">"messages"</span>],
+        <span class="tp">HumanMessage</span>(content=<span class="st">"Classify this request as 'code' or 'data'. Reply with one word."</span>),
+    ])
+    route = response.content.<span class="fn">strip</span>().<span class="fn">lower</span>()
+    <span class="kw">return</span> {<span class="st">"analysis"</span>: response.content, <span class="st">"next_node"</span>: route}
+
+<span class="kw">def</span> <span class="fn">code_node</span>(state: <span class="tp">AgentState</span>) -> <span class="tp">dict</span>:
+    response = llm.<span class="fn">invoke</span>([
+        <span class="tp">HumanMessage</span>(content=<span class="st">"You are a code expert. "</span> + state[<span class="st">"messages"</span>][-<span class="nm">1</span>].content),
+    ])
+    <span class="kw">return</span> {<span class="st">"messages"</span>: [response]}
+
+<span class="kw">def</span> <span class="fn">data_node</span>(state: <span class="tp">AgentState</span>) -> <span class="tp">dict</span>:
+    response = llm.<span class="fn">invoke</span>([
+        <span class="tp">HumanMessage</span>(content=<span class="st">"You are a data analyst. "</span> + state[<span class="st">"messages"</span>][-<span class="nm">1</span>].content),
+    ])
+    <span class="kw">return</span> {<span class="st">"messages"</span>: [response]}
+
+<span class="cm"># ── 3. Router function ────────────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">route_after_analysis</span>(state: <span class="tp">AgentState</span>) -> <span class="tp">str</span>:
+    <span class="kw">return</span> state[<span class="st">"next_node"</span>]  <span class="cm"># "code" or "data"</span>
+
+<span class="cm"># ── 4. Build graph ────────────────────────────────────────────────────</span>
+builder = <span class="tp">StateGraph</span>(<span class="tp">AgentState</span>)
+builder.<span class="fn">add_node</span>(<span class="st">"analyse"</span>, analyse_node)
+builder.<span class="fn">add_node</span>(<span class="st">"code"</span>, code_node)
+builder.<span class="fn">add_node</span>(<span class="st">"data"</span>, data_node)
+
+builder.<span class="fn">add_edge</span>(<span class="tp">START</span>, <span class="st">"analyse"</span>)              <span class="cm"># start → analyse (always)</span>
+builder.<span class="fn">add_conditional_edges</span>(                   <span class="cm"># analyse → code or data</span>
+    <span class="st">"analyse"</span>,
+    route_after_analysis,
+    {<span class="st">"code"</span>: <span class="st">"code"</span>, <span class="st">"data"</span>: <span class="st">"data"</span>},
+)
+builder.<span class="fn">add_edge</span>(<span class="st">"code"</span>, <span class="tp">END</span>)                  <span class="cm"># code → END</span>
+builder.<span class="fn">add_edge</span>(<span class="st">"data"</span>, <span class="tp">END</span>)                  <span class="cm"># data → END</span>
+
+graph = builder.<span class="fn">compile</span>()
+
+<span class="cm"># ── 5. Invoke ────────────────────────────────────────────────────────</span>
+result = graph.<span class="fn">invoke</span>({<span class="st">"messages"</span>: [<span class="tp">HumanMessage</span>(content=<span class="st">"Write a Python function to sort a list"</span>)]})
+<span class="fn">print</span>(result[<span class="st">"messages"</span>][-<span class="nm">1</span>].content)</code></pre>
+        </div>
+
+        <h2 id="reducers">Reducers — how state updates merge <a class="anchor" href="#reducers">#</a></h2>
+        <p>When a node returns a dict, LangGraph merges it into the existing state. The merge behaviour is controlled by reducers defined in the <code>Annotated</code> type. Without a reducer, the default is last-write-wins (replacement). The <code>add_messages</code> reducer appends new messages rather than replacing the list — this is the most common reducer you'll use.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">reducers.py — custom reducer for aggregating results</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> operator
+<span class="kw">from</span> typing <span class="kw">import</span> Annotated
+
+<span class="kw">class</span> <span class="tp">PipelineState</span>(<span class="tp">TypedDict</span>):
+    query: <span class="tp">str</span>                                    <span class="cm"># last-write-wins (default)</span>
+    messages: <span class="tp">Annotated</span>[<span class="tp">list</span>, add_messages]       <span class="cm"># append new messages</span>
+    results: <span class="tp">Annotated</span>[<span class="tp">list</span>, operator.<span class="fn">add</span>]        <span class="cm"># append new items</span>
+    error_count: <span class="tp">Annotated</span>[<span class="tp">int</span>, operator.<span class="fn">add</span>]     <span class="cm"># sum error counts</span>
+    final_answer: <span class="tp">str</span>                              <span class="cm"># last-write-wins</span>
+
+<span class="cm"># Node A writes: {"results": ["result from A"]}
+# Node B writes: {"results": ["result from B"]}
+# After both: state["results"] == ["result from A", "result from B"]
+# — because operator.add for lists = concatenation</span></code></pre>
+        </div>
+
+        <h2 id="cycles">Cycles and termination <a class="anchor" href="#cycles">#</a></h2>
+        <p>LangGraph supports directed cycles — a node can route back to an earlier node (including itself). This is how ReAct loops are implemented natively. The critical requirement: there must be a path to <code>END</code> that the graph will eventually take, otherwise the graph runs forever.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">cycle_graph.py — ReAct loop as a LangGraph cycle</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">class</span> <span class="tp">ReactState</span>(<span class="tp">TypedDict</span>):
+    messages: <span class="tp">Annotated</span>[<span class="tp">list</span>, add_messages]
+    iterations: <span class="tp">int</span>
+    max_iterations: <span class="tp">int</span>
+
+<span class="kw">def</span> <span class="fn">agent_node</span>(state: <span class="tp">ReactState</span>) -> <span class="tp">dict</span>:
+    response = llm_with_tools.<span class="fn">invoke</span>(state[<span class="st">"messages"</span>])
+    <span class="kw">return</span> {<span class="st">"messages"</span>: [response], <span class="st">"iterations"</span>: state[<span class="st">"iterations"</span>] + <span class="nm">1</span>}
+
+<span class="kw">def</span> <span class="fn">tools_node</span>(state: <span class="tp">ReactState</span>) -> <span class="tp">dict</span>:
+    <span class="cm"># Execute all tool calls from the last assistant message</span>
+    tool_results = <span class="fn">execute_tools</span>(state[<span class="st">"messages"</span>][-<span class="nm">1</span>])
+    <span class="kw">return</span> {<span class="st">"messages"</span>: tool_results}
+
+<span class="kw">def</span> <span class="fn">should_continue</span>(state: <span class="tp">ReactState</span>) -> <span class="tp">str</span>:
+    last = state[<span class="st">"messages"</span>][-<span class="nm">1</span>]
+    <span class="kw">if</span> state[<span class="st">"iterations"</span>] >= state[<span class="st">"max_iterations"</span>]:
+        <span class="kw">return</span> <span class="st">"end"</span>                    <span class="cm"># hard stop — prevents infinite loops</span>
+    <span class="kw">if</span> <span class="fn">hasattr</span>(last, <span class="st">"tool_calls"</span>) <span class="kw">and</span> last.tool_calls:
+        <span class="kw">return</span> <span class="st">"tools"</span>                  <span class="cm"># continue — call tools</span>
+    <span class="kw">return</span> <span class="st">"end"</span>                        <span class="cm"># model gave final answer</span>
+
+builder = <span class="tp">StateGraph</span>(<span class="tp">ReactState</span>)
+builder.<span class="fn">add_node</span>(<span class="st">"agent"</span>, agent_node)
+builder.<span class="fn">add_node</span>(<span class="st">"tools"</span>, tools_node)
+builder.<span class="fn">add_edge</span>(<span class="tp">START</span>, <span class="st">"agent"</span>)
+builder.<span class="fn">add_conditional_edges</span>(<span class="st">"agent"</span>, should_continue, {<span class="st">"tools"</span>: <span class="st">"tools"</span>, <span class="st">"end"</span>: <span class="tp">END</span>})
+builder.<span class="fn">add_edge</span>(<span class="st">"tools"</span>, <span class="st">"agent"</span>)   <span class="cm"># tools always go back to agent → the cycle</span>
+graph = builder.<span class="fn">compile</span>()</code></pre>
+        </div>
+
+        <h2 id="streaming">Streaming graph execution <a class="anchor" href="#streaming">#</a></h2>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">stream_graph.py — streaming intermediate state updates</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="cm"># stream() yields state updates after each node completes</span>
+<span class="kw">for</span> event <span class="kw">in</span> graph.<span class="fn">stream</span>(
+    {<span class="st">"messages"</span>: [<span class="tp">HumanMessage</span>(content=<span class="st">"Analyse this CSV and plot revenue trends"</span>)],
+     <span class="st">"iterations"</span>: <span class="nm">0</span>, <span class="st">"max_iterations"</span>: <span class="nm">10</span>},
+    stream_mode=<span class="st">"updates"</span>,    <span class="cm"># "updates" | "values" | "messages"</span>
+):
+    <span class="kw">for</span> node_name, node_output <span class="kw">in</span> event.<span class="fn">items</span>():
+        <span class="fn">print</span>(<span class="st">f"[{node_name}] → {list(node_output.keys())}"</span>)
+
+<span class="cm"># stream_mode="updates"  → yields {node_name: state_delta} after each node
+# stream_mode="values"   → yields full state after each node
+# stream_mode="messages" → yields individual LLM message tokens (for streaming to UI)</span></code></pre>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: Common Multi-Agent Patterns</div>
+            <div class="cta-block__sub">Module 7.3 covers the five canonical multi-agent patterns: supervisor + workers, sequential pipeline, parallel fan-out/fan-in, plan-and-execute, and reflection loops — with complete LangGraph implementations.</div>
+          </div>
+          <a class="cta-block__btn" href="module-7-3.html">Module 7.3 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#mental-model">Mental model</a></li>
+      <li><a class="toc__link" href="#first-graph">First graph</a></li>
+      <li><a class="toc__link" href="#reducers">Reducers</a></li>
+      <li><a class="toc__link" href="#cycles">Cycles &amp; termination</a></li>
+      <li><a class="toc__link" href="#streaming">Streaming</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){const h=document.documentElement;const dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');localStorage.setItem('ae-theme',dark?'light':'dark');document.getElementById('themeIcon').textContent=dark?'☀':'☾';document.getElementById('themeLabel').textContent=dark?'Light':'Dark';}
+(function(){const t=localStorage.getItem('ae-theme');if(t){document.documentElement.setAttribute('data-theme',t);const dark=t==='dark';document.getElementById('themeIcon').textContent=dark?'☾':'☀';document.getElementById('themeLabel').textContent=dark?'Dark':'Light';}})();
+function copyCode(btn){const code=btn.closest('.code-wrap').querySelector('pre code');navigator.clipboard.writeText(code.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{es.forEach(e=>{const id=e.target.id;if(!id)return;const link=document.querySelector(`.toc__link[href="#${id}"]`);if(!link)return;if(e.isIntersecting){document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));link.classList.add('active');}});},{rootMargin:'-20% 0px -70% 0px'});document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

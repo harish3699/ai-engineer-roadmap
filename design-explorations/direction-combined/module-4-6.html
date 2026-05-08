@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 4.6 Reranking · by Harish Mondepu</title>
+<meta name="description" content="How cross-encoder rerankers score (query, passage) pairs jointly, why they outperform bi-encoder retrieval for final ranking, implementing Cohere Rerank and sentence-transformers cross-encoders, and where to place reranking in your RAG pipeline."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#c2185b;--phase-hi:#e85a7a;--phase-soft:rgba(232,90,122,.1);--phase-text:#c2185b}
+[data-theme="dark"]{--phase:#f06292;--phase-hi:#f48fb1;--phase-soft:rgba(240,98,146,.1);--phase-text:#f9a8d4}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 4 · <strong>Reranking</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 26 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 4 · RAG + Evaluation
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-4-1.html"><span class="sidebar__mod-num">4.1</span>What is RAG<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-2.html"><span class="sidebar__mod-num">4.2</span>Chunking Strategies<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-3.html"><span class="sidebar__mod-num">4.3</span>Embedding Models<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-4.html"><span class="sidebar__mod-num">4.4</span>Vector Databases<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-5.html"><span class="sidebar__mod-num">4.5</span>Retrieval Techniques<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">4.6</span>Reranking<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod" href="module-4-7.html"><span class="sidebar__mod-num">4.7</span>RAG Pipeline Assembly<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-8.html"><span class="sidebar__mod-num">4.8</span>Evaluating RAG<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-9.html"><span class="sidebar__mod-num">4.9</span>Advanced RAG Patterns<span class="sidebar__check"></span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#10b981;opacity:.6"></span>Phase 5–9 · Agents &amp; Deployment</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 04</span>
+        <span class="tag tag--level">Practical</span>
+        <span class="tag tag--week">Week 10</span>
+      </div>
+      <h1 class="mod-head__title"><em>Reranking</em></h1>
+      <p class="mod-head__sub">Retrieval gives you a coarse shortlist — typically 20–100 candidates ranked by cosine similarity or BM25. Reranking gives you a precise final list — typically 3–10 chunks — using a model that reads query and passage together, not as separate vectors. This cross-encoder architecture is the single most impactful RAG upgrade per unit of engineering effort: it consistently moves answer quality from "usually good" to "reliable" by fixing the ranking mistakes that bi-encoders make when the relevant chunk is on the edge of the semantic neighbourhood.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~20 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>3 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>A cross-encoder reads the query and passage together in one forward pass — full attention between all tokens — producing a relevance score that is far more accurate than bi-encoder cosine similarity</li>
+          <li>Reranking is applied in two stages: bi-encoder retrieval gets a broad candidate set quickly; the cross-encoder re-scores only those candidates precisely — this keeps latency manageable</li>
+          <li>Cohere Rerank is the easiest managed option — one API call, handles English and multilingual corpora, no model hosting required</li>
+          <li>sentence-transformers cross-encoders (e.g. <code>cross-encoder/ms-marco-MiniLM-L-6-v2</code>) are open-source, free to run locally, and competitive with managed options on English text</li>
+          <li>The LLM context window is the most expensive resource in RAG — reranking ensures only the highest-relevance chunks consume those tokens, reducing hallucination from distracting context</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Module 4.5 complete — retrieval techniques</li>
+            <li><div class="meta-list__dot">!</div><code>pip install sentence-transformers cohere</code></li>
+            <li><div class="meta-list__dot">!</div>Cohere API key in <code>CO_API_KEY</code> for managed reranking examples</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Explain why cross-encoders outperform bi-encoders for final ranking</li>
+            <li><div class="meta-list__dot">2</div>Implement local reranking with sentence-transformers cross-encoders</li>
+            <li><div class="meta-list__dot">3</div>Call the Cohere Rerank API and integrate into a RAG pipeline</li>
+            <li><div class="meta-list__dot">4</div>Choose the right retrieve-then-rerank parameters for latency vs quality</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">Reranking in RAG — Cross-Encoders vs Bi-Encoders Explained</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· search "RAG reranking cross-encoder bi-encoder Cohere rerank"</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/HkMHzRtat6c" title="Reranking in RAG" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ Cross-encoder vs bi-encoder architecture and when to use reranking in your RAG pipeline</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="bi-encoder-vs-cross-encoder">Bi-encoder vs cross-encoder <a class="anchor" href="#bi-encoder-vs-cross-encoder">#</a></h2>
+        <p>Everything you built in modules 4.3–4.5 is bi-encoder retrieval: encode the query independently, encode each document independently, compare the resulting vectors. The query and document never interact during encoding — cosine similarity is the only comparison mechanism. This is fast to scale because you pre-compute document embeddings once and query any number of times at low latency.</p>
+
+        <p>A cross-encoder is different: it takes the <em>concatenation</em> of query and passage as a single input — <code>[CLS] query [SEP] passage [SEP]</code> — and runs one transformer forward pass where every query token attends to every passage token. The output is a single relevance score, not a vector. This full cross-attention produces much more accurate relevance judgements than cosine similarity, but it is O(n) per query (you must run a new forward pass for each candidate), which is why you can't use it as your primary retrieval mechanism across millions of documents.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">Retrieve-then-rerank pipeline</div>
+          <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;font-size:13px">
+            <div style="background:var(--surface-0);border-radius:8px;padding:.8rem 1rem;text-align:center;min-width:120px">
+              <div style="font-weight:700;color:var(--fg);margin-bottom:.3rem">Query</div>
+              <div style="font-size:11px;color:var(--fg-dim)">"standing desk allowance"</div>
+            </div>
+            <div style="color:var(--phase-text);font-size:18px;font-weight:700">→</div>
+            <div style="background:var(--surface-0);border-radius:8px;padding:.8rem 1rem;text-align:center;min-width:150px">
+              <div style="font-weight:700;color:var(--fg);margin-bottom:.3rem">Bi-encoder retrieval</div>
+              <div style="font-size:11px;color:var(--fg-dim)">Top-50 candidates in &lt;20ms</div>
+            </div>
+            <div style="color:var(--phase-text);font-size:18px;font-weight:700">→</div>
+            <div style="background:var(--phase-soft);border:1px solid var(--phase-hi);border-radius:8px;padding:.8rem 1rem;text-align:center;min-width:160px">
+              <div style="font-weight:700;color:var(--phase-text);margin-bottom:.3rem">Cross-encoder reranker</div>
+              <div style="font-size:11px;color:var(--fg-dim)">Re-scores 50 pairs, ~200ms</div>
+            </div>
+            <div style="color:var(--phase-text);font-size:18px;font-weight:700">→</div>
+            <div style="background:var(--surface-0);border-radius:8px;padding:.8rem 1rem;text-align:center;min-width:130px">
+              <div style="font-weight:700;color:var(--fg);margin-bottom:.3rem">Top-5 context chunks</div>
+              <div style="font-size:11px;color:var(--fg-dim)">Sent to LLM</div>
+            </div>
+          </div>
+          <div style="margin-top:.8rem;font-size:12px;color:var(--fg-dim)">The bi-encoder gets a broad candidate set fast. The cross-encoder re-ranks those candidates with high accuracy. The LLM receives only the most relevant 3–5 chunks. Total latency: retrieval (~20ms) + reranking (~200ms for 50 candidates) + LLM (~800ms) = ~1s end-to-end.</div>
+        </div>
+
+        <h2 id="local-reranking">Local reranking with sentence-transformers <a class="anchor" href="#local-reranking">#</a></h2>
+        <p>The <code>sentence-transformers</code> library includes cross-encoder models you can run locally at zero cost. The MS MARCO family of cross-encoders (<code>ms-marco-MiniLM-L-6-v2</code>, <code>ms-marco-MiniLM-L-12-v2</code>) is trained on Microsoft's BING web search passages — they generalise well to most English retrieval tasks.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">local_reranker.py — cross-encoder reranking with sentence-transformers</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> sentence_transformers <span class="kw">import</span> CrossEncoder
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cm"># Downloaded on first run — ~80MB for L-6-v2</span>
+reranker = <span class="fn">CrossEncoder</span>(<span class="st">"cross-encoder/ms-marco-MiniLM-L-6-v2"</span>)
+
+query = <span class="st">"What is the allowance for ergonomic furniture?"</span>
+
+<span class="cm"># Bi-encoder retrieved these candidates (in their original order)</span>
+candidates = [
+    <span class="st">"Employees may claim up to $150 per month for home internet."</span>,       <span class="cm"># rank 1 from retrieval</span>
+    <span class="st">"A one-time $600 allowance is available for ergonomic furniture."</span>,    <span class="cm"># rank 2 — correct answer</span>
+    <span class="st">"All expense claims must be submitted via Workday by the 5th."</span>,
+    <span class="st">"AcmeCorp was founded in Austin, Texas in 2018."</span>,
+    <span class="st">"Manager approval is required for all claims over $200."</span>,
+    <span class="st">"Software subscriptions may be expensed up to $50 per month."</span>,
+]
+
+<span class="cm"># Score (query, passage) pairs — one forward pass per pair</span>
+pairs = [(query, c) <span class="kw">for</span> c <span class="kw">in</span> candidates]
+scores = reranker.<span class="fn">predict</span>(pairs)  <span class="cm"># logits, not probabilities — higher = more relevant</span>
+
+<span class="cm"># Sort by reranker score</span>
+ranked = <span class="fn">sorted</span>(<span class="fn">zip</span>(scores, candidates), reverse=<span class="tp">True</span>)
+<span class="fn">print</span>(<span class="st">"── After reranking ──"</span>)
+<span class="kw">for</span> score, text <span class="kw">in</span> ranked[:3]:
+    <span class="fn">print</span>(<span class="st">f"  score={score:.2f}  {text}"</span>)
+<span class="cm"># → score=8.71  "one-time $600 allowance for ergonomic furniture"  ← moved to #1</span>
+<span class="cm"># → score=3.12  "claims over $200 require manager approval"</span>
+<span class="cm"># → score=1.48  "claims must be submitted via Workday"</span>
+
+<span class="cm"># ── Batch prediction (GPU-accelerated) ───────────────────────────────</span>
+<span class="cm"># For 50+ candidates, pass show_progress_bar=True and batch_size=32</span>
+scores_batch = reranker.<span class="fn">predict</span>(pairs, batch_size=<span class="nm">32</span>, show_progress_bar=<span class="tp">False</span>)</code></pre>
+        </div>
+
+        <div class="callout callout--note">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">Cross-encoder scores are not probabilities — they are logits</strong>
+            The raw output of <code>reranker.predict()</code> is a logit from the final linear layer. It can be any real number — 8.7 is not "87% relevant". You use these scores only for ranking (sort descending), not for thresholding. If you want a calibrated 0–1 relevance estimate, apply a sigmoid: <code>import torch; prob = torch.sigmoid(torch.tensor(score)).item()</code>. But for RAG context selection, ranking by raw logit is sufficient and is the standard practice.
+          </div>
+        </div>
+
+        <h2 id="cohere-rerank">Cohere Rerank API <a class="anchor" href="#cohere-rerank">#</a></h2>
+        <p>Cohere Rerank is a managed API that accepts a query and a list of documents and returns them sorted by relevance with a relevance score. It supports English and multilingual corpora, handles documents up to ~4000 tokens each, and removes the need to host a model. The API cost as of 2025 is $2 per 1000 searches.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">cohere_rerank.py — managed reranking with Cohere API</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> os
+<span class="kw">import</span> cohere
+
+co = cohere.<span class="fn">Client</span>(os.environ[<span class="st">"CO_API_KEY"</span>])
+
+query = <span class="st">"What is the allowance for ergonomic furniture?"</span>
+
+<span class="cm"># Bi-encoder candidates (just the text — Cohere accepts strings)</span>
+candidates = [
+    <span class="st">"Employees may claim up to $150 per month for home internet."</span>,
+    <span class="st">"A one-time $600 allowance is available for ergonomic furniture."</span>,
+    <span class="st">"All expense claims must be submitted via Workday by the 5th."</span>,
+    <span class="st">"AcmeCorp was founded in Austin, Texas in 2018."</span>,
+    <span class="st">"Manager approval is required for all claims over $200."</span>,
+]
+
+response = co.rerank(
+    query=query,
+    documents=candidates,
+    model=<span class="st">"rerank-english-v3.0"</span>,  <span class="cm"># or "rerank-multilingual-v3.0"</span>
+    top_n=<span class="nm">3</span>,                     <span class="cm"># return only top 3</span>
+    return_documents=<span class="tp">True</span>,
+)
+
+<span class="kw">for</span> result <span class="kw">in</span> response.results:
+    <span class="fn">print</span>(<span class="st">f"[rank {result.index}] score={result.relevance_score:.4f}  {result.document.text}"</span>)
+
+<span class="cm"># ── Integrate into a RAG pipeline ─────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">retrieve_and_rerank</span>(
+    query: <span class="tp">str</span>,
+    vector_results: <span class="tp">list</span>[<span class="tp">str</span>],  <span class="cm"># raw chunk texts from bi-encoder retrieval</span>
+    top_k: <span class="tp">int</span> = <span class="nm">5</span>,
+) -> <span class="tp">list</span>[<span class="tp">str</span>]:
+    <span class="st">"""Rerank vector results, return top_k for LLM context."""</span>
+    <span class="kw">if</span> <span class="fn">len</span>(vector_results) <= top_k:
+        <span class="kw">return</span> vector_results  <span class="cm"># skip reranking if already small</span>
+
+    resp = co.<span class="fn">rerank</span>(
+        query=query,
+        documents=vector_results,
+        model=<span class="st">"rerank-english-v3.0"</span>,
+        top_n=top_k,
+        return_documents=<span class="tp">True</span>,
+    )
+    <span class="kw">return</span> [r.document.text <span class="kw">for</span> r <span class="kw">in</span> resp.results]</code></pre>
+        </div>
+
+        <h2 id="pipeline-placement">Where to place reranking in your pipeline <a class="anchor" href="#pipeline-placement">#</a></h2>
+        <p>Reranking sits between retrieval and generation. The pattern is always the same: retrieve many, rerank few, generate with the top results.</p>
+
+        <div class="compare-block reveal">
+          <div class="compare-col compare-col--wrong">
+            <div class="compare-label">Wrong: rerank all chunks in your index</div>
+            <ul class="compare-list">
+              <li>Reranking 100k chunks takes minutes — cross-encoder inference is O(n)</li>
+              <li>Defeats the purpose of ANN retrieval — you lose the speed advantage</li>
+              <li>No practical scenario requires scoring every document against every query</li>
+            </ul>
+          </div>
+          <div class="compare-col compare-col--right">
+            <div class="compare-label">Right: retrieve broad, rerank narrow</div>
+            <ul class="compare-list">
+              <li>Retrieve top-20 to top-100 via bi-encoder (milliseconds)</li>
+              <li>Rerank those candidates with cross-encoder (100–400ms for 20–100 pairs)</li>
+              <li>Take top-3 to top-10 for LLM context</li>
+              <li>Total added latency: 100–400ms — acceptable for most use cases</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">full_retrieve_rerank.py — complete two-stage pipeline</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> sentence_transformers <span class="kw">import</span> SentenceTransformer, CrossEncoder
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+bi_encoder  = <span class="fn">SentenceTransformer</span>(<span class="st">"BAAI/bge-small-en-v1.5"</span>)
+cross_encoder = <span class="fn">CrossEncoder</span>(<span class="st">"cross-encoder/ms-marco-MiniLM-L-6-v2"</span>)
+
+chunks = [
+    <span class="st">"Employees may claim $150/mo for home internet."</span>,
+    <span class="st">"One-time $600 allowance for ergonomic furniture."</span>,
+    <span class="st">"Claims submitted via Workday by the 5th of each month."</span>,
+    <span class="st">"Manager approval required for claims over $200."</span>,
+    <span class="st">"Software subscriptions: up to $50/mo with pre-approval."</span>,
+    <span class="st">"AcmeCorp founded 2018, headquartered in Austin, Texas."</span>,
+    <span class="st">"Two-week sprint cycles with Friday retrospectives."</span>,
+    <span class="st">"Receipts required for all claims above $50."</span>,
+]
+
+<span class="cm"># Pre-compute document embeddings at index time</span>
+doc_vecs = bi_encoder.<span class="fn">encode</span>(chunks, normalize_embeddings=<span class="tp">True</span>)
+
+<span class="kw">def</span> <span class="fn">rag_retrieve</span>(query: <span class="tp">str</span>, retrieve_k: <span class="tp">int</span> = <span class="nm">20</span>, final_k: <span class="tp">int</span> = <span class="nm">3</span>) -> <span class="tp">list</span>[<span class="tp">str</span>]:
+    <span class="cm"># Stage 1: bi-encoder — fast candidate retrieval</span>
+    q_prefix = <span class="st">f"Represent this sentence for searching relevant passages: {query}"</span>
+    q_vec = bi_encoder.<span class="fn">encode</span>([q_prefix], normalize_embeddings=<span class="tp">True</span>)[<span class="nm">0</span>]
+    scores = doc_vecs @ q_vec
+    top_indices = np.<span class="fn">argsort</span>(scores)[-retrieve_k:][::-<span class="nm">1</span>]
+    candidates = [(idx, chunks[idx]) <span class="kw">for</span> idx <span class="kw">in</span> top_indices]
+
+    <span class="cm"># Stage 2: cross-encoder — precise reranking of candidates</span>
+    pairs = [(query, text) <span class="kw">for</span> _, text <span class="kw">in</span> candidates]
+    rerank_scores = cross_encoder.<span class="fn">predict</span>(pairs)
+
+    <span class="cm"># Sort candidates by cross-encoder score</span>
+    reranked = <span class="fn">sorted</span>(
+        <span class="fn">zip</span>(rerank_scores, [text <span class="kw">for</span> _, text <span class="kw">in</span> candidates]),
+        reverse=<span class="tp">True</span>,
+    )
+    <span class="kw">return</span> [text <span class="kw">for</span> _, text <span class="kw">in</span> reranked[:final_k]]
+
+context = <span class="fn">rag_retrieve</span>(<span class="st">"What is the ergonomic furniture allowance?"</span>)
+<span class="kw">for</span> i, chunk <span class="kw">in</span> <span class="fn">enumerate</span>(context):
+    <span class="fn">print</span>(<span class="st">f"[{i+1}] {chunk}"</span>)</code></pre>
+        </div>
+
+        <h2 id="reranker-selection">Choosing a reranker <a class="anchor" href="#reranker-selection">#</a></h2>
+        <p>The choice between managed and local reranking comes down to privacy, infrastructure, and cost:</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem;overflow-x:auto">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem">Reranker comparison</div>
+          <table style="width:100%;border-collapse:collapse;font-size:12.5px;min-width:560px">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border)">
+                <th style="text-align:left;padding:.5rem .6rem;color:var(--fg-dim);font-weight:600">Model</th>
+                <th style="text-align:center;padding:.5rem .6rem;color:var(--fg-dim);font-weight:600">Latency (50 pairs)</th>
+                <th style="text-align:center;padding:.5rem .6rem;color:var(--fg-dim);font-weight:600">Cost</th>
+                <th style="text-align:left;padding:.5rem .6rem;color:var(--fg-dim);font-weight:600">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--border-subtle)">
+                <td style="padding:.5rem .6rem;font-weight:600;color:var(--fg)">Cohere rerank-english-v3.0</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">~150ms</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">$2/1k searches</td>
+                <td style="padding:.5rem .6rem;color:var(--fg-dim)">Best English quality, zero hosting, easy integration</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border-subtle)">
+                <td style="padding:.5rem .6rem;font-weight:600;color:var(--fg)">Cohere rerank-multilingual-v3.0</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">~200ms</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">$2/1k searches</td>
+                <td style="padding:.5rem .6rem;color:var(--fg-dim)">100+ languages; use for non-English or mixed-language corpora</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border-subtle)">
+                <td style="padding:.5rem .6rem;font-weight:600;color:var(--fg)">ms-marco-MiniLM-L-6-v2</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">~80ms CPU</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:#10b981">Free</td>
+                <td style="padding:.5rem .6rem;color:var(--fg-dim)">Best open-source for speed; good quality on English web/FAQ text</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border-subtle)">
+                <td style="padding:.5rem .6rem;font-weight:600;color:var(--fg)">ms-marco-MiniLM-L-12-v2</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">~200ms CPU</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:#10b981">Free</td>
+                <td style="padding:.5rem .6rem;color:var(--fg-dim)">Higher quality than L-6-v2; 12 layers vs 6; worth it on GPU</td>
+              </tr>
+              <tr>
+                <td style="padding:.5rem .6rem;font-weight:600;color:var(--fg)">BAAI/bge-reranker-large</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:var(--fg-dim)">~400ms CPU</td>
+                <td style="padding:.5rem .6rem;text-align:center;color:#10b981">Free</td>
+                <td style="padding:.5rem .6rem;color:var(--fg-dim)">MTEB-competitive open-source; multilingual BGE reranker</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">Increase retrieve_k before adding reranking</strong>
+            Reranking can only promote candidates that made it into the initial retrieval set. If the correct answer is ranked #25 by your bi-encoder and you retrieve only top-10, the reranker never sees it. Before adding reranking, increase <code>retrieve_k</code> to 40–100. The overhead is negligible for bi-encoder retrieval (it's fast). The reranker then has a better candidate pool to work with, which is often more impactful than the reranker model itself.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 4.6: Reranking</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~20 min · 3 live code demos</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 4:00</span><span class="script-action">DIAGRAM</span><span class="script-narration">"The bi-encoder encodes query and document separately — they never interact until you compute cosine similarity. The cross-encoder concatenates them and lets every token in the query attend to every token in the document. That full cross-attention is why the cross-encoder's relevance judgement is so much more accurate. But it costs one forward pass per pair — you can't do that at corpus scale, only at candidate scale."</span></div>
+          <div class="script-line"><span class="script-ts">4:00 – 10:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run local_reranker.py. "I gave the bi-encoder a corpus where the correct answer is ranked #2. Watch what happens after the cross-encoder reranks: the ergonomic furniture chunk moves to #1 with a score of 8.7. The internet allowance chunk drops to #5. The cross-encoder correctly identified which passage literally answers 'What is the allowance for ergonomic furniture.'"</span></div>
+          <div class="script-line"><span class="script-ts">10:00 – 16:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run full_retrieve_rerank.py. "This is the full two-stage pipeline. Stage 1: bi-encoder cosine, retrieve top-20, takes ~5ms. Stage 2: cross-encoder, score 20 pairs, takes ~80ms. Final output: top-3 chunks for the LLM. Total latency: &lt;100ms before the LLM call. This is production-ready."</span></div>
+          <div class="script-line"><span class="script-ts">16:00 – 20:00</span><span class="script-action">TABLE + WRAP</span><span class="script-narration">"For most English-only workloads without strict privacy requirements: Cohere rerank — zero infra, excellent quality. For privacy-sensitive or offline: ms-marco-MiniLM-L-6-v2 — fast on CPU, competitive quality. Key insight: reranking is the single highest-ROI upgrade to a basic RAG pipeline. It costs 100ms of latency and consistently moves answer quality from 'usually good' to 'reliable.'"</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>Explain the architectural difference between a bi-encoder and a cross-encoder. Why can't you use a cross-encoder as your primary retrieval mechanism across a million-document corpus?</summary>
+          <div class="selfcheck__a">A bi-encoder processes query and document independently through a transformer, producing a vector for each. Similarity is computed as cosine distance between pre-computed vectors — O(1) per query because document vectors are pre-indexed. A cross-encoder concatenates query and document as a single input: <code>[CLS] query [SEP] document [SEP]</code>. Every query token attends to every document token in a full forward pass, producing one relevance logit. This cross-attention allows far more nuanced relevance judgement but requires a new forward pass for every (query, document) pair — O(n) per query. At 1M documents and 50ms per forward pass, querying all documents takes 50 million milliseconds (14 hours). This is why cross-encoders are used only for reranking a small candidate set (20–100 documents) produced by fast bi-encoder retrieval.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Why is increasing <code>retrieve_k</code> (the number of bi-encoder candidates) important before adding reranking, and what is the tradeoff?</summary>
+          <div class="selfcheck__a">The reranker can only re-order candidates it has seen. If the correct answer is ranked #15 by the bi-encoder and you retrieve only top-10, the reranker never evaluates it — the answer is excluded before reranking even starts. This is called the "first-stage recall ceiling." Increasing retrieve_k from 10 to 50 or 100 raises the ceiling: more of the correct answers are guaranteed to be in the candidate pool. The tradeoff is reranker latency: a cross-encoder scoring 100 pairs takes roughly 10× as long as scoring 10 pairs. On CPU, ms-marco-MiniLM-L-6-v2 scores 100 pairs in about 200–400ms — acceptable for most RAG response time budgets. Always measure first-stage recall@K at your bi-encoder retrieve_k before committing to a reranker; if recall@10 is already 98%, increasing to 50 adds latency for negligible recall gain.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Cross-encoder scores are logits. What does this mean, and how does it affect how you use them?</summary>
+          <div class="selfcheck__a">A logit is the raw output of the final linear layer before any activation function — it can be any real number (e.g., -3.1, 0, 8.7). It is not bounded to [0,1] and is not a probability. The absolute value is not interpretable — a score of 8.7 does not mean "87% relevant." What matters is the relative ordering: if chunk A scores 8.7 and chunk B scores 3.1, chunk A is more relevant for this query. This means you use cross-encoder scores exclusively for ranking (sort descending), not for thresholding (e.g., "drop chunks with score &lt; 0.5"). If you want a calibrated probability for downstream use, apply a sigmoid function to convert logits to [0,1] probabilities. But for selecting top-K context chunks, raw logit ranking is correct and sufficient.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>You have a RAG system serving both English and German users from the same corpus. What reranker configuration would you use?</summary>
+          <div class="selfcheck__a">Use a multilingual reranker: either Cohere's <code>rerank-multilingual-v3.0</code> (managed, $2/1k) or <code>BAAI/bge-reranker-large</code> (open-source, local). The key reason: query-document language matching matters. If a German-language query is encoded by an English-only reranker, the model has not seen German training pairs and will score incorrectly. Multilingual models are trained on (query, passage) pairs across languages including cross-language pairs (German query, English answer), so they handle mixed-language corpora correctly. Also check your bi-encoder — use a multilingual bi-encoder like BAAI/bge-m3 at the retrieval stage so German queries can match German documents. Both retrieval and reranking need multilingual support end-to-end.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Up next</div>
+          <div class="next-mod__title">4.7 · RAG Pipeline Assembly</div>
+          <p class="next-mod__desc">Putting it all together — a production-grade RAG pipeline with hybrid retrieval, parent-child chunks, reranking, and generation; streaming responses; error handling; and a modular architecture that's easy to iterate on.</p>
+        </div>
+        <a class="next-btn" href="module-4-7.html">Continue →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#bi-encoder-vs-cross-encoder">Bi-encoder vs cross-encoder</a>
+    <a href="#local-reranking">Local reranking</a>
+    <a href="#cohere-rerank">Cohere Rerank API</a>
+    <a href="#pipeline-placement">Where to place reranking</a>
+    <a href="#reranker-selection">Choosing a reranker</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 4.6 / 62<br/>Phase 4 · Week 10<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

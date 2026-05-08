@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 4.1 What is RAG · by Harish Mondepu</title>
+<meta name="description" content="Retrieval-Augmented Generation — why LLMs hallucinate on private data, how retrieval fixes it, RAG vs fine-tuning, and the anatomy of a production RAG pipeline."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#c2185b;--phase-hi:#e85a7a;--phase-soft:rgba(232,90,122,.1);--phase-text:#c2185b}
+[data-theme="dark"]{--phase:#f06292;--phase-hi:#f48fb1;--phase-soft:rgba(240,98,146,.1);--phase-text:#f9a8d4}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 4 · <strong>What is RAG</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 21 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 4 · RAG + Evaluation
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">4.1</span>What is RAG<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod" href="module-4-2.html"><span class="sidebar__mod-num">4.2</span>Chunking Strategies<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-3.html"><span class="sidebar__mod-num">4.3</span>Embedding Models<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-4.html"><span class="sidebar__mod-num">4.4</span>Vector Databases<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-5.html"><span class="sidebar__mod-num">4.5</span>Retrieval Techniques<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-6.html"><span class="sidebar__mod-num">4.6</span>Reranking<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-7.html"><span class="sidebar__mod-num">4.7</span>RAG Pipeline Assembly<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-8.html"><span class="sidebar__mod-num">4.8</span>Evaluating RAG<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-9.html"><span class="sidebar__mod-num">4.9</span>Advanced RAG Patterns<span class="sidebar__check"></span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#10b981;opacity:.6"></span>Phase 5–9 · Agents &amp; Deployment</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 04</span>
+        <span class="tag tag--level">Conceptual</span>
+        <span class="tag tag--week">Week 9</span>
+      </div>
+      <h1 class="mod-head__title">What is <em>RAG</em></h1>
+      <p class="mod-head__sub">An LLM trained in October 2024 knows nothing about your company's Q1 2025 report, your internal policy documents, or the support ticket your user filed yesterday. You could fine-tune the model — but that's expensive, slow, and the knowledge goes stale the moment anything changes. Retrieval-Augmented Generation solves this differently: at inference time, fetch the relevant documents and inject them into the prompt. The model reads your data fresh on every call, and hallucination on private knowledge drops dramatically.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~25 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>2 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>LLMs can only know what was in their training data — they hallucinate confidently on anything outside it, including all of your private and recent knowledge</li>
+          <li>RAG solves the private knowledge problem at inference time: retrieve relevant passages → inject into the prompt → the model reasons over real data it can cite</li>
+          <li>RAG is not a replacement for fine-tuning — they solve different problems; RAG gives dynamic, citable knowledge access; fine-tuning changes how the model reasons and responds</li>
+          <li>The core RAG loop is five steps: chunk, embed, store, retrieve, generate — each step has engineering decisions that determine the system's quality ceiling</li>
+          <li>A minimal working RAG pipeline requires only three libraries and ~50 lines of Python — the complexity comes from scaling and evaluation, not from the concept itself</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Phase 1–3 complete (especially modules 3.3 and 3.5)</li>
+            <li><div class="meta-list__dot">!</div><code>pip install anthropic sentence-transformers numpy</code></li>
+            <li><div class="meta-list__dot">!</div>Basic understanding of vectors and dot products (high school level)</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Explain why LLMs hallucinate on private data and how RAG addresses it</li>
+            <li><div class="meta-list__dot">2</div>Describe the five-step RAG pipeline and the role of each component</li>
+            <li><div class="meta-list__dot">3</div>Choose between RAG and fine-tuning for a given use case</li>
+            <li><div class="meta-list__dot">4</div>Build and run a minimal working RAG pipeline end-to-end</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">Retrieval Augmented Generation (RAG) Explained</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· IBM Technology · search "RAG retrieval augmented generation explained IBM"</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/T-D1OfcDW1M" title="RAG Explained" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ RAG from first principles — retrieval, augmentation, and generation</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="the-knowledge-problem">The knowledge problem <a class="anchor" href="#the-knowledge-problem">#</a></h2>
+        <p>A language model is a frozen snapshot of everything on the public internet up to a training cutoff date. After that date, its world stops. It knows nothing about events after the cutoff, nothing about your company's internal documents, nothing about your users' data. When asked about any of this, it doesn't say "I don't know" — it generates a plausible-sounding but fabricated answer. This is not a bug to be fixed; it is a fundamental consequence of how these models work.</p>
+
+        <!-- Hallucination demo diagram -->
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">What the model knows vs what you need it to know</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;font-size:13px">
+            <div>
+              <div style="font-weight:700;color:#10b981;margin-bottom:.5rem;font-size:11px;text-transform:uppercase;letter-spacing:.05em">Model knows (training data)</div>
+              <ul style="margin:0;padding-left:1.2rem;line-height:2;color:var(--fg)">
+                <li>Public web content up to cutoff</li>
+                <li>Wikipedia, arXiv, GitHub, books</li>
+                <li>General coding, maths, language</li>
+                <li>Public company filings</li>
+              </ul>
+            </div>
+            <div>
+              <div style="font-weight:700;color:#e85a7a;margin-bottom:.5rem;font-size:11px;text-transform:uppercase;letter-spacing:.05em">Model does NOT know</div>
+              <ul style="margin:0;padding-left:1.2rem;line-height:2;color:var(--fg)">
+                <li>Your internal documentation</li>
+                <li>Support tickets, emails, CRM data</li>
+                <li>Events after training cutoff</li>
+                <li>Your product's current state</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">without_rag.py — the hallucination problem</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic
+client = anthropic.<span class="fn">Anthropic</span>()
+
+<span class="cm"># ── Ask about private internal data — model has never seen this ───────</span>
+resp = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+    max_tokens=<span class="nm">256</span>,
+    system=<span class="st">"You are a helpful assistant for AcmeCorp employees."</span>,
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>,
+               <span class="st">"content"</span>: <span class="st">"What is AcmeCorp's policy on remote work expense reimbursement?"</span>}],
+)
+<span class="fn">print</span>(resp.content[<span class="nm">0</span>].text)
+<span class="cm"># → Model either says "I don't have that information" (honest)</span>
+<span class="cm">#   OR invents a plausible-sounding policy that doesn't exist (hallucination)</span>
+<span class="cm">#   You cannot tell which from the response alone — that's the problem.</span>
+
+<span class="cm"># ── Solution preview: give the model the document at call time ────────</span>
+policy_doc = <span class="st">"""AcmeCorp Remote Work Expense Policy (v3.2, effective 2025-01-01):
+Employees may claim up to $150/month for home internet.
+Standing desk and ergonomic chair: one-time $600 allowance per employee.
+Submit claims via Workday by the 5th of the following month.
+Manager approval required for claims over $200."""</span>
+
+resp2 = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+    max_tokens=<span class="nm">256</span>,
+    system=<span class="st">"You are a helpful assistant for AcmeCorp employees. Answer based only on the provided policy documents."</span>,
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>:
+        <span class="st">f"&lt;policy&gt;\n{policy_doc}\n&lt;/policy&gt;\n\nWhat is the remote work expense reimbursement policy?"</span>}],
+)
+<span class="fn">print</span>(resp2.content[<span class="nm">0</span>].text)
+<span class="cm"># → Accurate, citable, grounded in the real document.</span></code></pre>
+        </div>
+
+        <h2 id="rag-pipeline">The RAG pipeline <a class="anchor" href="#rag-pipeline">#</a></h2>
+        <p>RAG is a five-step pipeline split across two phases: an offline <strong>indexing</strong> phase that runs once when your documents change, and an online <strong>retrieval and generation</strong> phase that runs on every user query.</p>
+
+        <!-- RAG pipeline diagram -->
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1.2rem">The five-step RAG pipeline</div>
+
+          <div style="font-size:10px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem">Offline — runs when documents change</div>
+          <div style="display:flex;align-items:center;gap:0;margin-bottom:1.2rem">
+            <div style="flex-shrink:0;background:var(--surface-0);border:1px solid var(--phase);border-radius:6px;padding:.6rem .9rem;text-align:center;min-width:90px">
+              <div style="font-size:10px;font-weight:700;color:var(--phase-text);text-transform:uppercase">Step 1</div>
+              <div style="font-size:12px;color:var(--fg);margin-top:.2rem;font-weight:600">Chunk</div>
+              <div style="font-size:10px;color:var(--fg-dim)">split docs into passages</div>
+            </div>
+            <div style="padding:0 .4rem;color:var(--fg-dim);font-size:18px">→</div>
+            <div style="flex-shrink:0;background:var(--surface-0);border:1px solid var(--phase);border-radius:6px;padding:.6rem .9rem;text-align:center;min-width:90px">
+              <div style="font-size:10px;font-weight:700;color:var(--phase-text);text-transform:uppercase">Step 2</div>
+              <div style="font-size:12px;color:var(--fg);margin-top:.2rem;font-weight:600">Embed</div>
+              <div style="font-size:10px;color:var(--fg-dim)">text → vector</div>
+            </div>
+            <div style="padding:0 .4rem;color:var(--fg-dim);font-size:18px">→</div>
+            <div style="flex-shrink:0;background:var(--surface-0);border:1px solid var(--phase);border-radius:6px;padding:.6rem .9rem;text-align:center;min-width:90px">
+              <div style="font-size:10px;font-weight:700;color:var(--phase-text);text-transform:uppercase">Step 3</div>
+              <div style="font-size:12px;color:var(--fg);margin-top:.2rem;font-weight:600">Store</div>
+              <div style="font-size:10px;color:var(--fg-dim)">vectors in DB</div>
+            </div>
+          </div>
+
+          <div style="font-size:10px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem">Online — runs on every user query</div>
+          <div style="display:flex;align-items:center;gap:0">
+            <div style="flex-shrink:0;background:rgba(232,90,122,.12);border:1px solid var(--phase);border-radius:6px;padding:.6rem .9rem;text-align:center;min-width:90px">
+              <div style="font-size:10px;font-weight:700;color:var(--phase-text);text-transform:uppercase">Step 4</div>
+              <div style="font-size:12px;color:var(--fg);margin-top:.2rem;font-weight:600">Retrieve</div>
+              <div style="font-size:10px;color:var(--fg-dim)">query → top-K chunks</div>
+            </div>
+            <div style="padding:0 .4rem;color:var(--fg-dim);font-size:18px">→</div>
+            <div style="flex-shrink:0;background:rgba(232,90,122,.12);border:1px solid var(--phase);border-radius:6px;padding:.6rem .9rem;text-align:center;min-width:90px">
+              <div style="font-size:10px;font-weight:700;color:var(--phase-text);text-transform:uppercase">Step 5</div>
+              <div style="font-size:12px;color:var(--fg);margin-top:.2rem;font-weight:600">Generate</div>
+              <div style="font-size:10px;color:var(--fg-dim)">LLM with context</div>
+            </div>
+          </div>
+          <div style="margin-top:1rem;font-size:12px;color:var(--fg-dim)">Steps 1–3 are a one-time cost. Steps 4–5 run on every query. The quality of your entire system is determined by how well step 4 retrieves the right passages — garbage in, garbage out.</div>
+        </div>
+
+        <h2 id="rag-vs-finetuning">RAG vs fine-tuning <a class="anchor" href="#rag-vs-finetuning">#</a></h2>
+        <p>These are the two most common approaches to giving a model domain-specific capability. They solve fundamentally different problems and are frequently used together.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem">RAG vs fine-tuning — choose the right tool</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;font-size:13px">
+            <div>
+              <div style="font-weight:700;color:var(--phase-text);margin-bottom:.6rem">Use RAG when…</div>
+              <ul style="margin:0;padding-left:1.2rem;line-height:2;color:var(--fg)">
+                <li>Knowledge changes frequently</li>
+                <li>You need source citations</li>
+                <li>Data is private or proprietary</li>
+                <li>You need to scope to a corpus</li>
+                <li>Fast iteration matters</li>
+                <li style="color:var(--fg-dim)">Cost: retrieval infra, no GPU</li>
+              </ul>
+            </div>
+            <div>
+              <div style="font-weight:700;color:#10b981;margin-bottom:.6rem">Use fine-tuning when…</div>
+              <ul style="margin:0;padding-left:1.2rem;line-height:2;color:var(--fg)">
+                <li>You need a new reasoning style</li>
+                <li>Output format must be strict</li>
+                <li>Knowledge is stable and large</li>
+                <li>Latency is critical (no retrieval step)</li>
+                <li>Branded voice or tone</li>
+                <li style="color:var(--fg-dim)">Cost: GPU compute, dataset curation</li>
+              </ul>
+            </div>
+          </div>
+          <div style="margin-top:.8rem;padding:.7rem;background:var(--surface-0);border-radius:6px;font-size:12.5px;color:var(--fg-dim)"><strong style="color:var(--fg)">Most production systems use both:</strong> fine-tune for tone/format/reasoning style, RAG for dynamic knowledge access. Example: a support bot fine-tuned to respond concisely and always include ticket numbers, with RAG over the latest product documentation.</div>
+        </div>
+
+        <h2 id="minimal-rag">A minimal working RAG pipeline <a class="anchor" href="#minimal-rag">#</a></h2>
+        <p>Before adding vector databases, rerankers, and evaluation frameworks, it's worth seeing the core idea in ~50 lines. The key primitive is <strong>cosine similarity</strong> — a number between -1 and 1 measuring how semantically similar two text passages are when both are represented as dense vectors by an embedding model.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">minimal_rag.py — end-to-end RAG with in-memory vector search</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic, numpy <span class="kw">as</span> np
+<span class="kw">from</span> sentence_transformers <span class="kw">import</span> SentenceTransformer
+
+client = anthropic.<span class="fn">Anthropic</span>()
+embedder = <span class="fn">SentenceTransformer</span>(<span class="st">"all-MiniLM-L6-v2"</span>)   <span class="cm"># 384-dim, fast, free</span>
+
+<span class="cm"># ── Your knowledge base — could be loaded from files/DB ───────────────</span>
+documents = [
+    <span class="st">"AcmeCorp allows up to $150/month for home internet reimbursement."</span>,
+    <span class="st">"Employees receive a one-time $600 home office allowance for a standing desk or chair."</span>,
+    <span class="st">"Expense claims must be submitted via Workday by the 5th of the following month."</span>,
+    <span class="st">"Claims over $200 require manager approval before submission."</span>,
+    <span class="st">"The annual performance review cycle runs from November to January each year."</span>,
+    <span class="st">"AcmeCorp's engineering team uses a two-week sprint cycle with Friday retrospectives."</span>,
+]
+
+<span class="cm"># ── OFFLINE: embed all documents once ────────────────────────────────</span>
+doc_embeddings = embedder.<span class="fn">encode</span>(documents, normalize_embeddings=<span class="tp">True</span>)   <span class="cm"># shape: (6, 384)</span>
+
+<span class="kw">def</span> <span class="fn">retrieve</span>(query: <span class="tp">str</span>, top_k: <span class="tp">int</span> = <span class="nm">3</span>) -> <span class="tp">list</span>[<span class="tp">str</span>]:
+    <span class="cm"># embed the query then find top-K most similar document chunks</span>
+    query_vec = embedder.<span class="fn">encode</span>([query], normalize_embeddings=<span class="tp">True</span>)[<span class="nm">0</span>]    <span class="cm"># shape: (384,)</span>
+    scores = doc_embeddings @ query_vec                                        <span class="cm"># cosine similarity (dot product of normalised vectors)</span>
+    top_indices = np.<span class="fn">argsort</span>(scores)[::-<span class="nm">1</span>][:top_k]
+    <span class="kw">return</span> [documents[i] <span class="kw">for</span> i <span class="kw">in</span> top_indices]
+
+<span class="kw">def</span> <span class="fn">rag_answer</span>(question: <span class="tp">str</span>) -> <span class="tp">str</span>:
+    <span class="cm"># ONLINE: retrieve → augment → generate</span>
+    chunks = <span class="fn">retrieve</span>(question, top_k=<span class="nm">3</span>)
+    context = <span class="st">"\n"</span>.<span class="fn">join</span>(<span class="st">f"- {c}"</span> <span class="kw">for</span> c <span class="kw">in</span> chunks)
+
+    resp = client.messages.<span class="fn">create</span>(
+        model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+        max_tokens=<span class="nm">256</span>,
+        system=<span class="st">"Answer the question using only the provided context. If the answer isn't in the context, say so."</span>,
+        messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>:
+            <span class="st">f"&lt;context&gt;\n{context}\n&lt;/context&gt;\n\n&lt;question&gt;\n{question}\n&lt;/question&gt;"</span>}],
+    )
+    <span class="kw">return</span> resp.content[<span class="nm">0</span>].text
+
+<span class="cm"># ── Test it ───────────────────────────────────────────────────────────</span>
+questions = [
+    <span class="st">"How much can I claim for home internet?"</span>,
+    <span class="st">"When is the expense submission deadline?"</span>,
+    <span class="st">"What is the company's maternity leave policy?"</span>,   <span class="cm"># not in corpus → should say so</span>
+]
+
+<span class="kw">for</span> q <span class="kw">in</span> questions:
+    <span class="fn">print</span>(<span class="st">f"Q: {q}"</span>)
+    <span class="fn">print</span>(<span class="st">f"A: {rag_answer(q)}\n"</span>)</code></pre>
+        </div>
+
+        <div class="callout callout--note">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">Why "not in the corpus" is a feature, not a failure</strong>
+            When the third question asks about maternity leave and no chunk scores above a similarity threshold, the model correctly says it doesn't have that information. This is RAG working as intended. A model without RAG would confidently hallucinate a policy. A RAG system that fails gracefully on out-of-corpus queries is dramatically safer than a hallucinating model. Module 4.8 covers how to evaluate and measure this behaviour systematically.
+          </div>
+        </div>
+
+        <h2 id="what-this-module-doesnt-cover">What each remaining module covers <a class="anchor" href="#what-this-module-doesnt-cover">#</a></h2>
+        <p>The minimal pipeline above works but breaks at scale. Each remaining Phase 4 module addresses one specific limitation.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem">Phase 4 roadmap</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem;font-size:13px">
+            <div style="display:grid;grid-template-columns:100px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:700;color:var(--phase-text)">4.2 Chunking</div>
+              <div>Fixed-size vs sentence vs semantic chunking — chunk size controls the precision/recall tradeoff of retrieval.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:100px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:700;color:var(--phase-text)">4.3 Embeddings</div>
+              <div>Choosing the right embedding model — general vs domain-specific, dimension tradeoffs, OpenAI vs open source.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:100px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:700;color:var(--phase-text)">4.4 Vector DBs</div>
+              <div>Pinecone, Weaviate, pgvector, Chroma — indexing strategies, ANN search, filtering on metadata.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:100px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:700;color:var(--phase-text)">4.5 Retrieval</div>
+              <div>Dense vs sparse vs hybrid retrieval — combining semantic search with BM25 keyword matching.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:100px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:700;color:var(--phase-text)">4.6 Reranking</div>
+              <div>Cross-encoders and LLM rerankers — re-scoring retrieved chunks for relevance before passing to generation.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:100px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:700;color:var(--phase-text)">4.7 Assembly</div>
+              <div>Wiring all components into a production pipeline — query preprocessing, context assembly, source attribution.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:100px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:700;color:var(--phase-text)">4.8 Evaluation</div>
+              <div>RAGAS — faithfulness, answer relevancy, context precision/recall — measuring RAG quality systematically.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:100px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:700;color:var(--phase-text)">4.9 Advanced</div>
+              <div>HyDE, query expansion, multi-hop retrieval, self-RAG — patterns that push quality beyond basic retrieval.</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 4.1: What is RAG</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~25 min · live demo + code walkthrough</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 3:00</span><span class="script-action">INTRO</span><span class="script-narration">"Phase 4. You now know how to engineer prompts. Phase 4 answers the question: what do you put in those prompts when the information doesn't exist in the model's training data? The answer is RAG — and it's the technique behind almost every production enterprise AI system built in 2025 and 2026."</span></div>
+          <div class="script-line"><span class="script-ts">3:00 – 9:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run without_rag.py. "Ask the model about AcmeCorp's remote work policy with no context. Watch it hallucinate a plausible-sounding policy. Now add the document. Same model, same question, completely different answer — accurate, specific, citable." Ask a follow-up: "Where do I submit?" — it correctly says Workday. "The model didn't know this. We told it. That's all RAG is."</span></div>
+          <div class="script-line"><span class="script-ts">9:00 – 16:00</span><span class="script-action">DIAGRAM</span><span class="script-narration">Walk through the five-step pipeline. "Steps 1–3 are offline: you chunk your documents, embed them into vectors, store those vectors in a database. This is a one-time cost, rebuilt when documents change. Steps 4–5 are online: embed the user's query, find the most similar chunks, pass them to the LLM. The LLM reads those chunks and answers from them, not from training memory."</span></div>
+          <div class="script-line"><span class="script-ts">16:00 – 22:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run minimal_rag.py. Walk through each function. "retrieve() embeds the query, takes the dot product against all document embeddings — that's cosine similarity for normalised vectors. The top 3 scoring chunks are passed to rag_answer()." Run all three questions. "First two: correct answers from the corpus. Third: maternity leave. Not in our 6 documents. Model says it doesn't have that information. This is correct behaviour — not a failure."</span></div>
+          <div class="script-line"><span class="script-ts">22:00 – 25:00</span><span class="script-action">WHITEBOARD</span><span class="script-narration">Show the RAG vs fine-tuning table. "Rule of thumb: if the knowledge changes, use RAG. If the behaviour needs to change, use fine-tuning. Most real systems use both — fine-tune for tone and format, RAG for knowledge." Close with the Phase 4 roadmap. "Each remaining module fixes one specific limitation of what we built today."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>Why does an LLM hallucinate on private company data even when the model is highly capable?</summary>
+          <div class="selfcheck__a">Hallucination on private data is not a capability failure — it's an information access failure. The model was trained on public web data up to a cutoff date. Your company's internal documents were never in that training data, so the model has no knowledge of them. When asked about them, it can't say nothing (that's not how autoregressive generation works), so it generates the most statistically plausible continuation — which looks like a real answer but is fabricated. RAG addresses this by injecting the actual documents into the context at inference time, so the model reasons over real data rather than generating from memory.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>In the minimal RAG pipeline, what does cosine similarity measure and why do we normalize the embeddings before computing it?</summary>
+          <div class="selfcheck__a">Cosine similarity measures the angle between two vectors — how semantically similar two pieces of text are, independent of their length. Two passages about "expense reimbursement" will point in roughly the same direction in 384-dimensional space; two passages on unrelated topics will point in different directions. Normalizing the vectors to unit length (magnitude = 1) converts cosine similarity into a simple dot product: cosine_sim(a, b) = a · b when both are unit vectors. This is why <code>normalize_embeddings=True</code> + the matrix multiplication <code>doc_embeddings @ query_vec</code> correctly produces cosine similarity scores for every document in one vectorized operation.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Your team is building a customer support bot for a SaaS product. Documentation updates weekly, and users expect accurate answers with links to the source doc. Should you use RAG or fine-tuning?</summary>
+          <div class="selfcheck__a"><strong>RAG</strong> — for three reasons: (1) documentation updates weekly, so any fine-tuned knowledge would be stale within days of a new release; (2) users expect source citations, which RAG provides naturally (you return the retrieved chunk alongside the answer), while a fine-tuned model has no mechanism to cite where it learned something; (3) "scope to a corpus" — you want the bot to only answer from your docs, not from general training knowledge. Fine-tuning would be appropriate as a complement if you also want the bot to respond in a specific brand voice or always follow a particular answer structure — but for knowledge access on changing content, RAG is the right primary mechanism.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>The minimal pipeline passes the top 3 retrieved chunks to the model. What are the tradeoffs of using top 1 vs top 10?</summary>
+          <div class="selfcheck__a"><strong>Top 1</strong> — lowest token cost, minimal noise in the context, but if the single most similar chunk doesn't contain the answer (retrieval is imperfect), the model will have no context and either hallucinate or say it doesn't know. High precision requirement on retrieval. <strong>Top 10</strong> — much higher chance of including the relevant passage, but: (1) context window cost grows 10×; (2) the "lost in the middle" problem applies — relevant information buried in a long context is attended to less; (3) irrelevant chunks add noise that can confuse the generation. <strong>Practical recommendation:</strong> start with top 3–5, measure answer quality with an eval set (module 4.8), and adjust. Top 3 is the most common starting point because it balances recall against context noise.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Up next</div>
+          <div class="next-mod__title">4.2 · Chunking Strategies</div>
+          <p class="next-mod__desc">Fixed-size, sentence, recursive, and semantic chunking — how chunk size and overlap affect retrieval precision and recall, and which strategy to use for different document types.</p>
+        </div>
+        <a class="next-btn" href="module-4-2.html">Continue →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#the-knowledge-problem">The knowledge problem</a>
+    <a href="#rag-pipeline">The RAG pipeline</a>
+    <a href="#rag-vs-finetuning">RAG vs fine-tuning</a>
+    <a href="#minimal-rag">Minimal working pipeline</a>
+    <a href="#what-this-module-doesnt-cover">Phase 4 roadmap</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 4.1 / 62<br/>Phase 4 · Week 9<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

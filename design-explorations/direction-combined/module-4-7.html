@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 4.7 RAG Pipeline Assembly · by Harish Mondepu</title>
+<meta name="description" content="Putting it all together — a production-grade RAG pipeline with hybrid retrieval, reranking, streaming generation, a well-designed system prompt, caching, and error handling."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#c2185b;--phase-hi:#e85a7a;--phase-soft:rgba(232,90,122,.1);--phase-text:#c2185b}
+[data-theme="dark"]{--phase:#f06292;--phase-hi:#f48fb1;--phase-soft:rgba(240,98,146,.1);--phase-text:#f9a8d4}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 4 · <strong>RAG Pipeline Assembly</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 27 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 4 · RAG + Evaluation
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-4-1.html"><span class="sidebar__mod-num">4.1</span>What is RAG<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-2.html"><span class="sidebar__mod-num">4.2</span>Chunking Strategies<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-3.html"><span class="sidebar__mod-num">4.3</span>Embedding Models<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-4.html"><span class="sidebar__mod-num">4.4</span>Vector Databases<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-5.html"><span class="sidebar__mod-num">4.5</span>Retrieval Techniques<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-6.html"><span class="sidebar__mod-num">4.6</span>Reranking<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">4.7</span>RAG Pipeline Assembly<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod" href="module-4-8.html"><span class="sidebar__mod-num">4.8</span>Evaluating RAG<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-9.html"><span class="sidebar__mod-num">4.9</span>Advanced RAG Patterns<span class="sidebar__check"></span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#10b981;opacity:.6"></span>Phase 5–9 · Agents &amp; Deployment</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 04</span>
+        <span class="tag tag--level">Project</span>
+        <span class="tag tag--week">Week 11</span>
+      </div>
+      <h1 class="mod-head__title">RAG Pipeline <em>Assembly</em></h1>
+      <p class="mod-head__sub">This module brings together every component from Phase 4 — chunking, embedding, vector storage, hybrid retrieval, reranking, and generation — into one coherent, production-ready system. You will build a <code>RAGPipeline</code> class with a clean interface, a well-structured system prompt, streaming output, and graceful handling of the case where no relevant context is found. By the end you will have a complete RAG system you can adapt for any document corpus.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~28 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>4 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>A production RAG pipeline separates indexing (run once, or on document update) from querying (run per user request) — never re-index on every query</li>
+          <li>The system prompt for RAG has three jobs: instruct the model to answer only from context, tell it to say "I don't know" when context is insufficient, and format source citations</li>
+          <li>Streaming the LLM response dramatically improves perceived latency — users see the first tokens within one second instead of waiting for the full response</li>
+          <li>A relevance threshold on reranker scores lets you detect "no relevant context found" before calling the LLM — avoiding hallucinated answers from an empty context window</li>
+          <li>Modular design matters: keep indexing, retrieval, and generation as separate, testable functions — this makes it easy to swap components (e.g. upgrade the embedding model) without rewriting the whole pipeline</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Modules 4.1–4.6 complete — all RAG components</li>
+            <li><div class="meta-list__dot">!</div><code>pip install openai rank-bm25 sentence-transformers faiss-cpu</code></li>
+            <li><div class="meta-list__dot">!</div>OpenAI API key in <code>OPENAI_API_KEY</code></li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Build a complete RAGPipeline class from scratch</li>
+            <li><div class="meta-list__dot">2</div>Write a correct, citation-enabling RAG system prompt</li>
+            <li><div class="meta-list__dot">3</div>Implement streaming generation with the OpenAI API</li>
+            <li><div class="meta-list__dot">4</div>Handle the "no relevant context" case gracefully</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">Build a Complete RAG System from Scratch — End-to-End Python</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· search "RAG pipeline end-to-end Python OpenAI FAISS complete tutorial"</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/tcqEUSNCn8I" title="Complete RAG Pipeline" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ End-to-end RAG system assembly — from document ingestion to streamed answers</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="architecture">Pipeline architecture <a class="anchor" href="#architecture">#</a></h2>
+        <p>A production RAG pipeline has two distinct phases: <strong>indexing</strong> (run once when documents change) and <strong>querying</strong> (run per user request). Keeping them separate is the most important architectural decision — confusing them leads to systems that re-embed the entire corpus on every query, which is both slow and expensive.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">Full RAG pipeline — two phases</div>
+          <div style="display:flex;flex-direction:column;gap:.8rem;font-size:13px">
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">INDEXING PHASE (run once / on document update)</div>
+              <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+                <div style="background:var(--surface-0);border-radius:6px;padding:.6rem .8rem;font-size:12px;text-align:center">Raw documents<br/><span style="color:var(--fg-dim);font-size:11px">PDF, markdown, text</span></div>
+                <div style="color:var(--phase-text)">→</div>
+                <div style="background:var(--surface-0);border-radius:6px;padding:.6rem .8rem;font-size:12px;text-align:center">Chunking<br/><span style="color:var(--fg-dim);font-size:11px">4.2: recursive / sentence</span></div>
+                <div style="color:var(--phase-text)">→</div>
+                <div style="background:var(--surface-0);border-radius:6px;padding:.6rem .8rem;font-size:12px;text-align:center">Embedding<br/><span style="color:var(--fg-dim);font-size:11px">4.3: bi-encoder</span></div>
+                <div style="color:var(--phase-text)">→</div>
+                <div style="background:var(--surface-0);border-radius:6px;padding:.6rem .8rem;font-size:12px;text-align:center">Vector store<br/><span style="color:var(--fg-dim);font-size:11px">4.4: FAISS / Qdrant</span></div>
+                <div style="color:var(--phase-text)">→</div>
+                <div style="background:var(--surface-0);border-radius:6px;padding:.6rem .8rem;font-size:12px;text-align:center">BM25 index<br/><span style="color:var(--fg-dim);font-size:11px">4.5: rank-bm25</span></div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">QUERY PHASE (per user request)</div>
+              <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+                <div style="background:var(--surface-0);border-radius:6px;padding:.6rem .8rem;font-size:12px;text-align:center">User query</div>
+                <div style="color:var(--phase-text)">→</div>
+                <div style="background:var(--surface-0);border-radius:6px;padding:.6rem .8rem;font-size:12px;text-align:center">Hybrid retrieve<br/><span style="color:var(--fg-dim);font-size:11px">BM25 + vector + RRF</span></div>
+                <div style="color:var(--phase-text)">→</div>
+                <div style="background:var(--surface-0);border-radius:6px;padding:.6rem .8rem;font-size:12px;text-align:center">Rerank<br/><span style="color:var(--fg-dim);font-size:11px">4.6: cross-encoder</span></div>
+                <div style="color:var(--phase-text)">→</div>
+                <div style="background:var(--surface-0);border-radius:6px;padding:.6rem .8rem;font-size:12px;text-align:center">Prompt assembly<br/><span style="color:var(--fg-dim);font-size:11px">system + context + query</span></div>
+                <div style="color:var(--phase-text)">→</div>
+                <div style="background:var(--phase-soft);border:1px solid var(--phase-hi);border-radius:6px;padding:.6rem .8rem;font-size:12px;text-align:center;color:var(--phase-text)">Streamed answer</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="pipeline-class">The RAGPipeline class <a class="anchor" href="#pipeline-class">#</a></h2>
+        <p>The full pipeline below integrates hybrid retrieval (BM25 + FAISS + RRF), cross-encoder reranking, and streaming generation into a single class with clean index/query interfaces.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">rag_pipeline.py — complete production-ready RAG pipeline</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> os
+<span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field
+<span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+<span class="kw">from</span> rank_bm25 <span class="kw">import</span> BM25Okapi
+<span class="kw">from</span> sentence_transformers <span class="kw">import</span> SentenceTransformer, CrossEncoder
+<span class="kw">import</span> faiss
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="tp">Chunk</span>:
+    text:     <span class="tp">str</span>
+    source:   <span class="tp">str</span> = <span class="st">""</span>    <span class="cm"># filename or document title</span>
+    section:  <span class="tp">str</span> = <span class="st">""</span>    <span class="cm"># section header if available</span>
+
+<span class="kw">class</span> <span class="tp">RAGPipeline</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(
+        self,
+        bi_encoder_model:    <span class="tp">str</span> = <span class="st">"BAAI/bge-small-en-v1.5"</span>,
+        cross_encoder_model: <span class="tp">str</span> = <span class="st">"cross-encoder/ms-marco-MiniLM-L-6-v2"</span>,
+        llm_model:           <span class="tp">str</span> = <span class="st">"claude-sonnet-4-6"</span>,
+        retrieve_k:          <span class="tp">int</span> = <span class="nm">30</span>,
+        final_k:             <span class="tp">int</span> = <span class="nm">5</span>,
+        relevance_threshold: <span class="tp">float</span> = <span class="nm">0.0</span>,  <span class="cm"># cross-encoder logit floor</span>
+    ):
+        self.bi_encoder   = <span class="fn">SentenceTransformer</span>(bi_encoder_model)
+        self.cross_encoder = <span class="fn">CrossEncoder</span>(cross_encoder_model)
+        self.llm          = <span class="fn">OpenAI</span>(api_key=os.environ[<span class="st">"OPENAI_API_KEY"</span>])
+        self.llm_model    = llm_model
+        self.retrieve_k   = retrieve_k
+        self.final_k      = final_k
+        self.relevance_threshold = relevance_threshold
+
+        self.chunks: <span class="tp">list</span>[<span class="tp">Chunk</span>] = []
+        self.faiss_index  = <span class="tp">None</span>
+        self.bm25         = <span class="tp">None</span>
+
+    <span class="cm"># ── INDEXING ─────────────────────────────────────────────────────────</span>
+
+    <span class="kw">def</span> <span class="fn">index</span>(self, chunks: <span class="tp">list</span>[<span class="tp">Chunk</span>]) -> <span class="tp">None</span>:
+        <span class="st">"""Embed chunks and build FAISS + BM25 indexes. Call once."""</span>
+        self.chunks = chunks
+        texts = [c.text <span class="kw">for</span> c <span class="kw">in</span> chunks]
+
+        <span class="cm"># Bi-encoder vectors → FAISS</span>
+        vecs = self.bi_encoder.<span class="fn">encode</span>(texts, normalize_embeddings=<span class="tp">True</span>, show_progress_bar=<span class="tp">True</span>)
+        dim = vecs.shape[<span class="nm">1</span>]
+        self.faiss_index = faiss.<span class="fn">IndexFlatIP</span>(dim)
+        self.faiss_index.<span class="fn">add</span>(vecs.astype(<span class="st">"float32"</span>))
+
+        <span class="cm"># BM25 index on tokenised text</span>
+        self.bm25 = <span class="fn">BM25Okapi</span>([t.<span class="fn">lower</span>().<span class="fn">split</span>() <span class="kw">for</span> t <span class="kw">in</span> texts])
+        <span class="fn">print</span>(<span class="st">f"Indexed {len(chunks)} chunks."</span>)
+
+    <span class="cm"># ── RETRIEVAL ────────────────────────────────────────────────────────</span>
+
+    <span class="kw">def</span> <span class="fn">_hybrid_retrieve</span>(self, query: <span class="tp">str</span>) -> <span class="tp">list</span>[<span class="tp">int</span>]:
+        n = <span class="fn">len</span>(self.chunks)
+        k = <span class="fn">min</span>(self.retrieve_k, n)
+
+        <span class="cm"># BM25 ranks</span>
+        bm25_scores = self.bm25.<span class="fn">get_scores</span>(query.<span class="fn">lower</span>().<span class="fn">split</span>())
+        bm25_ranks = {idx: r <span class="kw">for</span> r, idx <span class="kw">in</span> <span class="fn">enumerate</span>(np.<span class="fn">argsort</span>(bm25_scores)[::-<span class="nm">1</span>])}
+
+        <span class="cm"># Vector ranks</span>
+        prefix = <span class="st">f"Represent this sentence for searching relevant passages: {query}"</span>
+        q_vec = self.bi_encoder.<span class="fn">encode</span>([prefix], normalize_embeddings=<span class="tp">True</span>).astype(<span class="st">"float32"</span>)
+        _, idx_arr = self.faiss_index.<span class="fn">search</span>(q_vec, k)
+        vec_ranks = {idx: r <span class="kw">for</span> r, idx <span class="kw">in</span> <span class="fn">enumerate</span>(idx_arr[<span class="nm">0</span>].<span class="fn">tolist</span>())}
+
+        <span class="cm"># RRF fusion over all candidates seen in either rank list</span>
+        candidates = <span class="fn">set</span>(bm25_ranks) | <span class="fn">set</span>(vec_ranks)
+        rrf = {
+            i: <span class="nm">1</span> / (<span class="nm">60</span> + bm25_ranks.<span class="fn">get</span>(i, n)) + <span class="nm">1</span> / (<span class="nm">60</span> + vec_ranks.<span class="fn">get</span>(i, n))
+            <span class="kw">for</span> i <span class="kw">in</span> candidates
+        }
+        <span class="kw">return</span> [i <span class="kw">for</span> i, _ <span class="kw">in</span> <span class="fn">sorted</span>(rrf.<span class="fn">items</span>(), key=<span class="kw">lambda</span> x: x[<span class="nm">1</span>], reverse=<span class="tp">True</span>)[:k]]
+
+    <span class="kw">def</span> <span class="fn">retrieve</span>(self, query: <span class="tp">str</span>) -> <span class="tp">list</span>[<span class="tp">Chunk</span>]:
+        <span class="st">"""Hybrid retrieval → cross-encoder reranking → top-final_k chunks."""</span>
+        candidate_indices = self.<span class="fn">_hybrid_retrieve</span>(query)
+        candidates = [self.chunks[i] <span class="kw">for</span> i <span class="kw">in</span> candidate_indices]
+
+        pairs = [(query, c.text) <span class="kw">for</span> c <span class="kw">in</span> candidates]
+        scores = self.cross_encoder.<span class="fn">predict</span>(pairs)
+
+        ranked = <span class="fn">sorted</span>(<span class="fn">zip</span>(scores, candidates), key=<span class="kw">lambda</span> x: x[<span class="nm">0</span>], reverse=<span class="tp">True</span>)
+        <span class="kw">return</span> [
+            c <span class="kw">for</span> score, c <span class="kw">in</span> ranked[:self.final_k]
+            <span class="kw">if</span> score >= self.relevance_threshold
+        ]
+
+    <span class="cm"># ── GENERATION ───────────────────────────────────────────────────────</span>
+
+    <span class="kw">def</span> <span class="fn">query</span>(self, question: <span class="tp">str</span>, stream: <span class="tp">bool</span> = <span class="tp">True</span>) -> <span class="tp">str</span>:
+        <span class="st">"""Retrieve context and generate an answer. Streams by default."""</span>
+        context_chunks = self.<span class="fn">retrieve</span>(question)
+
+        <span class="kw">if</span> <span class="kw">not</span> context_chunks:
+            <span class="kw">return</span> <span class="st">"I couldn't find relevant information in the knowledge base to answer this question."</span>
+
+        context_text = <span class="st">"\n\n"</span>.<span class="fn">join</span>(
+            <span class="st">f"[Source: {c.source or 'unknown'}, Section: {c.section or 'general'}]\n{c.text}"</span>
+            <span class="kw">for</span> c <span class="kw">in</span> context_chunks
+        )
+
+        messages = [
+            {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: <span class="fn">_system_prompt</span>()},
+            {
+                <span class="st">"role"</span>: <span class="st">"user"</span>,
+                <span class="st">"content"</span>: (
+                    <span class="st">f"CONTEXT:\n{context_text}\n\n"</span>
+                    <span class="st">f"QUESTION: {question}"</span>
+                ),
+            },
+        ]
+
+        <span class="kw">if</span> stream:
+            response = self.llm.chat.completions.<span class="fn">create</span>(
+                model=self.llm_model, messages=messages, stream=<span class="tp">True</span>, max_tokens=<span class="nm">600</span>
+            )
+            full = <span class="st">""</span>
+            <span class="kw">for</span> chunk <span class="kw">in</span> response:
+                delta = chunk.choices[<span class="nm">0</span>].delta.content <span class="kw">or</span> <span class="st">""</span>
+                <span class="fn">print</span>(delta, end=<span class="st">""</span>, flush=<span class="tp">True</span>)
+                full += delta
+            <span class="fn">print</span>()
+            <span class="kw">return</span> full
+        <span class="kw">else</span>:
+            resp = self.llm.chat.completions.<span class="fn">create</span>(
+                model=self.llm_model, messages=messages, max_tokens=<span class="nm">600</span>
+            )
+            <span class="kw">return</span> resp.choices[<span class="nm">0</span>].message.content</code></pre>
+        </div>
+
+        <h2 id="system-prompt">The RAG system prompt <a class="anchor" href="#system-prompt">#</a></h2>
+        <p>The system prompt for a RAG pipeline has three specific jobs beyond general instruction: it must instruct the LLM to stay within the provided context, to refuse confidently when context is insufficient, and to cite sources so users can verify answers. These three constraints collectively prevent hallucination in the RAG context — the most common production failure mode.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">system_prompt.py — the three-part RAG system prompt</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">def</span> <span class="fn">_system_prompt</span>() -> <span class="tp">str</span>:
+    <span class="kw">return</span> <span class="st">"""You are a precise knowledge-base assistant.
+
+RULES — follow exactly:
+1. Answer ONLY using the CONTEXT passages provided below the question.
+   Do not use any information from your training data or prior knowledge.
+2. If the CONTEXT does not contain sufficient information to answer the question,
+   respond with exactly: "I don't have enough information in the knowledge base to answer this question."
+   Do not guess, speculate, or fill in gaps from general knowledge.
+3. When you use a fact from the context, cite its source inline using the format:
+   (Source: <source name>) — e.g. "(Source: HR Policy v3.2)"
+4. Be concise. Answer in 2–5 sentences unless the question requires more detail.
+5. If the question can be answered partially from the context, state what you know
+   and explicitly note what is not covered: "The context doesn't include information about X."
+
+TONE: direct, professional, no preamble ("Sure!", "Certainly!", "Great question!")."""</span></code></pre>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">The most common RAG prompt mistake: not explicitly forbidding prior knowledge</strong>
+            Without a clear prohibition, LLMs will blend retrieved context with training knowledge — seamlessly and invisibly. The answer will appear grounded in the context but contain facts the model added from training. This is especially dangerous in regulated domains (legal, medical, HR policy) where the context may contain the accurate, current version of a policy and the model's training data may contain an outdated version. The phrase "Do not use any information from your training data" must be explicit, not implied.
+          </div>
+        </div>
+
+        <h2 id="streaming">Streaming responses <a class="anchor" href="#streaming">#</a></h2>
+        <p>Streaming is not a performance optimisation — it is a UX requirement. Without streaming, users stare at a blank screen for 1–3 seconds before seeing any output. With streaming, they see the first tokens within 200–400ms and can start reading while the rest generates. For a RAG system where the retrieval phase already takes 200–500ms, streaming generation is the difference between feeling responsive and feeling slow.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">streaming_rag.py — FastAPI endpoint with streaming SSE response</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI
+<span class="kw">from</span> fastapi.responses <span class="kw">import</span> StreamingResponse
+<span class="kw">import</span> asyncio, json
+
+app = <span class="fn">FastAPI</span>()
+pipeline = <span class="fn">RAGPipeline</span>()  <span class="cm"># already indexed</span>
+
+<span class="kw">async def</span> <span class="fn">stream_answer</span>(question: <span class="tp">str</span>):
+    <span class="st">"""Async generator yielding SSE-formatted tokens."""</span>
+    context_chunks = pipeline.<span class="fn">retrieve</span>(question)
+
+    <span class="kw">if</span> <span class="kw">not</span> context_chunks:
+        <span class="kw">yield</span> <span class="st">f"data: {json.dumps({'token': 'No relevant context found.'})}\n\n"</span>
+        <span class="kw">return</span>
+
+    context_text = <span class="st">"\n\n"</span>.<span class="fn">join</span>(<span class="st">f"[{c.source}]\n{c.text}"</span> <span class="kw">for</span> c <span class="kw">in</span> context_chunks)
+    messages = [
+        {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: <span class="fn">_system_prompt</span>()},
+        {<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">f"CONTEXT:\n{context_text}\n\nQUESTION: {question}"</span>},
+    ]
+
+    client = pipeline.llm
+    <span class="kw">with</span> client.chat.completions.<span class="fn">create</span>(
+        model=pipeline.llm_model, messages=messages, stream=<span class="tp">True</span>, max_tokens=<span class="nm">600</span>
+    ) <span class="kw">as</span> response:
+        <span class="kw">for</span> chunk <span class="kw">in</span> response:
+            token = chunk.choices[<span class="nm">0</span>].delta.content <span class="kw">or</span> <span class="st">""</span>
+            <span class="kw">if</span> token:
+                <span class="kw">yield</span> <span class="st">f"data: {json.dumps({'token': token})}\n\n"</span>
+                <span class="kw">await</span> asyncio.<span class="fn">sleep</span>(<span class="nm">0</span>)  <span class="cm"># yield control to event loop</span>
+    <span class="kw">yield</span> <span class="st">"data: [DONE]\n\n"</span>
+
+<span class="kw">@app</span>.<span class="fn">get</span>(<span class="st">"/ask"</span>)
+<span class="kw">async def</span> <span class="fn">ask</span>(q: <span class="tp">str</span>):
+    <span class="kw">return</span> <span class="fn">StreamingResponse</span>(
+        <span class="fn">stream_answer</span>(q),
+        media_type=<span class="st">"text/event-stream"</span>,
+        headers={<span class="st">"Cache-Control"</span>: <span class="st">"no-cache"</span>, <span class="st">"X-Accel-Buffering"</span>: <span class="st">"no"</span>},
+    )</code></pre>
+        </div>
+
+        <h2 id="full-example">Running the complete pipeline <a class="anchor" href="#full-example">#</a></h2>
+        <p>Here is how you wire everything together for a real document corpus:</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">main.py — index documents and run queries</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> rag_pipeline <span class="kw">import</span> RAGPipeline, Chunk
+
+<span class="cm"># ── 1. Prepare chunks from your document corpus ───────────────────────</span>
+<span class="cm"># In production: load PDFs/markdown, run your chunking strategy (4.2),</span>
+<span class="cm"># and attach source metadata to each chunk.</span>
+chunks = [
+    <span class="fn">Chunk</span>(<span class="st">"Employees may claim $150/mo for home internet."</span>,    source=<span class="st">"HR Policy v3.2"</span>, section=<span class="st">"Remote Work Expenses"</span>),
+    <span class="fn">Chunk</span>(<span class="st">"One-time $600 allowance for ergonomic furniture."</span>,   source=<span class="st">"HR Policy v3.2"</span>, section=<span class="st">"Remote Work Expenses"</span>),
+    <span class="fn">Chunk</span>(<span class="st">"Claims submitted via Workday by the 5th of each month."</span>, source=<span class="st">"HR Policy v3.2"</span>, section=<span class="st">"Claims Process"</span>),
+    <span class="fn">Chunk</span>(<span class="st">"Manager approval required for claims over $200."</span>,     source=<span class="st">"HR Policy v3.2"</span>, section=<span class="st">"Claims Process"</span>),
+    <span class="fn">Chunk</span>(<span class="st">"Software subscriptions: up to $50/mo with pre-approval."</span>, source=<span class="st">"HR Policy v3.2"</span>, section=<span class="st">"Software"</span>),
+    <span class="fn">Chunk</span>(<span class="st">"AcmeCorp founded 2018, headquartered in Austin, TX."</span>,  source=<span class="st">"Company Handbook"</span>, section=<span class="st">"About"</span>),
+]
+
+<span class="cm"># ── 2. Initialise and index (run once) ────────────────────────────────</span>
+rag = <span class="fn">RAGPipeline</span>(
+    bi_encoder_model=<span class="st">"BAAI/bge-small-en-v1.5"</span>,
+    cross_encoder_model=<span class="st">"cross-encoder/ms-marco-MiniLM-L-6-v2"</span>,
+    llm_model=<span class="st">"claude-sonnet-4-6"</span>,
+    retrieve_k=<span class="nm">20</span>,    <span class="cm"># retrieve this many candidates before reranking</span>
+    final_k=<span class="nm">4</span>,        <span class="cm"># pass this many to the LLM context</span>
+    relevance_threshold=<span class="nm">1.0</span>,  <span class="cm"># drop chunks with cross-encoder logit < 1.0</span>
+)
+rag.<span class="fn">index</span>(chunks)
+
+<span class="cm"># ── 3. Query (per user request) ───────────────────────────────────────</span>
+questions = [
+    <span class="st">"What is the allowance for ergonomic furniture?"</span>,
+    <span class="st">"How much can I claim for my standing desk?"</span>,     <span class="cm"># vocabulary mismatch</span>
+    <span class="st">"When is the deadline to submit expense claims?"</span>,
+    <span class="st">"What is the company's stock price?"</span>,              <span class="cm"># out-of-corpus — should refuse</span>
+]
+
+<span class="kw">for</span> q <span class="kw">in</span> questions:
+    <span class="fn">print</span>(<span class="st">f"\n❓ {q}"</span>)
+    <span class="fn">print</span>(<span class="st">"─" * 60</span>)
+    rag.<span class="fn">query</span>(q, stream=<span class="tp">True</span>)</code></pre>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">Set the relevance threshold by observing cross-encoder score distributions</strong>
+            Run 50–100 representative queries on your corpus and print the cross-encoder score of the top-ranked chunk. For queries where the answer exists in the corpus, scores typically land above 2–5. For out-of-corpus queries, scores often land below 0–2. Set your <code>relevance_threshold</code> at the 5th percentile of "good query" scores — this catches most "no relevant context" cases while rarely misclassifying answerable queries. If you have no eval data yet, start at <code>0.0</code> (off) and add it after collecting query logs.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 4.7: RAG Pipeline Assembly</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~28 min · 4 live code demos</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 4:00</span><span class="script-action">DIAGRAM</span><span class="script-narration">"We've built each piece in isolation. Indexing phase: chunk → embed → store. Query phase: hybrid retrieve → rerank → generate. Today we wire them together into one RAGPipeline class. I want you to be able to take this class, point it at your own document corpus, and have a working RAG system in under an hour."</span></div>
+          <div class="script-line"><span class="script-ts">4:00 – 14:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Walk through rag_pipeline.py. "The __init__ sets up all three models — bi-encoder, cross-encoder, LLM client. The index() method runs once: embed all chunks with the bi-encoder, build a FAISS index, build a BM25 index. The retrieve() method does hybrid retrieval with RRF, then cross-encoder reranking. The query() method assembles the prompt and streams the answer." Show the relevance threshold dropping out-of-corpus queries.</span></div>
+          <div class="script-line"><span class="script-ts">14:00 – 20:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run main.py with all four test questions. "First query: exact match — ergonomic furniture, answers correctly and cites HR Policy v3.2. Second: vocabulary mismatch — 'standing desk' — hybrid search + reranking recovers the ergonomic chunk anyway. Third: deadline — correct. Fourth: stock price — no relevant context in the corpus, the model refuses correctly: 'I don't have enough information in the knowledge base.' That refusal is the system working correctly."</span></div>
+          <div class="script-line"><span class="script-ts">20:00 – 25:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Show the system prompt. "Three jobs: stay in context, refuse when context is insufficient, cite sources. 'Do not use any information from your training data' — this is the crucial line. Without it, the LLM will fill gaps invisibly from its training. Run the query with and without this prohibition on a question where the corpus is incomplete — watch the difference."</span></div>
+          <div class="script-line"><span class="script-ts">25:00 – 28:00</span><span class="script-action">WRAP</span><span class="script-narration">"This is a complete, production-adaptable RAG system. To use it on your corpus: replace the chunks list with your actual chunked documents, swap the models if needed, tune retrieve_k and relevance_threshold with your eval data (next module). In the next two modules we measure how well it works with RAGAS, and in 4.9 we look at advanced patterns: agentic RAG, GraphRAG, late chunking."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>Why must indexing and querying be separate phases in a production RAG pipeline, and what goes wrong when they are conflated?</summary>
+          <div class="selfcheck__a">Indexing is O(n) — every document in the corpus must be chunked and embedded. For a 10,000-document corpus with 500ms per chunk embedding, indexing takes hours. Querying is O(1) in corpus size — the query is embedded once and ANN retrieval is sub-linear. Conflating the two means re-embedding the entire corpus on every user query, making each query take hours. The correct design is: index runs once at startup, or on an incremental basis when documents change (add/update the new chunks, don't re-index everything). Query runs per user request, using the pre-built indexes. This distinction also matters for scaling: you can deploy multiple query replicas (fast, stateless) while running indexing as a separate background process.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Explain the role of the <code>relevance_threshold</code> parameter and how you would calibrate it for a new corpus.</summary>
+          <div class="selfcheck__a">The relevance threshold is a minimum cross-encoder logit score that retrieved chunks must exceed to be passed to the LLM. Chunks below the threshold are dropped. If all chunks are dropped, the pipeline returns a "no relevant context" refusal without calling the LLM — preventing hallucination from an empty context window. Calibration: (1) Run 50–100 representative queries split between "answerable from the corpus" and "out-of-corpus" questions. (2) For each, print the cross-encoder score of the top retrieved chunk. (3) Observe the score distributions — in-corpus queries typically score much higher than out-of-corpus queries. (4) Set the threshold at the value that best separates these distributions, erring toward false negatives (occasionally refusing answerable queries) over false positives (hallucinating answers for unanswerable ones). Start at 0.0 (disabled) until you have enough query data to calibrate.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What are the three specific jobs of a RAG system prompt, and why is each one necessary?</summary>
+          <div class="selfcheck__a"><strong>1. Answer only from context:</strong> LLMs blend training knowledge with retrieved context invisibly. An explicit "do not use information from your training data" forces the model to stay in context. Without this, answers may silently contain outdated or domain-mismatched training data. <strong>2. Refuse when context is insufficient:</strong> If the answer is not in the corpus, the model must say so rather than guessing. Without this, the model fabricates plausible-sounding answers ("hallucination with confidence"). In regulated domains (HR policy, medical) a confident but wrong answer is worse than an explicit refusal. <strong>3. Cite sources:</strong> Inline citations allow users to verify answers in the source documents. This is critical for trust in enterprise RAG systems. Without citations, users cannot distinguish between grounded answers and well-phrased hallucinations. Citations also make debugging easier: if the answer is wrong, you know which chunk to investigate.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>A user reports that your RAG system is slow — responses take 4–5 seconds. Walk through the pipeline stages and identify where the latency is likely coming from.</summary>
+          <div class="selfcheck__a">Measure each stage individually: (1) <strong>Bi-encoder retrieval:</strong> should be 10–50ms for a FAISS IndexFlatIP over 100k vectors. If this is slow, check if you are re-encoding all document vectors on each query (indexing conflation bug), or if the FAISS index is on CPU and you have too many vectors for memory. (2) <strong>Cross-encoder reranking:</strong> depends on retrieve_k and model size. ms-marco-MiniLM-L-6-v2 on CPU: ~80ms for 30 pairs. If this is 1s+, your retrieve_k is too high (reduce to 20–30) or you're using a large model (L-12 or bge-large) on CPU without GPU. (3) <strong>LLM generation:</strong> typically 1–3s for the first token (TTFT) for Claude Sonnet. If you're not streaming, users wait the full generation time. Enable streaming to improve perceived latency to TTFT. If TTFT itself is slow, your final_k is too high — each additional context chunk adds tokens to the prompt, slowing the first-token response.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Up next</div>
+          <div class="next-mod__title">4.8 · Evaluating RAG</div>
+          <p class="next-mod__desc">How to measure whether your RAG system actually works — RAGAS metrics (context precision, context recall, faithfulness, answer relevancy), building an eval set, interpreting results, and using evaluation to guide pipeline improvements.</p>
+        </div>
+        <a class="next-btn" href="module-4-8.html">Continue →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#architecture">Pipeline architecture</a>
+    <a href="#pipeline-class">The RAGPipeline class</a>
+    <a href="#system-prompt">The RAG system prompt</a>
+    <a href="#streaming">Streaming responses</a>
+    <a href="#full-example">Running the pipeline</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 4.7 / 62<br/>Phase 4 · Week 11<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

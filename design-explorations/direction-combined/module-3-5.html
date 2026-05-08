@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 3.5 Applied Prompt Patterns · by Harish Mondepu</title>
+<meta name="description" content="Five production prompt patterns — extraction, classification, transformation, generation, and decomposition — with reusable templates for the tasks you'll build most often."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#7c3aed;--phase-hi:#8865a3;--phase-soft:rgba(124,58,237,.1);--phase-text:#7c3aed}
+[data-theme="dark"]{--phase:#a78bfa;--phase-hi:#c4b5fd;--phase-soft:rgba(167,139,250,.1);--phase-text:#c4b5fd}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 3 · <strong>Applied Prompt Patterns</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 18 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 3 · Prompt Engineering
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-3-1.html"><span class="sidebar__mod-num">3.1</span>UI vs API<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-3-2.html"><span class="sidebar__mod-num">3.2</span>Calling LLMs via API<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-3-3.html"><span class="sidebar__mod-num">3.3</span>Prompt Anatomy<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-3-4.html"><span class="sidebar__mod-num">3.4</span>Core Techniques<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">3.5</span>Applied Patterns<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod" href="module-3-6.html"><span class="sidebar__mod-num">3.6</span>Advanced Reasoning<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-3-7.html"><span class="sidebar__mod-num">3.7</span>Prompts in Production<span class="sidebar__check"></span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#e85a7a"></span>Phase 4 · RAG + Evaluation</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#10b981;opacity:.6"></span>Phase 5–9 · Agents &amp; Deployment</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 03</span>
+        <span class="tag tag--level">Practical</span>
+        <span class="tag tag--week">Week 7</span>
+      </div>
+      <h1 class="mod-head__title">Applied Prompt <em>Patterns</em></h1>
+      <p class="mod-head__sub">Every production LLM task is one of five primitives: extract structure from text, classify it into categories, transform it into a different form, generate new content from a spec, or decompose a complex task into sub-steps. Each primitive has a repeatable template. Master all five and you can assemble any pipeline you'll encounter in the field — no trial-and-error from scratch each time.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~30 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>5 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Every LLM task reduces to one of five primitives — extract, classify, transform, generate, decompose — each with its own reliable template</li>
+          <li>Extraction is most reliable with a tool-call schema; the model can't hallucinate fields that aren't in your JSON Schema definition</li>
+          <li>Classification at scale needs a confidence score alongside the label — low-confidence results should route to a human fallback, not be silently accepted</li>
+          <li>Transformation tasks must specify the preservation constraint — what must stay the same — or the model will over-edit</li>
+          <li>Decomposition is the gateway to agents: breaking one complex task into a sequential pipeline of simple LLM calls is more reliable than one mega-prompt trying to do everything</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Modules 3.1 – 3.4 complete</li>
+            <li><div class="meta-list__dot">!</div>Familiar with tool-call schemas from module 3.2</li>
+            <li><div class="meta-list__dot">!</div><code>pip install anthropic python-dotenv</code></li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Identify which of the five primitives applies to a given task</li>
+            <li><div class="meta-list__dot">2</div>Write reusable extraction and classification templates</li>
+            <li><div class="meta-list__dot">3</div>Build a sequential decomposition pipeline for a complex task</li>
+            <li><div class="meta-list__dot">4</div>Apply preservation constraints to transformation prompts</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">LLM Application Patterns — Building Production Pipelines</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· search "LLM production patterns extraction classification pipeline Python"</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/sal78ACtGTc" title="LLM Application Patterns" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ Building LLM pipelines with the five core patterns</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="five-primitives">The five primitives <a class="anchor" href="#five-primitives">#</a></h2>
+        <p>Before writing a single line of prompt, identify which primitive your task is. The primitive determines your template, your output validation strategy, and how you handle failures.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">The five primitives — input → output shape</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem;font-size:13px">
+            <div style="display:grid;grid-template-columns:120px 1fr 160px;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:700;color:var(--phase-text)">Extraction</div>
+              <div style="color:var(--fg)">Pull structured fields from unstructured text. Contracts, emails, docs, transcripts.</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-dim)">text → structured JSON</div>
+            </div>
+            <div style="display:grid;grid-template-columns:120px 1fr 160px;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:700;color:#10b981">Classification</div>
+              <div style="color:var(--fg)">Assign one or more labels from a defined set. Routing, tagging, scoring, intent detection.</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-dim)">text → label(s) + score</div>
+            </div>
+            <div style="display:grid;grid-template-columns:120px 1fr 160px;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:700;color:#f59e0b">Transformation</div>
+              <div style="color:var(--fg)">Convert text to a different form — same meaning, different format, style, or language.</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-dim)">text → text (reshaped)</div>
+            </div>
+            <div style="display:grid;grid-template-columns:120px 1fr 160px;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:700;color:#e85a7a">Generation</div>
+              <div style="color:var(--fg)">Produce new content from a spec or brief. Emails, descriptions, code, plans.</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-dim)">spec → new content</div>
+            </div>
+            <div style="display:grid;grid-template-columns:120px 1fr 160px;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:700;color:#06b6d4">Decomposition</div>
+              <div style="color:var(--fg)">Break a complex task into sequential sub-tasks. Each step is a simple LLM call.</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-dim)">task → pipeline of calls</div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="extraction">Pattern 1: Extraction <a class="anchor" href="#extraction">#</a></h2>
+        <p>Extraction pulls specific fields from unstructured text. The output is always structured — JSON, a dataclass, or a named tuple. Use a tool-call schema (from module 3.2) to constrain the output. The model can only return fields defined in the schema — hallucination of extra fields is eliminated at the API level.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">extraction.py — contract key terms extraction</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic, json
+client = anthropic.<span class="fn">Anthropic</span>()
+
+<span class="cm"># ── Schema: only these fields can appear in the output ───────────────</span>
+CONTRACT_SCHEMA = {
+    <span class="st">"name"</span>: <span class="st">"extract_contract_terms"</span>,
+    <span class="st">"description"</span>: <span class="st">"Extract key commercial terms from a contract excerpt."</span>,
+    <span class="st">"input_schema"</span>: {
+        <span class="st">"type"</span>: <span class="st">"object"</span>,
+        <span class="st">"properties"</span>: {
+            <span class="st">"parties"</span>:        {<span class="st">"type"</span>: <span class="st">"array"</span>,   <span class="st">"items"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>}},
+            <span class="st">"contract_value"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>,  <span class="st">"description"</span>: <span class="st">"Total value with currency"</span>},
+            <span class="st">"start_date"</span>:     {<span class="st">"type"</span>: <span class="st">"string"</span>,  <span class="st">"description"</span>: <span class="st">"ISO 8601 date"</span>},
+            <span class="st">"end_date"</span>:       {<span class="st">"type"</span>: <span class="st">"string"</span>,  <span class="st">"description"</span>: <span class="st">"ISO 8601 date"</span>},
+            <span class="st">"renewal_terms"</span>:  {<span class="st">"type"</span>: <span class="st">"string"</span>},
+            <span class="st">"governing_law"</span>:  {<span class="st">"type"</span>: <span class="st">"string"</span>},
+        },
+        <span class="st">"required"</span>: [<span class="st">"parties"</span>, <span class="st">"contract_value"</span>, <span class="st">"start_date"</span>],
+    },
+}
+
+contract_text = <span class="st">"""This Software License Agreement is entered into as of January 1, 2025,
+between AcmeCorp Inc. ("Licensor") and BetaWorks Ltd. ("Licensee"). The total
+license fee is USD 84,000 per annum, payable quarterly. The agreement commences
+on 2025-01-01 and expires on 2026-12-31, with automatic one-year renewal unless
+either party provides 90 days written notice. This agreement is governed by the
+laws of the State of Delaware."""</span>
+
+resp = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+    max_tokens=<span class="nm">256</span>,
+    system=<span class="st">"Extract contract terms precisely. Use null for any field not present in the text."</span>,
+    tools=[CONTRACT_SCHEMA],
+    tool_choice={<span class="st">"type"</span>: <span class="st">"tool"</span>, <span class="st">"name"</span>: <span class="st">"extract_contract_terms"</span>},
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">f"&lt;contract&gt;\n{contract_text}\n&lt;/contract&gt;"</span>}],
+)
+
+result = next(b <span class="kw">for</span> b <span class="kw">in</span> resp.content <span class="kw">if</span> b.type == <span class="st">"tool_use"</span>).<span class="fn">input</span>
+<span class="fn">print</span>(json.<span class="fn">dumps</span>(result, indent=<span class="nm">2</span>))
+<span class="cm"># → {"parties": ["AcmeCorp Inc.", "BetaWorks Ltd."],</span>
+<span class="cm">#    "contract_value": "USD 84,000 per annum",</span>
+<span class="cm">#    "start_date": "2025-01-01", "end_date": "2026-12-31", ...}</span></code></pre>
+        </div>
+
+        <h2 id="classification">Pattern 2: Classification <a class="anchor" href="#classification">#</a></h2>
+        <p>Classification assigns labels from a predefined set. The most important production detail: always return a <strong>confidence score</strong> alongside the label. Low-confidence results should not be silently accepted — route them to a human review queue. Without a confidence signal, you have no way to distinguish a certain result from a guess.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">classification.py — multi-label support ticket routing with confidence</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic
+client = anthropic.<span class="fn">Anthropic</span>()
+
+ROUTING_TOOL = {
+    <span class="st">"name"</span>: <span class="st">"route_ticket"</span>,
+    <span class="st">"description"</span>: <span class="st">"Classify a support ticket and route it to the correct team."</span>,
+    <span class="st">"input_schema"</span>: {
+        <span class="st">"type"</span>: <span class="st">"object"</span>,
+        <span class="st">"properties"</span>: {
+            <span class="st">"primary_team"</span>: {
+                <span class="st">"type"</span>: <span class="st">"string"</span>,
+                <span class="st">"enum"</span>: [<span class="st">"billing"</span>, <span class="st">"technical"</span>, <span class="st">"onboarding"</span>, <span class="st">"security"</span>, <span class="st">"account"</span>],
+            },
+            <span class="st">"secondary_teams"</span>: {
+                <span class="st">"type"</span>: <span class="st">"array"</span>,
+                <span class="st">"items"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>, <span class="st">"enum"</span>: [<span class="st">"billing"</span>, <span class="st">"technical"</span>, <span class="st">"onboarding"</span>, <span class="st">"security"</span>, <span class="st">"account"</span>]},
+            },
+            <span class="st">"priority"</span>:      {<span class="st">"type"</span>: <span class="st">"string"</span>, <span class="st">"enum"</span>: [<span class="st">"low"</span>, <span class="st">"medium"</span>, <span class="st">"high"</span>, <span class="st">"critical"</span>]},
+            <span class="st">"confidence"</span>:    {<span class="st">"type"</span>: <span class="st">"number"</span>, <span class="st">"minimum"</span>: <span class="nm">0</span>, <span class="st">"maximum"</span>: <span class="nm">1</span>},
+            <span class="st">"reason"</span>:        {<span class="st">"type"</span>: <span class="st">"string"</span>},
+        },
+        <span class="st">"required"</span>: [<span class="st">"primary_team"</span>, <span class="st">"priority"</span>, <span class="st">"confidence"</span>],
+    },
+}
+
+<span class="kw">def</span> <span class="fn">route_ticket</span>(ticket: <span class="tp">str</span>) -> <span class="tp">dict</span>:
+    resp = client.messages.<span class="fn">create</span>(
+        model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+        max_tokens=<span class="nm">128</span>,
+        system=<span class="st">"You are a support triage system. Route tickets accurately. Be strict with priority levels."</span>,
+        tools=[ROUTING_TOOL],
+        tool_choice={<span class="st">"type"</span>: <span class="st">"tool"</span>, <span class="st">"name"</span>: <span class="st">"route_ticket"</span>},
+        messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: ticket}],
+    )
+    <span class="kw">return</span> next(b <span class="kw">for</span> b <span class="kw">in</span> resp.content <span class="kw">if</span> b.type == <span class="st">"tool_use"</span>).<span class="fn">input</span>
+
+CONFIDENCE_THRESHOLD = <span class="nm">0.80</span>  <span class="cm"># route below this to human review</span>
+
+tickets = [
+    <span class="st">"I was charged twice for my subscription this month."</span>,
+    <span class="st">"My API keys stopped working after the password reset — also I think someone accessed my account."</span>,
+    <span class="st">"How do I export my data to CSV? I can't find the button."</span>,
+]
+
+<span class="kw">for</span> ticket <span class="kw">in</span> tickets:
+    result = <span class="fn">route_ticket</span>(ticket)
+    destination = result[<span class="st">"primary_team"</span>] <span class="kw">if</span> result[<span class="st">"confidence"</span>] >= CONFIDENCE_THRESHOLD <span class="kw">else</span> <span class="st">"human_review"</span>
+    <span class="fn">print</span>(<span class="st">f"→ {destination} [{result['priority']}] conf={result['confidence']:.2f}"</span>)</code></pre>
+        </div>
+
+        <h2 id="transformation">Pattern 3: Transformation <a class="anchor" href="#transformation">#</a></h2>
+        <p>Transformation converts text to a different form while preserving meaning. Translate, simplify, reformat, or change tone. The critical instruction: always specify <strong>what must not change</strong>. Without a preservation constraint, the model treats everything as fair game and over-edits — changing meaning, dropping facts, or rewriting in ways you didn't intend.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">transformation.py — error message → user-friendly copy, preserving facts</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic
+client = anthropic.<span class="fn">Anthropic</span>()
+
+TRANSFORM_SYSTEM = <span class="st">"""You rewrite technical error messages as friendly, actionable user copy.
+
+## Preservation constraints (MUST NOT CHANGE)
+- All specific values: error codes, file names, limits, URLs, time durations
+- The core meaning of what went wrong
+- Any instructions about what the user should do next
+
+## What you change
+- Technical jargon → plain English
+- Passive voice → active voice
+- Cold/robotic tone → warm, helpful tone
+
+## Format
+One short paragraph. No markdown. Under 60 words."""</span>
+
+errors = [
+    <span class="st">"ERR_UPLOAD_LIMIT_EXCEEDED: The uploaded file (24.3 MB) exceeds the maximum permitted size (20 MB). Request aborted. See https://docs.acme.com/limits for upgrade options."</span>,
+    <span class="st">"Authentication token expired. Token TTL: 3600s. Re-authenticate at /auth/refresh to obtain a new bearer token."</span>,
+]
+
+<span class="kw">for</span> error <span class="kw">in</span> errors:
+    resp = client.messages.<span class="fn">create</span>(
+        model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+        max_tokens=<span class="nm">128</span>,
+        system=TRANSFORM_SYSTEM,
+        messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">f"&lt;error&gt;\n{error}\n&lt;/error&gt;"</span>}],
+    )
+    <span class="fn">print</span>(<span class="st">f"Original: {error[:60]}…"</span>)
+    <span class="fn">print</span>(<span class="st">f"Friendly: {resp.content[0].text}\n"</span>)
+<span class="cm"># → "Your file (24.3 MB) is a bit too large — our limit is 20 MB.</span>
+<span class="cm">#    Try compressing it or visit docs.acme.com/limits to upgrade your plan."</span></code></pre>
+        </div>
+
+        <h2 id="generation">Pattern 4: Generation <a class="anchor" href="#generation">#</a></h2>
+        <p>Generation creates new content from a structured specification. The spec is the entire user message — the more complete it is, the less creative latitude the model takes. Pass it as structured data (XML-tagged fields or a Python dict serialised to a string) rather than a conversational request. This makes generation reproducible: same spec in → same quality output every time.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">generation.py — product descriptions from a spec dict</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic
+client = anthropic.<span class="fn">Anthropic</span>()
+
+GENERATION_SYSTEM = <span class="st">"""You write e-commerce product descriptions.
+Style: benefit-first, conversational, no superlatives ("best", "amazing").
+Format: one short paragraph (50–70 words), then three bullet points.
+Audience: online shoppers comparing similar products."""</span>
+
+<span class="kw">def</span> <span class="fn">generate_description</span>(spec: <span class="tp">dict</span>) -> <span class="tp">str</span>:
+    <span class="cm"># Serialise spec as XML-tagged fields — unambiguous for the model</span>
+    spec_str = <span class="st">"\n"</span>.<span class="fn">join</span>(<span class="st">f"&lt;{k}&gt;{v}&lt;/{k}&gt;"</span> <span class="kw">for</span> k, v <span class="kw">in</span> spec.<span class="fn">items</span>())
+    resp = client.messages.<span class="fn">create</span>(
+        model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+        max_tokens=<span class="nm">256</span>,
+        system=GENERATION_SYSTEM,
+        messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">f"Generate a product description.\n{spec_str}"</span>}],
+    )
+    <span class="kw">return</span> resp.content[<span class="nm">0</span>].text
+
+products = [
+    {<span class="st">"name"</span>: <span class="st">"ArcPad Pro Keyboard"</span>, <span class="st">"category"</span>: <span class="st">"mechanical keyboard"</span>,
+     <span class="st">"key_features"</span>: <span class="st">"hot-swap switches, per-key RGB, aluminium frame"</span>,
+     <span class="st">"price_point"</span>: <span class="st">"premium ($180)"</span>, <span class="st">"target_user"</span>: <span class="st">"developers and gamers"</span>},
+    {<span class="st">"name"</span>: <span class="st">"CalmBreeze Air Purifier"</span>, <span class="st">"category"</span>: <span class="st">"air purifier"</span>,
+     <span class="st">"key_features"</span>: <span class="st">"HEPA H13, 400 sq ft coverage, sleep mode 22dB"</span>,
+     <span class="st">"price_point"</span>: <span class="st">"mid-range ($129)"</span>, <span class="st">"target_user"</span>: <span class="st">"allergy sufferers, home office"</span>},
+]
+
+<span class="kw">for</span> product <span class="kw">in</span> products:
+    <span class="fn">print</span>(<span class="st">f"## {product['name']}\n"</span>)
+    <span class="fn">print</span>(<span class="fn">generate_description</span>(product))
+    <span class="fn">print</span>()</code></pre>
+        </div>
+
+        <h2 id="decomposition">Pattern 5: Decomposition <a class="anchor" href="#decomposition">#</a></h2>
+        <p>Decomposition breaks a task too complex for a single prompt into a sequential pipeline of simpler calls. Each call does one thing well. The output of each step becomes the input of the next. This is the foundation of all agentic systems — every multi-step agent is just a decomposition pipeline where the steps are determined dynamically.</p>
+
+        <!-- Sequential pipeline diagram -->
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">Sequential decomposition pipeline</div>
+          <div style="display:flex;align-items:center;gap:0;overflow-x:auto">
+            <div style="flex-shrink:0;background:var(--surface-0);border:1px solid var(--phase);border-radius:6px;padding:.6rem .9rem;text-align:center;min-width:90px">
+              <div style="font-size:10px;font-weight:700;color:var(--phase-text);text-transform:uppercase;letter-spacing:.04em">Step 1</div>
+              <div style="font-size:12px;color:var(--fg);margin-top:.2rem">Extract</div>
+              <div style="font-size:10px;color:var(--fg-dim)">raw text → facts</div>
+            </div>
+            <div style="flex-shrink:0;padding:0 .4rem;color:var(--fg-dim);font-size:18px">→</div>
+            <div style="flex-shrink:0;background:var(--surface-0);border:1px solid var(--phase);border-radius:6px;padding:.6rem .9rem;text-align:center;min-width:90px">
+              <div style="font-size:10px;font-weight:700;color:var(--phase-text);text-transform:uppercase;letter-spacing:.04em">Step 2</div>
+              <div style="font-size:12px;color:var(--fg);margin-top:.2rem">Classify</div>
+              <div style="font-size:10px;color:var(--fg-dim)">facts → category</div>
+            </div>
+            <div style="flex-shrink:0;padding:0 .4rem;color:var(--fg-dim);font-size:18px">→</div>
+            <div style="flex-shrink:0;background:var(--surface-0);border:1px solid var(--phase);border-radius:6px;padding:.6rem .9rem;text-align:center;min-width:90px">
+              <div style="font-size:10px;font-weight:700;color:var(--phase-text);text-transform:uppercase;letter-spacing:.04em">Step 3</div>
+              <div style="font-size:12px;color:var(--fg);margin-top:.2rem">Generate</div>
+              <div style="font-size:10px;color:var(--fg-dim)">category → draft</div>
+            </div>
+            <div style="flex-shrink:0;padding:0 .4rem;color:var(--fg-dim);font-size:18px">→</div>
+            <div style="flex-shrink:0;background:var(--surface-0);border:1px solid var(--phase);border-radius:6px;padding:.6rem .9rem;text-align:center;min-width:90px">
+              <div style="font-size:10px;font-weight:700;color:var(--phase-text);text-transform:uppercase;letter-spacing:.04em">Step 4</div>
+              <div style="font-size:12px;color:var(--fg);margin-top:.2rem">Refine</div>
+              <div style="font-size:10px;color:var(--fg-dim)">draft → final</div>
+            </div>
+          </div>
+          <div style="margin-top:.8rem;font-size:12px;color:var(--fg-dim)">Each step is a focused prompt. Failures are isolated — if step 2 returns low confidence, you can re-run or route to human without discarding steps 1, 3, and 4.</div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">decomposition.py — automated support reply pipeline</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic, json
+client = anthropic.<span class="fn">Anthropic</span>()
+
+ticket = <span class="st">"""Subject: Can't log in, urgent
+Hi, I reset my password twice but still get an 'invalid credentials' error.
+I need access for a client demo in 2 hours. My email is sarah@company.com"""</span>
+
+<span class="cm"># ── Step 1: Extract structured facts ─────────────────────────────────</span>
+extract_resp = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-haiku-4-5-20251001"</span>, max_tokens=<span class="nm">128</span>,
+    system=<span class="st">"Extract key facts from the support ticket as JSON. Fields: issue, urgency_hours, user_email, steps_already_tried."</span>,
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">f"&lt;ticket&gt;{ticket}&lt;/ticket&gt;"</span>},
+              {<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: <span class="st">"{"</span>}],
+)
+facts = json.<span class="fn">loads</span>(<span class="st">"{"</span> + extract_resp.content[<span class="nm">0</span>].text)
+
+<span class="cm"># ── Step 2: Classify priority ─────────────────────────────────────────</span>
+classify_resp = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-haiku-4-5-20251001"</span>, max_tokens=<span class="nm">32</span>,
+    system=<span class="st">"Classify support priority: low / medium / high / critical. One word."</span>,
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: json.<span class="fn">dumps</span>(facts)}],
+)
+priority = classify_resp.content[<span class="nm">0</span>].text.<span class="fn">strip</span>().<span class="fn">lower</span>()
+
+<span class="cm"># ── Step 3: Generate tailored reply ──────────────────────────────────</span>
+reply_resp = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-haiku-4-5-20251001"</span>, max_tokens=<span class="nm">256</span>,
+    system=<span class="st">"""You write support replies. Be empathetic, specific, and action-oriented.
+Address the user by first name. Reference the specific issue and what they've already tried.
+For high/critical priority: acknowledge urgency in the first sentence."""</span>,
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>:
+        <span class="st">f"Priority: {priority}\nFacts: {json.dumps(facts)}\nOriginal ticket: {ticket}"</span>}],
+)
+
+<span class="fn">print</span>(<span class="st">f"Priority: {priority}"</span>)
+<span class="fn">print</span>(<span class="st">f"Facts: {json.dumps(facts, indent=2)}"</span>)
+<span class="fn">print</span>(<span class="st">f"\nReply:\n{reply_resp.content[0].text}"</span>)</code></pre>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">Use Haiku for every step in a pipeline — it's fast enough</strong>
+            When decomposing, each individual step is simple enough for Haiku. The quality comes from the pipeline design, not from using a larger model for each call. Only upgrade to Sonnet for a specific step if that step consistently underperforms — not as a default.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 3.5: Applied Prompt Patterns</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~30 min · 5 live code examples</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 2:00</span><span class="script-action">INTRO</span><span class="script-narration">"Module 3.4 gave you six techniques. Module 3.5 gives you five templates. Every production LLM task you'll ever build is one of these five patterns. Learn the template, and you start fast instead of from blank page every time."</span></div>
+          <div class="script-line"><span class="script-ts">2:00 – 8:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run extraction.py. Walk through the JSON Schema. "Notice the required array — parties, contract_value, start_date. Anything not in required comes back null if absent. The model can't invent a field that isn't in the schema." Change one required field to optional, run again on a contract missing that field. Show null vs hallucinated data.</span></div>
+          <div class="script-line"><span class="script-ts">8:00 – 14:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run classification.py. "The enum constraint on primary_team — the model can only pick from these five values. No typos, no invented teams." Lower CONFIDENCE_THRESHOLD to 0.95. Watch the second ticket (ambiguous security+account overlap) route to human_review. "This is exactly what you want — the model flags its own uncertainty instead of making a silent wrong call."</span></div>
+          <div class="script-line"><span class="script-ts">14:00 – 20:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run transformation.py with and without the preservation constraints section. "Without constraints: the model rewrites the error completely and drops the error code. With constraints: it keeps ERR_UPLOAD_LIMIT_EXCEEDED, the 24.3MB and 20MB values, and the URL. Same warm tone, zero dropped facts."</span></div>
+          <div class="script-line"><span class="script-ts">20:00 – 30:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run decomposition.py. "Three sequential Haiku calls. Step 1 extracts the facts — now I have structured data I can route on. Step 2 classifies priority — I use that to change the tone in step 3. Step 3 generates a personalised reply that mentions her name, what she's already tried, and opens with urgency acknowledgement because priority=high. None of this would work in one mega-prompt reliably. Three focused steps: each simple, each reliable."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>You're building a pipeline that reads customer emails and creates CRM records. Which primitive is the first step and why?</summary>
+          <div class="selfcheck__a"><strong>Extraction</strong> — the first step reads the unstructured email text and pulls structured fields into a schema: sender name, company, product mentioned, intent, any dates or numbers. This gives you a Python dict that every downstream step (classify intent, generate reply, populate CRM) can operate on reliably. Trying to do extraction + classification + CRM population in one prompt produces inconsistent results and is impossible to debug when one step fails.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>A classification pipeline is sending tickets to the wrong team about 8% of the time. You add a confidence score. What should happen to low-confidence results?</summary>
+          <div class="selfcheck__a">Low-confidence results should route to a human review queue — not to the model's best-guess team. Set a threshold (e.g. 0.80 confidence). Results above the threshold are auto-routed; results below trigger a human task. This converts a system that is wrong 8% of the time silently into one that is right 100% of the time on auto-routed tickets, with a known subset flagged for review. Track what percentage hits human review — if it grows, the classification prompt needs improvement or the label set needs refinement.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>You run a transformation prompt to simplify a legal clause for consumers, and the model keeps changing specific dollar amounts and deadline dates. What is the fix?</summary>
+          <div class="selfcheck__a">Add explicit preservation constraints to the system prompt. A dedicated section — "Preservation constraints: these must not change — all specific values (dollar amounts, dates, percentages, defined terms in quotes)" — directly tells the model what is off-limits for editing. Without this, the model treats all text as fair game for rewording, and numbers get paraphrased ("approximately $500" instead of "$487.50") or omitted. Pair with XML tags wrapping the source clause so the model has a clear content boundary.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Why is a three-step decomposition pipeline more reliable than one mega-prompt that tries to extract, classify, and generate a reply in a single call?</summary>
+          <div class="selfcheck__a">Four reasons: (1) <strong>Isolation</strong> — if extraction fails (confidence low, field missing), you catch it before it poisons the classification and generation steps; you can re-run or route to human without discarding everything. (2) <strong>Focused prompts</strong> — each step has one job and a system prompt tuned for that job; a mega-prompt has competing instructions that dilute each other. (3) <strong>Debuggability</strong> — you can inspect the output of each step; with a mega-prompt you don't know which sub-task failed. (4) <strong>Granular model selection</strong> — you can upgrade just the step that underperforms to a larger model, rather than paying for a larger model for the whole task.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Up next</div>
+          <div class="next-mod__title">3.6 · Advanced Reasoning Techniques</div>
+          <p class="next-mod__desc">Self-consistency sampling, least-to-most prompting, self-refine loops, and tree-of-thought — the techniques that push beyond basic chain-of-thought for genuinely hard multi-step problems.</p>
+        </div>
+        <a class="next-btn" href="module-3-6.html">Continue →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#five-primitives">The five primitives</a>
+    <a href="#extraction">Extraction</a>
+    <a href="#classification">Classification</a>
+    <a href="#transformation">Transformation</a>
+    <a href="#generation">Generation</a>
+    <a href="#decomposition">Decomposition</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 3.5 / 62<br/>Phase 3 · Week 7<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

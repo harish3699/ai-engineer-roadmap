@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 3.2 Calling LLMs via API · by Harish Mondepu</title>
+<meta name="description" content="Anthropic and OpenAI SDKs in depth — message format, streaming responses, structured JSON output, and error handling for production LLM applications."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#7c3aed;--phase-hi:#8865a3;--phase-soft:rgba(124,58,237,.1);--phase-text:#7c3aed}
+[data-theme="dark"]{--phase:#a78bfa;--phase-hi:#c4b5fd;--phase-soft:rgba(167,139,250,.1);--phase-text:#c4b5fd}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 3 · <strong>Calling LLMs via API</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 15 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 3 · Prompt Engineering
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-3-1.html"><span class="sidebar__mod-num">3.1</span>UI vs API<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">3.2</span>Calling LLMs via API<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod" href="module-3-3.html"><span class="sidebar__mod-num">3.3</span>Prompt Anatomy<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-3-4.html"><span class="sidebar__mod-num">3.4</span>Core Techniques<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-3-5.html"><span class="sidebar__mod-num">3.5</span>Applied Patterns<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-3-6.html"><span class="sidebar__mod-num">3.6</span>Advanced Reasoning<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-3-7.html"><span class="sidebar__mod-num">3.7</span>Prompts in Production<span class="sidebar__check"></span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#e85a7a"></span>Phase 4 · RAG + Evaluation</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#10b981;opacity:.6"></span>Phase 5–9 · Agents &amp; Deployment</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 03</span>
+        <span class="tag tag--level">Practical</span>
+        <span class="tag tag--week">Week 5</span>
+      </div>
+      <h1 class="mod-head__title">Calling LLMs <em>via API</em></h1>
+      <p class="mod-head__sub">The Anthropic and OpenAI SDKs use the same mental model — a messages array with roles, a model name, and a handful of sampling parameters. Once you understand the message contract, streaming and structured output are just two extra flags. This module covers every parameter that matters in production, how to stream tokens to the user, and the three ways to get structured JSON out of a model.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~25 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>3 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Every LLM API call is the same contract: a <code>messages</code> array with roles (<code>system</code>, <code>user</code>, <code>assistant</code>), a model, and a token limit — everything else is optional</li>
+          <li>Streaming is a one-parameter change — set <code>stream=True</code> — and changes user experience from "wait 10 seconds" to "words appear instantly"</li>
+          <li>Structured JSON from an LLM has three approaches: JSON mode, forced tool-call schemas, and XML tags — each with different tradeoffs</li>
+          <li>The <code>usage</code> object on every response tells you exactly how many tokens were consumed — track this from day one or you will be surprised by your billing</li>
+          <li>The Anthropic and OpenAI SDKs are 90% conceptually identical — learn one and you know the other</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Module 3.1 complete — you understand the UI vs API gap</li>
+            <li><div class="meta-list__dot">!</div>An Anthropic API key at <code>console.anthropic.com</code></li>
+            <li><div class="meta-list__dot">!</div><code>pip install anthropic openai python-dotenv</code></li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Explain the role of each field in the messages array</li>
+            <li><div class="meta-list__dot">2</div>Use streaming to return tokens progressively in a web app</li>
+            <li><div class="meta-list__dot">3</div>Extract structured JSON from a model using tool-call schemas</li>
+            <li><div class="meta-list__dot">4</div>Interpret the <code>usage</code> object and estimate monthly API cost</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">Anthropic Claude API — Full Python Walkthrough</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· Anthropic SDK crash course · search "Anthropic Claude API Python tutorial streaming"</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/QdDoFfkVkcw" title="Anthropic API Tutorial" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ Anthropic SDK walkthrough — messages, streaming, and tool use</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="message-contract">The message contract <a class="anchor" href="#message-contract">#</a></h2>
+        <p>Every API call to any major LLM provider is built on the same abstraction: an ordered list of messages, each with a <strong>role</strong> and <strong>content</strong>. The model reads the full list and predicts what comes next. That's it.</p>
+
+        <!-- Message roles diagram -->
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">The three message roles</div>
+          <div style="display:flex;flex-direction:column;gap:.7rem">
+            <div style="display:grid;grid-template-columns:100px 1fr;gap:1rem;align-items:start">
+              <div style="background:var(--phase-soft);border:1px solid var(--phase);border-radius:6px;padding:.5rem .8rem;text-align:center;font-weight:700;font-size:12px;color:var(--phase-text)">system</div>
+              <div style="font-size:13px;line-height:1.6;color:var(--fg)">Instructions for the model — persona, constraints, output format, domain context. Processed before any user message. You write this. The UI would inject its own here; you now control it entirely.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:100px 1fr;gap:1rem;align-items:start">
+              <div style="background:rgba(16,185,129,.1);border:1px solid #10b981;border-radius:6px;padding:.5rem .8rem;text-align:center;font-weight:700;font-size:12px;color:#10b981">user</div>
+              <div style="font-size:13px;line-height:1.6;color:var(--fg)">Input from the human side of the conversation. In production this is often your code constructing a message — not a real user typing. It can contain retrieved documents, structured data, tool results, or anything you need the model to process.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:100px 1fr;gap:1rem;align-items:start">
+              <div style="background:rgba(245,158,11,.1);border:1px solid #f59e0b;border-radius:6px;padding:.5rem .8rem;text-align:center;font-weight:700;font-size:12px;color:#f59e0b">assistant</div>
+              <div style="font-size:13px;line-height:1.6;color:var(--fg)">Prior model responses. When building multi-turn conversations, you append each model reply as an assistant message before sending the next user message. You can also <em>prefill</em> this role with a partial response to steer the model's output format — covered in module 3.3.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">Messages must alternate correctly</strong>
+            After a system message (optional), messages must alternate between <code>user</code> and <code>assistant</code>. Sending two consecutive <code>user</code> messages without an <code>assistant</code> turn in between will throw a validation error. If you're building a stateless endpoint that receives a single prompt, you just send one <code>user</code> message and read the response.
+          </div>
+        </div>
+
+        <h2 id="anthropic-sdk">Anthropic SDK in depth <a class="anchor" href="#anthropic-sdk">#</a></h2>
+        <p>The Anthropic SDK exposes one primary method: <code>client.messages.create()</code>. The parameters that matter in production are fewer than you'd expect.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">sdk_basics.py — every parameter that matters</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic
+<span class="kw">from</span> dotenv <span class="kw">import</span> load_dotenv
+load_dotenv()
+
+client = anthropic.<span class="fn">Anthropic</span>()  <span class="cm"># reads ANTHROPIC_API_KEY from env</span>
+
+resp = client.messages.<span class="fn">create</span>(
+    <span class="cm"># ── Required ──────────────────────────────────────────────────────</span>
+    model=<span class="st">"claude-sonnet-4-6"</span>,   <span class="cm"># model ID — pin this in production</span>
+    max_tokens=<span class="nm">1024</span>,              <span class="cm"># hard ceiling on output tokens</span>
+    messages=[
+        {<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"Summarise RAG in 3 bullet points."</span>}
+    ],
+
+    <span class="cm"># ── Strongly recommended ──────────────────────────────────────────</span>
+    system=<span class="st">"You are a concise technical educator. Use plain text, no markdown."</span>,
+
+    <span class="cm"># ── Sampling — tune for your use case ─────────────────────────────</span>
+    temperature=<span class="nm">0.3</span>,   <span class="cm"># 0 = deterministic, 1 = creative. Default 1.</span>
+                       <span class="cm"># Use 0–0.3 for extraction/classification/code.</span>
+                       <span class="cm"># Use 0.7–1 for creative/conversational tasks.</span>
+)
+
+<span class="cm"># ── Reading the response ──────────────────────────────────────────────</span>
+text = resp.content[<span class="nm">0</span>].text          <span class="cm"># always index 0 for a text response</span>
+<span class="fn">print</span>(text)
+
+<span class="cm"># ── Usage — track this from day one ──────────────────────────────────</span>
+<span class="fn">print</span>(<span class="st">f"Input tokens : {resp.usage.input_tokens}"</span>)
+<span class="fn">print</span>(<span class="st">f"Output tokens: {resp.usage.output_tokens}"</span>)
+<span class="fn">print</span>(<span class="st">f"Stop reason  : {resp.stop_reason}"</span>)   <span class="cm"># 'end_turn' | 'max_tokens' | 'stop_sequence' | 'tool_use'</span>
+
+<span class="cm"># ── Cost estimate (Sonnet 4.6 pricing) ───────────────────────────────</span>
+cost = (resp.usage.input_tokens / <span class="nm">1_000_000</span>) * <span class="nm">3.0</span> \
+     + (resp.usage.output_tokens / <span class="nm">1_000_000</span>) * <span class="nm">15.0</span>
+<span class="fn">print</span>(<span class="st">f"Cost estimate: ${cost:.6f}"</span>)</code></pre>
+        </div>
+
+        <div class="callout callout--note">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">stop_reason is your canary</strong>
+            If <code>stop_reason == "max_tokens"</code>, the model was cut off mid-response. Your output is incomplete. Either increase <code>max_tokens</code> or shorten your input. Always check this in production — truncated JSON or code is a silent failure that causes hard-to-debug downstream errors.
+          </div>
+        </div>
+
+        <h2 id="openai-sdk">OpenAI SDK — the parallel pattern <a class="anchor" href="#openai-sdk">#</a></h2>
+        <p>If you know the Anthropic SDK, the OpenAI SDK is a cosmetic difference. The mental model — messages array, roles, usage object — is identical. The differences are in field names and where the text lives in the response object.</p>
+
+        <!-- Side-by-side comparison -->
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">SDK differences at a glance</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;font-size:12.5px">
+            <div>
+              <div style="font-weight:700;color:var(--phase-text);margin-bottom:.5rem;font-size:11px;text-transform:uppercase;letter-spacing:.05em">Anthropic</div>
+              <div style="background:var(--surface-0);border-radius:6px;padding:.8rem;font-family:'JetBrains Mono',monospace;line-height:1.9;font-size:11.5px">
+                <span style="color:var(--fg-dim)">client.messages.</span><span style="color:#c4b5fd">create</span>(<span class="kw">)</span><br>
+                <span style="color:var(--fg-dim)">param: </span><span style="color:#10b981">system=</span><span style="color:var(--fg-dim)">"…"</span><br>
+                <span style="color:var(--fg-dim)">param: </span><span style="color:#10b981">max_tokens=</span><span style="color:#f59e0b">1024</span><br>
+                <span style="color:var(--fg-dim)">text: </span><span style="color:#c4b5fd">resp.content[0].text</span><br>
+                <span style="color:var(--fg-dim)">usage: </span><span style="color:#c4b5fd">resp.usage.input_tokens</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-weight:700;color:#10b981;margin-bottom:.5rem;font-size:11px;text-transform:uppercase;letter-spacing:.05em">OpenAI</div>
+              <div style="background:var(--surface-0);border-radius:6px;padding:.8rem;font-family:'JetBrains Mono',monospace;line-height:1.9;font-size:11.5px">
+                <span style="color:var(--fg-dim)">client.chat.completions.</span><span style="color:#10b981">create</span>(<span class="kw">)</span><br>
+                <span style="color:var(--fg-dim)">msg: </span><span style="color:#10b981">{"role":"system"…}</span><br>
+                <span style="color:var(--fg-dim)">param: </span><span style="color:#10b981">max_completion_tokens=</span><span style="color:#f59e0b">1024</span><br>
+                <span style="color:var(--fg-dim)">text: </span><span style="color:#10b981">resp.choices[0].message.content</span><br>
+                <span style="color:var(--fg-dim)">usage: </span><span style="color:#10b981">resp.usage.prompt_tokens</span>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:1rem;font-size:12px;color:var(--fg-dim)">The main structural difference: Anthropic takes <code>system</code> as a top-level param; OpenAI takes it as the first message in the array with role <code>"system"</code>.</div>
+        </div>
+
+        <h2 id="streaming">Streaming responses <a class="anchor" href="#streaming">#</a></h2>
+        <p>By default, the API waits until the full response is generated before returning anything. For a 500-token response at 50 tokens/second, that's 10 seconds of silence. Streaming returns each token as it's generated — users see words appearing in real time.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">streaming.py — streaming with the Anthropic SDK</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic
+client = anthropic.<span class="fn">Anthropic</span>()
+
+<span class="cm"># ── Pattern 1: stream context manager (recommended) ───────────────────</span>
+<span class="kw">with</span> client.messages.<span class="fn">stream</span>(
+    model=<span class="st">"claude-sonnet-4-6"</span>,
+    max_tokens=<span class="nm">512</span>,
+    system=<span class="st">"You are a helpful assistant."</span>,
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"Write a short story about a robot."</span>}],
+) <span class="kw">as</span> stream:
+    <span class="kw">for</span> text <span class="kw">in</span> stream.<span class="fn">text_stream</span>:
+        <span class="fn">print</span>(text, end=<span class="st">""</span>, flush=<span class="tp">True</span>)  <span class="cm"># flush=True shows tokens immediately</span>
+    <span class="fn">print</span>()                                <span class="cm"># newline after stream ends</span>
+
+    <span class="cm"># Usage is available after the stream completes</span>
+    final = stream.<span class="fn">get_final_message</span>()
+    <span class="fn">print</span>(<span class="st">f"\nTokens: {final.usage.input_tokens} in / {final.usage.output_tokens} out"</span>)
+
+<span class="cm"># ── Pattern 2: FastAPI endpoint with Server-Sent Events ───────────────</span>
+<span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI
+<span class="kw">from</span> fastapi.responses <span class="kw">import</span> StreamingResponse
+
+app = <span class="fn">FastAPI</span>()
+
+<span class="kw">def</span> <span class="fn">generate_tokens</span>(prompt: <span class="tp">str</span>):
+    <span class="kw">with</span> client.messages.<span class="fn">stream</span>(
+        model=<span class="st">"claude-sonnet-4-6"</span>,
+        max_tokens=<span class="nm">512</span>,
+        messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: prompt}],
+    ) <span class="kw">as</span> stream:
+        <span class="kw">for</span> text <span class="kw">in</span> stream.<span class="fn">text_stream</span>:
+            <span class="kw">yield</span> <span class="st">f"data: {text}\n\n"</span>   <span class="cm"># SSE format — frontend reads with EventSource</span>
+
+<span class="nm">@</span>app.<span class="fn">get</span>(<span class="st">"/stream"</span>)
+<span class="kw">async def</span> <span class="fn">stream_endpoint</span>(prompt: <span class="tp">str</span>):
+    <span class="kw">return</span> <span class="fn">StreamingResponse</span>(<span class="fn">generate_tokens</span>(prompt), media_type=<span class="st">"text/event-stream"</span>)</code></pre>
+        </div>
+
+        <h2 id="structured-output">Structured output — three approaches <a class="anchor" href="#structured-output">#</a></h2>
+        <p>Most production systems need JSON back from a model — an extracted entity, a classification with confidence, a structured action for an agent to execute. There are three ways to get it. The right choice depends on whether you need strict schema enforcement or just reliable parsing.</p>
+
+        <!-- Three approaches comparison -->
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem">Three ways to get structured JSON</div>
+          <div style="display:flex;flex-direction:column;gap:.6rem;font-size:13px">
+            <div style="display:grid;grid-template-columns:160px 1fr;gap:1rem;padding:.7rem;background:var(--surface-0);border-radius:6px">
+              <div><span style="font-weight:700;color:var(--phase-text)">1. Prompt + JSON mode</span><br><span style="color:var(--fg-dim);font-size:11px">low reliability</span></div>
+              <div>Ask the model to "respond with valid JSON only" in the system prompt. Simple but unreliable — the model occasionally adds prose or malforms the JSON. Never use alone in production.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:160px 1fr;gap:1rem;padding:.7rem;background:var(--surface-0);border-radius:6px">
+              <div><span style="font-weight:700;color:#10b981">2. Tool-call schema</span><br><span style="color:var(--fg-dim);font-size:11px">recommended</span></div>
+              <div>Define a tool with a JSON Schema input_schema. Set <code>tool_choice={"type":"tool","name":"…"}</code> to force the model to always call it. The SDK parses and validates automatically — you get a Python dict, not a string.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:160px 1fr;gap:1rem;padding:.7rem;background:var(--surface-0);border-radius:6px">
+              <div><span style="font-weight:700;color:#f59e0b">3. XML tags + parse</span><br><span style="color:var(--fg-dim);font-size:11px">lightweight fallback</span></div>
+              <div>Ask the model to wrap its answer in XML tags (e.g. <code>&lt;answer&gt;…&lt;/answer&gt;</code>), then extract with a regex or <code>BeautifulSoup</code>. Reliable for simple single-field extraction. Doesn't scale to complex nested schemas.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">structured_output.py — tool-call schema (the right way)</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic, json
+client = anthropic.<span class="fn">Anthropic</span>()
+
+<span class="cm"># ── Define the schema for what you want back ─────────────────────────</span>
+extract_tool = {
+    <span class="st">"name"</span>: <span class="st">"extract_entities"</span>,
+    <span class="st">"description"</span>: <span class="st">"Extract named entities from the provided text."</span>,
+    <span class="st">"input_schema"</span>: {
+        <span class="st">"type"</span>: <span class="st">"object"</span>,
+        <span class="st">"properties"</span>: {
+            <span class="st">"people"</span>:        {<span class="st">"type"</span>: <span class="st">"array"</span>,  <span class="st">"items"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>}},
+            <span class="st">"organisations"</span>: {<span class="st">"type"</span>: <span class="st">"array"</span>,  <span class="st">"items"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>}},
+            <span class="st">"sentiment"</span>:     {<span class="st">"type"</span>: <span class="st">"string"</span>, <span class="st">"enum"</span>: [<span class="st">"positive"</span>, <span class="st">"neutral"</span>, <span class="st">"negative"</span>]},
+        },
+        <span class="st">"required"</span>: [<span class="st">"people"</span>, <span class="st">"organisations"</span>, <span class="st">"sentiment"</span>],
+    },
+}
+
+text = <span class="st">"Anthropic released Claude 4 last week. CEO Dario Amodei said the model "</span> \
+       <span class="st">"significantly outperforms GPT-5 on reasoning benchmarks."</span>
+
+resp = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+    max_tokens=<span class="nm">256</span>,
+    tools=[extract_tool],
+    tool_choice={<span class="st">"type"</span>: <span class="st">"tool"</span>, <span class="st">"name"</span>: <span class="st">"extract_entities"</span>},  <span class="cm"># force the call</span>
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: text}],
+)
+
+<span class="cm"># ── SDK gives you a validated dict, not a raw string ─────────────────</span>
+tool_block = next(b <span class="kw">for</span> b <span class="kw">in</span> resp.content <span class="kw">if</span> b.type == <span class="st">"tool_use"</span>)
+result = tool_block.<span class="fn">input</span>         <span class="cm"># already a Python dict</span>
+<span class="fn">print</span>(result[<span class="st">"people"</span>])          <span class="cm"># ['Dario Amodei']</span>
+<span class="fn">print</span>(result[<span class="st">"organisations"</span>])  <span class="cm"># ['Anthropic']</span>
+<span class="fn">print</span>(result[<span class="st">"sentiment"</span>])     <span class="cm"># 'positive'</span>
+
+<span class="cm"># ── XML tags pattern — for simple single-field extraction ─────────────</span>
+<span class="kw">import</span> re
+
+resp2 = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+    max_tokens=<span class="nm">64</span>,
+    system=<span class="st">"Answer inside &lt;answer&gt; tags only. No other text."</span>,
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"What is 12 * 14?"</span>}],
+)
+raw = resp2.content[<span class="nm">0</span>].text
+match = re.<span class="fn">search</span>(<span class="st">r"&lt;answer&gt;(.*?)&lt;/answer&gt;"</span>, raw, re.DOTALL)
+answer = match.<span class="fn">group</span>(<span class="nm">1</span>).<span class="fn">strip</span>() <span class="kw">if</span> match <span class="kw">else</span> raw
+<span class="fn">print</span>(answer)  <span class="cm"># '168'</span></code></pre>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">Use Haiku for extraction, Sonnet for generation</strong>
+            Entity extraction, classification, and sentiment are low-complexity tasks — Claude Haiku handles them at ~10× lower cost than Sonnet. Save Sonnet (and Opus) for tasks that require reasoning, writing quality, or nuanced judgement. The structured output pattern works identically across all model tiers.
+          </div>
+        </div>
+
+        <h2 id="error-handling">Error handling in production <a class="anchor" href="#error-handling">#</a></h2>
+        <p>The SDK raises typed exceptions — catching the right ones lets you recover gracefully instead of crashing.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">error_patterns.py — typed exceptions + retry logic</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic, time
+client = anthropic.<span class="fn">Anthropic</span>()
+
+<span class="kw">def</span> <span class="fn">call_with_retry</span>(messages: <span class="tp">list</span>, max_retries: <span class="tp">int</span> = <span class="nm">3</span>) -> <span class="tp">str</span>:
+    <span class="kw">for</span> attempt <span class="kw">in</span> <span class="fn">range</span>(max_retries):
+        <span class="kw">try</span>:
+            resp = client.messages.<span class="fn">create</span>(
+                model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+                max_tokens=<span class="nm">512</span>,
+                messages=messages,
+            )
+            <span class="kw">return</span> resp.content[<span class="nm">0</span>].text
+
+        <span class="kw">except</span> anthropic.RateLimitError:
+            <span class="cm"># 429 — back off and retry</span>
+            wait = <span class="nm">2</span> ** attempt
+            <span class="fn">print</span>(<span class="st">f"Rate limited. Waiting {wait}s…"</span>)
+            time.<span class="fn">sleep</span>(wait)
+
+        <span class="kw">except</span> anthropic.APIStatusError <span class="kw">as</span> e:
+            <span class="kw">if</span> e.status_code == <span class="nm">529</span>:    <span class="cm"># API overloaded — retry</span>
+                time.<span class="fn">sleep</span>(<span class="nm">5</span>)
+            <span class="kw">elif</span> e.status_code >= <span class="nm">500</span>:  <span class="cm"># server error — retry</span>
+                time.<span class="fn">sleep</span>(<span class="nm">2</span>)
+            <span class="kw">else</span>:
+                <span class="kw">raise</span>                       <span class="cm"># 4xx client error — don't retry</span>
+
+        <span class="kw">except</span> anthropic.AuthenticationError:
+            <span class="kw">raise</span>  <span class="cm"># bad API key — fail immediately, don't retry</span>
+
+    <span class="kw">raise</span> <span class="tp">RuntimeError</span>(<span class="st">f"Failed after {max_retries} retries"</span>)</code></pre>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 3.2: Calling LLMs via API</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~25 min · live code + diagrams</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 2:00</span><span class="script-action">INTRO</span><span class="script-narration">"Module 3.1 showed you why you use the API. Module 3.2 shows you how to use it — every parameter that matters, streaming, and getting structured data out reliably."</span></div>
+          <div class="script-line"><span class="script-ts">2:00 – 8:00</span><span class="script-action">DIAGRAM</span><span class="script-narration">Walk through the three-role diagram. "System — your instructions. User — the input. Assistant — the history. The model reads the whole list and predicts the next token. That's all it ever does." Show the alternating rule — user/assistant/user/assistant. Demo the validation error you get from two consecutive user messages.</span></div>
+          <div class="script-line"><span class="script-ts">8:00 – 16:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run sdk_basics.py. "Every parameter on screen. Now watch the stop_reason — change max_tokens to 10 and run it again. See 'max_tokens'? Your output was cut off. This is why you always check stop_reason before processing the result." Show the usage object and cost calculation. "50 messages a day, this cost would be…"</span></div>
+          <div class="script-line"><span class="script-ts">16:00 – 20:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run streaming.py pattern 1. "Watch the words appear — that's the difference between a dead UI and a live one. The stream context manager handles all the event parsing. You just iterate text_stream." Show the FastAPI SSE pattern. "This is the exact pattern you'll use in Phase 7 when we build the agent frontend."</span></div>
+          <div class="script-line"><span class="script-ts">20:00 – 25:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run structured_output.py. "The tool-call schema approach — define your JSON Schema, force the model to fill it, get a Python dict back. No JSON parsing errors. No 'the model added prose before the JSON' errors. This is how you build reliable extraction pipelines." Show the XML tags approach. "For a single field — faster and cheaper."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>What are the three message roles and what is the purpose of each?</summary>
+          <div class="selfcheck__a"><strong>system</strong> — instructions for the model that apply to the entire conversation: persona, constraints, output format, domain context. Processed before user messages. You write this; in the raw API nothing overrides it.<br/><br/><strong>user</strong> — input from the human or (more commonly in production) from your code. Can contain retrieved documents, structured data, tool results, or anything the model needs to process. Not limited to literal user input.<br/><br/><strong>assistant</strong> — prior model responses. You include these when building multi-turn conversations. You can also prefill this with a partial string to steer the model's output format — covered in module 3.3.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Your API call returns <code>stop_reason == "max_tokens"</code>. What does this mean and what should you do?</summary>
+          <div class="selfcheck__a">It means the model was cut off mid-generation — the output is incomplete. The model had more to say but hit the hard ceiling set by <code>max_tokens</code>. Fix options: (1) increase <code>max_tokens</code> if your budget allows; (2) shorten the input to leave more room for the output; (3) if you're extracting structured data, consider splitting into smaller requests. Always check <code>stop_reason</code> before processing the response — truncated JSON or code is a silent bug.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What is the difference between the three structured output approaches and when should you use each?</summary>
+          <div class="selfcheck__a"><strong>Prompt + JSON mode</strong> — ask the model to output JSON in the system prompt. Lowest effort but unreliable; the model may add prose or malform the output. Only acceptable for internal scratchpad usage, never in production pipelines.<br/><br/><strong>Tool-call schema</strong> — define a JSON Schema as a tool definition and force the model to call it. The SDK validates against the schema automatically and returns a Python dict. Recommended for all production structured extraction. Works across Anthropic, OpenAI, and LiteLLM.<br/><br/><strong>XML tags</strong> — ask the model to wrap its answer in named XML tags, then extract with regex. Good for simple single-field extraction where a full tool schema is overkill. Not suitable for nested or multi-field structured output.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>You have an endpoint that calls the LLM and needs to show output to the user as fast as possible. What change do you make and what pattern do you use on the backend?</summary>
+          <div class="selfcheck__a">Switch from <code>client.messages.create()</code> to the <code>client.messages.stream()</code> context manager. On the backend, return a <code>StreamingResponse</code> (FastAPI) with <code>media_type="text/event-stream"</code> (Server-Sent Events). Yield each token as <code>f"data: {text}\n\n"</code>. On the frontend, use the browser's native <code>EventSource</code> API or a fetch with <code>ReadableStream</code> to consume the chunks and append them to the UI in real time. The user experience changes from "wait 10 seconds for the full answer" to "words appear immediately."</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Up next</div>
+          <div class="next-mod__title">3.3 · Prompt Anatomy</div>
+          <p class="next-mod__desc">System vs user vs assistant in depth — role assignment, persona consistency, assistant prefilling, markdown vs XML structure, and why the position of an instruction in the prompt changes how strongly the model follows it.</p>
+        </div>
+        <a class="next-btn" href="module-3-3.html">Continue →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#message-contract">The message contract</a>
+    <a href="#anthropic-sdk">Anthropic SDK in depth</a>
+    <a href="#openai-sdk">OpenAI SDK parallel</a>
+    <a href="#streaming">Streaming responses</a>
+    <a href="#structured-output">Structured output</a>
+    <a href="#error-handling">Error handling</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 3.2 / 62<br/>Phase 3 · Week 5<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

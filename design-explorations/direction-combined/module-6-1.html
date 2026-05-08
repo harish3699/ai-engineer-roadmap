@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 6.1 The Context Window as Working Memory · by Harish Mondepu</title>
+<meta name="description" content="Why agents forget mid-conversation, token budgeting, the lost-in-the-middle problem, and recency bias — the mental model for context as working memory."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#d97706;--phase-hi:#f59e0b;--phase-soft:rgba(245,158,11,.1);--phase-text:#d97706}
+[data-theme="dark"]{--phase:#f59e0b;--phase-hi:#fbbf24;--phase-soft:rgba(251,191,36,.1);--phase-text:#fde68a}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 6 · <strong>Context Window as Working Memory</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 38 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#f06292"></span>
+        Phase 4 · RAG + Evaluation ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#10b981"></span>
+        Phase 5 · Tools, MCP &amp; Agents ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 6 · Memory &amp; Context
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">6.1</span>Context Window</a>
+        <a class="sidebar__mod" href="module-6-2.html"><span class="sidebar__mod-num">6.2</span>Context Structure</a>
+        <a class="sidebar__mod" href="module-6-3.html"><span class="sidebar__mod-num">6.3</span>Short-Term Memory</a>
+        <a class="sidebar__mod" href="module-6-4.html"><span class="sidebar__mod-num">6.4</span>Semantic Caching</a>
+        <a class="sidebar__mod" href="module-6-5.html"><span class="sidebar__mod-num">6.5</span>Episodic Memory</a>
+        <a class="sidebar__mod" href="module-6-6.html"><span class="sidebar__mod-num">6.6</span>Context Compression</a>
+        <a class="sidebar__mod" href="module-6-7.html"><span class="sidebar__mod-num">6.7</span>Long-Term Memory</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 06</span>
+        <span class="tag tag--level">Advanced</span>
+        <span class="tag tag--week">Week 17</span>
+      </div>
+      <h1 class="mod-head__title">The Context Window as <em>Working Memory</em></h1>
+      <p class="mod-head__sub">Your agent doesn't have memory in the biological sense. It has a context window — a finite sequence of tokens that is the entirety of what it "knows" at the moment of generation. Understanding this precisely is the foundation of Phase 6. This module covers why agents forget, how token budgeting works, the lost-in-the-middle problem (information buried in the middle of a long context is less attended to), and recency bias. These aren't bugs — they're the mechanical properties of the transformer architecture you need to design around.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~20 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>2 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>The context window is the model's entire "working memory" — it has no access to anything outside the tokens currently in context</li>
+          <li>The lost-in-the-middle problem: information in the first ~20% and last ~20% of the context receives significantly more attention than information in the middle — critical content belongs at the edges</li>
+          <li>Recency bias: the last few messages in context are weighted most heavily — the model's answer tends to reflect whatever was said most recently, regardless of importance</li>
+          <li>Token budgeting is not optional — without explicit section budgets, retrieved content can crowd out the conversation history, and vice versa</li>
+          <li>Throwing more tokens at a problem (increasing context size) often makes agent quality worse, not better — longer contexts dilute attention over more tokens</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Phase 5 complete — you've built agents with tool loops</li>
+            <li><div class="meta-list__dot">!</div>Module 2.1 — how LLMs process tokens (attention basics)</li>
+            <li><div class="meta-list__dot">!</div><code>pip install tiktoken openai</code></li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Explain the lost-in-the-middle problem and its practical implications</li>
+            <li><div class="meta-list__dot">2</div>Count tokens accurately and implement a per-section budget</li>
+            <li><div class="meta-list__dot">3</div>Identify when recency bias is causing agent quality issues</li>
+            <li><div class="meta-list__dot">4</div>Design context layout to prioritise critical information</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">Lost in the Middle — How Language Models Use Long Contexts</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· search "lost in the middle LLM context window attention 2024"</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/SsRlSJPYDfo" title="Context Window Memory" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ The Lost in the Middle paper explained — attention drop-off in long contexts and how to design around it</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="context-is-memory">The context window is all the model has <a class="anchor" href="#context-is-memory">#</a></h2>
+        <p>Between API calls, the model retains absolutely nothing. There is no persistent state, no hidden memory, no background process accumulating knowledge. When you call the API, the model sees exactly the tokens in the <code>messages</code> array and nothing else. When users say "the agent forgot what I told it three turns ago," the cause is almost always one of three things: the message was pushed out of the context window by truncation, it's buried in the middle of a long context and receiving less attention, or it was in a tool result that was stripped from the history.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">Attention distribution in a long context (lost-in-the-middle)</div>
+          <div style="display:flex;gap:.25rem;height:80px;align-items:flex-end;margin-bottom:.5rem">
+            <div style="flex:1;background:var(--phase-hi);border-radius:3px 3px 0 0;height:90%" title="System prompt — high attention"></div>
+            <div style="flex:1;background:var(--phase-hi);border-radius:3px 3px 0 0;height:85%"></div>
+            <div style="flex:1;background:var(--phase-soft);border:1px solid var(--phase-hi);border-radius:3px 3px 0 0;height:45%"></div>
+            <div style="flex:1;background:var(--phase-soft);border:1px solid var(--phase-hi);border-radius:3px 3px 0 0;height:30%"></div>
+            <div style="flex:1;background:var(--phase-soft);border:1px solid var(--phase-hi);border-radius:3px 3px 0 0;height:25%" title="Middle content — lowest attention"></div>
+            <div style="flex:1;background:var(--phase-soft);border:1px solid var(--phase-hi);border-radius:3px 3px 0 0;height:30%"></div>
+            <div style="flex:1;background:var(--phase-soft);border:1px solid var(--phase-hi);border-radius:3px 3px 0 0;height:40%"></div>
+            <div style="flex:1;background:var(--phase-hi);border-radius:3px 3px 0 0;height:80%"></div>
+            <div style="flex:1;background:var(--phase-hi);border-radius:3px 3px 0 0;height:95%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--fg-dim)">
+            <span>← Start of context (high attention)</span>
+            <span>Middle (low attention)</span>
+            <span>End of context (high attention) →</span>
+          </div>
+          <div style="margin-top:.75rem;font-size:12px;color:var(--fg-dim)">Place your system prompt and the most critical retrieved passages at the start. Place the most recent conversation and the user's current question at the end. Avoid putting must-read content in the middle.</div>
+        </div>
+
+        <h2 id="token-counting">Token counting and budgeting <a class="anchor" href="#token-counting">#</a></h2>
+        <p>A token is roughly 3–4 characters in English. The model's context limit is measured in tokens, not words or characters. Accurate token counting is essential for budget enforcement — the naive approach of using <code>len(text)</code> or word count will be wrong by 20–40%.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">token_budget.py — counting tokens and enforcing section budgets</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> tiktoken
+
+<span class="cm"># tiktoken is OpenAI's tokeniser — use cl100k_base for gpt-4/gpt-4o models</span>
+enc = tiktoken.<span class="fn">get_encoding</span>(<span class="st">"cl100k_base"</span>)
+
+<span class="kw">def</span> <span class="fn">count_tokens</span>(text: <span class="tp">str</span>) -> <span class="tp">int</span>:
+    <span class="kw">return</span> <span class="fn">len</span>(enc.<span class="fn">encode</span>(text))
+
+<span class="kw">def</span> <span class="fn">count_messages_tokens</span>(messages: <span class="tp">list</span>[<span class="tp">dict</span>]) -> <span class="tp">int</span>:
+    <span class="st">"""Approximate token count for a messages list (OpenAI format)."""</span>
+    total = <span class="nm">3</span>  <span class="cm"># every reply is primed with <|start|>assistant<|message|></span>
+    <span class="kw">for</span> msg <span class="kw">in</span> messages:
+        total += <span class="nm">4</span>  <span class="cm"># role + framing tokens</span>
+        total += <span class="fn">count_tokens</span>(msg.<span class="fn">get</span>(<span class="st">"content"</span>, <span class="st">""</span>))
+    <span class="kw">return</span> total
+
+<span class="cm"># ── Per-section token budgets ─────────────────────────────────────────</span>
+CONTEXT_LIMIT = <span class="nm">8000</span>
+BUDGETS = {
+    <span class="st">"system"</span>:   <span class="nm">800</span>,   <span class="cm"># system prompt — precise instructions</span>
+    <span class="st">"context"</span>:  <span class="nm">3000</span>,  <span class="cm"># retrieved RAG passages</span>
+    <span class="st">"history"</span>:  <span class="nm">2500</span>,  <span class="cm"># conversation history</span>
+    <span class="st">"user"</span>:     <span class="nm">500</span>,   <span class="cm"># current user message</span>
+    <span class="st">"response"</span>: <span class="nm">1200</span>,  <span class="cm"># headroom for assistant response</span>
+}
+<span class="cm"># Total = 8000 — leaves nothing on the table</span>
+
+<span class="kw">def</span> <span class="fn">trim_to_budget</span>(text: <span class="tp">str</span>, budget: <span class="tp">int</span>) -> <span class="tp">str</span>:
+    <span class="st">"""Truncate text to fit within token budget, preserving whole sentences."""</span>
+    tokens = enc.<span class="fn">encode</span>(text)
+    <span class="kw">if</span> <span class="fn">len</span>(tokens) <= budget:
+        <span class="kw">return</span> text
+    truncated = enc.<span class="fn">decode</span>(tokens[:budget])
+    <span class="cm"># Find last sentence boundary to avoid mid-sentence cuts</span>
+    last_period = truncated.<span class="fn">rfind</span>(<span class="st">"."</span>)
+    <span class="kw">return</span> truncated[:last_period + <span class="nm">1</span>] + <span class="st">" [truncated]"</span> <span class="kw">if</span> last_period > <span class="nm">0</span> <span class="kw">else</span> truncated
+
+<span class="cm"># Usage: before assembling the messages array</span>
+system_prompt = <span class="fn">trim_to_budget</span>(raw_system_prompt, BUDGETS[<span class="st">"system"</span>])
+context_block  = <span class="fn">trim_to_budget</span>(retrieved_passages, BUDGETS[<span class="st">"context"</span>])</code></pre>
+        </div>
+
+        <h2 id="recency-bias">Recency bias and its implications <a class="anchor" href="#recency-bias">#</a></h2>
+        <p>The last message in the context window receives disproportionately high attention. This is useful — the model naturally focuses on the most recent user question — but harmful when earlier, equally important instructions are forgotten. Common failure mode: the user says "always respond in German" in turn 1, and by turn 15 (after many tool calls and retrieved passages filling the middle), the model starts responding in English because the German instruction is buried and the last user message was in English.</p>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">Critical instructions belong in the system prompt, not the conversation</strong>
+            Any instruction you need the model to follow throughout the entire conversation — language, persona, constraints, output format — must be in the system prompt (position: first). Do not put standing instructions in a user turn and hope the model remembers them after 10 more exchanges. The system prompt is the only position in context that is guaranteed to stay prominent regardless of conversation length.
+          </div>
+        </div>
+
+        <h2 id="context-budget-allocation">Designing context layout for attention <a class="anchor" href="#context-budget-allocation">#</a></h2>
+        <p>Given the U-shaped attention curve (high at start, low in middle, high at end), the optimal context layout is:</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">context_layout.py — optimal message assembly order</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">def</span> <span class="fn">build_messages</span>(
+    system_prompt: <span class="tp">str</span>,
+    retrieved_context: <span class="tp">str</span>,
+    history: <span class="tp">list</span>[<span class="tp">dict</span>],
+    user_query: <span class="tp">str</span>,
+) -> <span class="tp">list</span>[<span class="tp">dict</span>]:
+    <span class="st">"""
+    Optimal layout for long-context agents:
+    1. System prompt  ← START (high attention) — instructions, persona, constraints
+    2. Retrieved context ← just after system — important reference material
+    3. Conversation history ← middle (low attention) — older turns compress to summaries
+    4. User message ← END (highest attention) — current question always last
+    """</span>
+    <span class="kw">return</span> [
+        {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: <span class="fn">trim_to_budget</span>(system_prompt, BUDGETS[<span class="st">"system"</span>])},
+        {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: <span class="st">f"[CONTEXT]\n{trim_to_budget(retrieved_context, BUDGETS['context'])}"</span>},
+        {<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: <span class="st">"Understood. I'll answer using only the provided context."</span>},
+        *history,  <span class="cm"># middle — compressed by module 6.6 once it grows</span>
+        {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: user_query},  <span class="cm"># always last</span>
+    ]</code></pre>
+        </div>
+
+        <div class="callout callout--note">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">Larger context ≠ better answers</strong>
+            GPT-4o supports 128k tokens and Claude supports up to 200k. It is tempting to just dump everything in and let the model figure it out. Research consistently shows that answer quality peaks at a fraction of the maximum context and degrades as the context grows — the model attends to more tokens but less reliably to the right ones. The discipline of Phase 6 is <em>not</em> filling the context window — it's engineering what goes in, in what order, at what position, and compressing or externalising what doesn't need to be there.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 6.1: Context Window as Working Memory</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~20 min · 2 live code demos</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 5:00</span><span class="script-action">INTRO + DIAGRAM</span><span class="script-narration">"Phase 6 is the hardest conceptual phase in this roadmap. Not because the code is complex — most of it is simple Python. Hard because the mental model is counterintuitive: bigger context is often worse, the model forgets things that are still technically in context, and the solution isn't more tokens, it's better engineering. This U-curve diagram is the key insight — show me where you put your most important content and I'll tell you whether the agent will actually use it."</span></div>
+          <div class="script-line"><span class="script-ts">5:00 – 12:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run token_budget.py. "count_tokens('The quick brown fox') — 5 tokens. len('The quick brown fox') — 19 characters. Your character-based truncation is off by 3.8x. Show the trim_to_budget function preserving sentence boundaries. Then show the BUDGETS dict: 8000 total, explicitly allocated by section. 'Before I added this, the RAG context would grow to 6000 tokens and crowd out the conversation history entirely — the agent kept forgetting what the user had said in earlier turns.'"</span></div>
+          <div class="script-line"><span class="script-ts">12:00 – 20:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run context_layout.py. Show the message order: system → context → history → user. "The user question is always last — highest attention. The system prompt is first — high attention. The history is in the middle — compressed in module 6.6. Demonstrate: move the retrieved context to the middle and ask the agent a question about it — less accurate than when context is at position 2. The order matters."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>Explain the "lost in the middle" problem. How does it affect a RAG agent that injects 10 retrieved passages into the middle of a long conversation history?</summary>
+          <div class="selfcheck__a">The lost-in-the-middle problem, documented in research by Liu et al. (2023), shows that language models exhibit a U-shaped attention pattern over their context window: tokens near the beginning and end receive significantly more attention than tokens in the middle. In a RAG agent that places 10 retrieved passages between a long conversation history and the current user question, those passages land in the middle-to-lower-attention zone. The model is technically "reading" them, but its attention is lower — it is more likely to miss a key fact buried in passage 5 of 10 than it would be if that passage were near the start. The practical consequence: the agent may answer incorrectly or incompletely even when the relevant information is present in context. The fix: place retrieved context immediately after the system prompt (position 2), never in the middle of the conversation history. Apply reranking (module 4.6) to ensure the top-1 passage is the most relevant one, and keep the retrieved set small (3–5 passages) rather than injecting everything.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>A user complains that your agent "forgot" their preference (stated in turn 2) by turn 20. What are the three most likely causes and how do you diagnose each?</summary>
+          <div class="selfcheck__a">Cause 1 — Recency bias: the preference message is still in context but it's buried 18 turns back in the middle of the context window. The most recent messages (tool calls, assistant responses) are dominating attention. Diagnose by checking where the preference message sits in the message list and estimating its position as a percentage of total tokens. Fix: move standing preferences to the system prompt, or re-inject them at the end of context before each LLM call. Cause 2 — Context truncation: the sliding window (module 6.3) or compression (module 6.6) removed the message entirely to fit within the token budget. Diagnose by logging the exact messages array sent to the API and checking whether the preference message is still present. Fix: mark important messages as "pinned" so the window/compression logic never removes them. Cause 3 — Tool call stripping: the preference was stated in the same turn as a tool result, and the tool message was stripped from history as part of history trimming. Diagnose by checking your history management code — does it remove tool role messages? Fix: ensure at minimum the user messages from important turns are preserved even if the tool results are stripped.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Next in Phase 6</div>
+          <div class="next-mod__title">6.2 · Context Structure</div>
+          <p class="next-mod__desc">SYSTEM / CONTEXT / USER separation, @dynamic_prompt patterns, structural separation as a prompt injection defence, and per-section token budgets.</p>
+        </div>
+        <a class="next-btn" href="module-6-2.html">Next Module →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#context-is-memory">Context window is all the model has</a>
+    <a href="#token-counting">Token counting and budgeting</a>
+    <a href="#recency-bias">Recency bias</a>
+    <a href="#context-budget-allocation">Designing context layout</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 6.1 / 62<br/>Phase 6 · Week 17<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

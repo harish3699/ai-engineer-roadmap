@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 7.3 Common Multi-Agent Patterns · by Harish Mondepu</title>
+<meta name="description" content="The five canonical multi-agent patterns — supervisor/workers, sequential pipeline, parallel fan-out/fan-in, plan-and-execute, and reflection loops — with complete LangGraph implementations."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#c2410c;--phase-hi:#ea580c;--phase-soft:rgba(234,88,12,.1);--phase-text:#c2410c}
+[data-theme="dark"]{--phase:#f97316;--phase-hi:#fb923c;--phase-soft:rgba(249,115,22,.1);--phase-text:#fed7aa}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 7 · <strong>Common Patterns</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 47 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#1aada0"></span>Phase 1 · Python Foundations ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#06b6d4"></span>Phase 2 · LLM Mental Model ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#a78bfa"></span>Phase 3 · Prompt Engineering ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f06292"></span>Phase 4 · RAG + Evaluation ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#10b981"></span>Phase 5 · Tools, MCP &amp; Agents ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f59e0b"></span>Phase 6 · Memory &amp; Context ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 7 · Multi-Agent Orchestration
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-7-1.html"><span class="sidebar__mod-num">7.1</span>When Multi-Agent? ✓</a>
+        <a class="sidebar__mod done" href="module-7-2.html"><span class="sidebar__mod-num">7.2</span>LangGraph Fundamentals ✓</a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">7.3</span>Common Patterns</a>
+        <a class="sidebar__mod" href="module-7-4.html"><span class="sidebar__mod-num">7.4</span>Agent-as-Tool</a>
+        <a class="sidebar__mod" href="module-7-5.html"><span class="sidebar__mod-num">7.5</span>State Management</a>
+        <a class="sidebar__mod" href="module-7-6.html"><span class="sidebar__mod-num">7.6</span>A2A Protocol</a>
+        <a class="sidebar__mod" href="module-7-7.html"><span class="sidebar__mod-num">7.7</span>Frameworks Compared</a>
+        <a class="sidebar__mod" href="module-7-8.html"><span class="sidebar__mod-num">7.8</span>Debugging Multi-Agent</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 07</span>
+        <span class="tag tag--level">Expert</span>
+        <span class="tag tag--week">Week 21</span>
+      </div>
+      <h1 class="mod-head__title">Common Multi-Agent <em>Patterns</em></h1>
+      <p class="mod-head__sub">Five patterns cover the vast majority of multi-agent architectures you'll encounter in practice. Each has a distinct graph topology, a clear use case, and specific failure modes. This module covers all five with working LangGraph code: supervisor + workers (hierarchical delegation), sequential pipeline (assembly-line processing), parallel fan-out/fan-in (independent parallel tasks), plan-and-execute (upfront planning then step execution), and reflection loops (generate → critique → refine).</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~30 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>5 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li><strong>Supervisor + workers:</strong> a supervisor decides which worker to call next; workers report back to supervisor, not to each other — avoids uncontrolled agent chaining</li>
+          <li><strong>Sequential pipeline:</strong> each agent's output is the next agent's input; the cleanest pattern for assembly-line transformations with clear data contracts between stages</li>
+          <li><strong>Parallel fan-out/fan-in:</strong> a splitter launches N independent workers concurrently; a merger aggregates their outputs — for tasks with truly independent sub-problems</li>
+          <li><strong>Plan-and-execute:</strong> a planner agent produces a structured plan upfront; an executor agent follows it step by step — reduces mid-task drift on complex multi-step tasks</li>
+          <li><strong>Reflection loop:</strong> a generator produces output; a critic evaluates it; the generator revises — keeps cycling until quality threshold or max iterations; the most expensive pattern but best for quality-critical output</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Module 7.2 — LangGraph primitives (StateGraph, nodes, edges)</li>
+            <li><div class="meta-list__dot">!</div><code>pip install langgraph langchain-openai</code></li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Identify which pattern applies to a given multi-agent problem</li>
+            <li><div class="meta-list__dot">2</div>Implement supervisor+workers and sequential pipeline in LangGraph</li>
+            <li><div class="meta-list__dot">3</div>Use <code>Send</code> for dynamic parallel fan-out to N workers</li>
+            <li><div class="meta-list__dot">4</div>Build a reflection loop with a configurable max-iteration termination</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="supervisor">Pattern 1 — Supervisor + Workers <a class="anchor" href="#supervisor">#</a></h2>
+        <p>The supervisor is a central routing agent that decides which worker to call based on the current state. Workers complete specific sub-tasks and always return control to the supervisor. This pattern ensures one agent remains in control of the overall workflow — no agent chains without the supervisor's knowledge.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">supervisor.py — hierarchical supervisor routing workers</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> langgraph.graph <span class="kw">import</span> StateGraph, START, END
+<span class="kw">from</span> typing <span class="kw">import</span> TypedDict, Annotated, Literal
+<span class="kw">from</span> langgraph.graph.message <span class="kw">import</span> add_messages
+
+WORKERS = [<span class="st">"researcher"</span>, <span class="st">"analyst"</span>, <span class="st">"writer"</span>]
+
+<span class="kw">class</span> <span class="tp">SupervisorState</span>(<span class="tp">TypedDict</span>):
+    messages: <span class="tp">Annotated</span>[<span class="tp">list</span>, add_messages]
+    next: <span class="tp">str</span>   <span class="cm"># which worker to call next, or "FINISH"</span>
+
+supervisor_llm = llm.<span class="fn">with_structured_output</span>(<span class="kw">class</span> <span class="tp">Route</span>(<span class="tp">TypedDict</span>): next: <span class="tp">Literal</span>[<span class="st">"researcher"</span>,<span class="st">"analyst"</span>,<span class="st">"writer"</span>,<span class="st">"FINISH"</span>])
+
+<span class="kw">def</span> <span class="fn">supervisor_node</span>(state: <span class="tp">SupervisorState</span>) -> <span class="tp">dict</span>:
+    result = supervisor_llm.<span class="fn">invoke</span>([
+        {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: <span class="st">f"You are a supervisor. Workers: {WORKERS}. Choose next or FINISH."</span>},
+        *state[<span class="st">"messages"</span>],
+    ])
+    <span class="kw">return</span> {<span class="st">"next"</span>: result[<span class="st">"next"</span>]}
+
+<span class="kw">def</span> <span class="fn">make_worker</span>(name: <span class="tp">str</span>, system_prompt: <span class="tp">str</span>):
+    <span class="kw">def</span> <span class="fn">worker_node</span>(state: <span class="tp">SupervisorState</span>) -> <span class="tp">dict</span>:
+        response = llm.<span class="fn">invoke</span>([{<span class="st">"role"</span>:<span class="st">"system"</span>,<span class="st">"content"</span>:system_prompt}, *state[<span class="st">"messages"</span>]])
+        <span class="kw">return</span> {<span class="st">"messages"</span>: [{<span class="st">"role"</span>:<span class="st">"assistant"</span>,<span class="st">"content"</span>:<span class="st">f"[{name}] {response.content}"</span>}]}
+    <span class="kw">return</span> worker_node
+
+builder = <span class="tp">StateGraph</span>(<span class="tp">SupervisorState</span>)
+builder.<span class="fn">add_node</span>(<span class="st">"supervisor"</span>, supervisor_node)
+builder.<span class="fn">add_node</span>(<span class="st">"researcher"</span>, <span class="fn">make_worker</span>(<span class="st">"researcher"</span>, <span class="st">"You are a research expert."</span>))
+builder.<span class="fn">add_node</span>(<span class="st">"analyst"</span>,    <span class="fn">make_worker</span>(<span class="st">"analyst"</span>,    <span class="st">"You are a data analyst."</span>))
+builder.<span class="fn">add_node</span>(<span class="st">"writer"</span>,     <span class="fn">make_worker</span>(<span class="st">"writer"</span>,     <span class="st">"You are a technical writer."</span>))
+
+builder.<span class="fn">add_edge</span>(<span class="tp">START</span>, <span class="st">"supervisor"</span>)
+builder.<span class="fn">add_conditional_edges</span>(<span class="st">"supervisor"</span>, <span class="kw">lambda</span> s: s[<span class="st">"next"</span>],
+    {<span class="st">"researcher"</span>:<span class="st">"researcher"</span>, <span class="st">"analyst"</span>:<span class="st">"analyst"</span>, <span class="st">"writer"</span>:<span class="st">"writer"</span>, <span class="st">"FINISH"</span>:<span class="tp">END</span>})
+<span class="kw">for</span> w <span class="kw">in</span> WORKERS:
+    builder.<span class="fn">add_edge</span>(w, <span class="st">"supervisor"</span>)   <span class="cm"># all workers return to supervisor</span>
+graph = builder.<span class="fn">compile</span>()</code></pre>
+        </div>
+
+        <h2 id="sequential">Pattern 2 — Sequential Pipeline <a class="anchor" href="#sequential">#</a></h2>
+        <p>Each stage transforms the output of the previous stage. The data contract between stages is explicit — each node produces exactly what the next node expects. Best for assembly-line tasks where each transformation is independent.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">pipeline.py — sequential 4-stage document processing pipeline</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">class</span> <span class="tp">PipelineState</span>(<span class="tp">TypedDict</span>):
+    raw_document: <span class="tp">str</span>
+    extracted_facts: <span class="tp">list</span>[<span class="tp">str</span>]
+    structured_report: <span class="tp">str</span>
+    final_summary: <span class="tp">str</span>
+
+<span class="kw">def</span> <span class="fn">extract_node</span>(state): ...   <span class="cm"># raw_document → extracted_facts</span>
+<span class="kw">def</span> <span class="fn">structure_node</span>(state): ... <span class="cm"># extracted_facts → structured_report</span>
+<span class="kw">def</span> <span class="fn">summarise_node</span>(state): ... <span class="cm"># structured_report → final_summary</span>
+
+builder = <span class="tp">StateGraph</span>(<span class="tp">PipelineState</span>)
+builder.<span class="fn">add_node</span>(<span class="st">"extract"</span>,   extract_node)
+builder.<span class="fn">add_node</span>(<span class="st">"structure"</span>, structure_node)
+builder.<span class="fn">add_node</span>(<span class="st">"summarise"</span>, summarise_node)
+builder.<span class="fn">add_edge</span>(<span class="tp">START</span>,       <span class="st">"extract"</span>)
+builder.<span class="fn">add_edge</span>(<span class="st">"extract"</span>,   <span class="st">"structure"</span>)
+builder.<span class="fn">add_edge</span>(<span class="st">"structure"</span>, <span class="st">"summarise"</span>)
+builder.<span class="fn">add_edge</span>(<span class="st">"summarise"</span>, <span class="tp">END</span>)</code></pre>
+        </div>
+
+        <h2 id="fan-out">Pattern 3 — Parallel Fan-out / Fan-in <a class="anchor" href="#fan-out">#</a></h2>
+        <p>A splitter creates N independent sub-tasks and dispatches them to worker nodes simultaneously. The <code>Send</code> primitive in LangGraph allows dynamic fan-out — you can dispatch a variable number of workers based on the state at runtime, not at graph-definition time.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">fan_out.py — dynamic parallel fan-out with Send</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> langgraph.types <span class="kw">import</span> Send
+<span class="kw">import</span> operator
+
+<span class="kw">class</span> <span class="tp">FanOutState</span>(<span class="tp">TypedDict</span>):
+    topics: <span class="tp">list</span>[<span class="tp">str</span>]                               <span class="cm"># input: N topics to research</span>
+    reports: <span class="tp">Annotated</span>[<span class="tp">list</span>[<span class="tp">str</span>], operator.<span class="fn">add</span>]    <span class="cm"># aggregated results</span>
+    final: <span class="tp">str</span>
+
+<span class="kw">class</span> <span class="tp">WorkerState</span>(<span class="tp">TypedDict</span>):
+    topic: <span class="tp">str</span>
+    reports: <span class="tp">Annotated</span>[<span class="tp">list</span>[<span class="tp">str</span>], operator.<span class="fn">add</span>]
+
+<span class="kw">def</span> <span class="fn">dispatch_workers</span>(state: <span class="tp">FanOutState</span>) -> <span class="tp">list</span>[<span class="tp">Send</span>]:
+    <span class="cm"># Returns a Send for each topic → LangGraph launches them concurrently</span>
+    <span class="kw">return</span> [<span class="tp">Send</span>(<span class="st">"research_worker"</span>, {<span class="st">"topic"</span>: topic, <span class="st">"reports"</span>: []}) <span class="kw">for</span> topic <span class="kw">in</span> state[<span class="st">"topics"</span>]]
+
+<span class="kw">def</span> <span class="fn">research_worker</span>(state: <span class="tp">WorkerState</span>) -> <span class="tp">dict</span>:
+    result = llm.<span class="fn">invoke</span>(<span class="st">f"Research: {state['topic']}"</span>).content
+    <span class="kw">return</span> {<span class="st">"reports"</span>: [result]}
+
+<span class="kw">def</span> <span class="fn">merge_node</span>(state: <span class="tp">FanOutState</span>) -> <span class="tp">dict</span>:
+    combined = <span class="st">"\n\n"</span>.<span class="fn">join</span>(state[<span class="st">"reports"</span>])
+    final = llm.<span class="fn">invoke</span>(<span class="st">f"Synthesise: {combined}"</span>).content
+    <span class="kw">return</span> {<span class="st">"final"</span>: final}
+
+builder = <span class="tp">StateGraph</span>(<span class="tp">FanOutState</span>)
+builder.<span class="fn">add_node</span>(<span class="st">"research_worker"</span>, research_worker)
+builder.<span class="fn">add_node</span>(<span class="st">"merge"</span>, merge_node)
+builder.<span class="fn">add_conditional_edges</span>(<span class="tp">START</span>, dispatch_workers, [<span class="st">"research_worker"</span>])
+builder.<span class="fn">add_edge</span>(<span class="st">"research_worker"</span>, <span class="st">"merge"</span>)
+builder.<span class="fn">add_edge</span>(<span class="st">"merge"</span>, <span class="tp">END</span>)</code></pre>
+        </div>
+
+        <h2 id="plan-execute">Pattern 4 — Plan and Execute <a class="anchor" href="#plan-execute">#</a></h2>
+        <p>The planner produces a structured plan with discrete numbered steps. The executor works through the steps one by one, updating the plan's completion status as it goes. This pattern reduces mid-task drift on long, complex workflows where a reactive ReAct loop might get sidetracked.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">plan_execute.py — planner + step executor</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+
+<span class="kw">class</span> <span class="tp">Plan</span>(<span class="tp">BaseModel</span>):
+    steps: <span class="tp">list</span>[<span class="tp">str</span>]
+
+<span class="kw">class</span> <span class="tp">PlanExecState</span>(<span class="tp">TypedDict</span>):
+    task: <span class="tp">str</span>
+    plan: <span class="tp">list</span>[<span class="tp">str</span>]
+    completed_steps: <span class="tp">Annotated</span>[<span class="tp">list</span>[<span class="tp">str</span>], operator.<span class="fn">add</span>]
+    current_step: <span class="tp">int</span>
+    response: <span class="tp">str</span>
+
+planner_llm = llm.<span class="fn">with_structured_output</span>(<span class="tp">Plan</span>)
+
+<span class="kw">def</span> <span class="fn">planner_node</span>(state: <span class="tp">PlanExecState</span>) -> <span class="tp">dict</span>:
+    plan = planner_llm.<span class="fn">invoke</span>(<span class="st">f"Create a step-by-step plan for: {state['task']}"</span>)
+    <span class="kw">return</span> {<span class="st">"plan"</span>: plan.steps, <span class="st">"current_step"</span>: <span class="nm">0</span>}
+
+<span class="kw">def</span> <span class="fn">executor_node</span>(state: <span class="tp">PlanExecState</span>) -> <span class="tp">dict</span>:
+    step = state[<span class="st">"plan"</span>][state[<span class="st">"current_step"</span>]]
+    context = <span class="st">"\n"</span>.<span class="fn">join</span>(state[<span class="st">"completed_steps"</span>])
+    result = llm.<span class="fn">invoke</span>(<span class="st">f"Context:\n{context}\n\nExecute step: {step}"</span>).content
+    <span class="kw">return</span> {<span class="st">"completed_steps"</span>: [<span class="st">f"Step {state['current_step']+1}: {result}"</span>],
+            <span class="st">"current_step"</span>: state[<span class="st">"current_step"</span>] + <span class="nm">1</span>,
+            <span class="st">"response"</span>: result}
+
+<span class="kw">def</span> <span class="fn">has_more_steps</span>(state: <span class="tp">PlanExecState</span>) -> <span class="tp">str</span>:
+    <span class="kw">return</span> <span class="st">"execute"</span> <span class="kw">if</span> state[<span class="st">"current_step"</span>] < <span class="fn">len</span>(state[<span class="st">"plan"</span>]) <span class="kw">else</span> <span class="st">"end"</span>
+
+builder = <span class="tp">StateGraph</span>(<span class="tp">PlanExecState</span>)
+builder.<span class="fn">add_node</span>(<span class="st">"plan"</span>, planner_node)
+builder.<span class="fn">add_node</span>(<span class="st">"execute"</span>, executor_node)
+builder.<span class="fn">add_edge</span>(<span class="tp">START</span>, <span class="st">"plan"</span>)
+builder.<span class="fn">add_edge</span>(<span class="st">"plan"</span>, <span class="st">"execute"</span>)
+builder.<span class="fn">add_conditional_edges</span>(<span class="st">"execute"</span>, has_more_steps, {<span class="st">"execute"</span>:<span class="st">"execute"</span>, <span class="st">"end"</span>:<span class="tp">END</span>})</code></pre>
+        </div>
+
+        <h2 id="reflection">Pattern 5 — Reflection Loop <a class="anchor" href="#reflection">#</a></h2>
+        <p>A generator produces output; a critic evaluates it against quality criteria and returns structured feedback; the generator revises based on the feedback. The loop continues until the critic approves or max iterations is reached. Most expensive pattern — uses 2N LLM calls for N revisions — but produces the highest-quality output for writing, code review, and plan validation.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">reflection.py — generate-critique-revise loop</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">class</span> <span class="tp">CritiqueResult</span>(<span class="tp">BaseModel</span>):
+    approved: <span class="tp">bool</span>
+    feedback: <span class="tp">str</span>
+
+<span class="kw">class</span> <span class="tp">ReflectState</span>(<span class="tp">TypedDict</span>):
+    task: <span class="tp">str</span>
+    draft: <span class="tp">str</span>
+    feedback: <span class="tp">str</span>
+    revisions: <span class="tp">int</span>
+    max_revisions: <span class="tp">int</span>
+    approved: <span class="tp">bool</span>
+
+critic_llm = llm.<span class="fn">with_structured_output</span>(<span class="tp">CritiqueResult</span>)
+
+<span class="kw">def</span> <span class="fn">generator_node</span>(state: <span class="tp">ReflectState</span>) -> <span class="tp">dict</span>:
+    prompt = state[<span class="st">"task"</span>]
+    <span class="kw">if</span> state[<span class="st">"feedback"</span>]:
+        prompt += <span class="st">f"\n\nPrevious draft:\n{state['draft']}\n\nRevise based on: {state['feedback']}"</span>
+    draft = llm.<span class="fn">invoke</span>(prompt).content
+    <span class="kw">return</span> {<span class="st">"draft"</span>: draft, <span class="st">"revisions"</span>: state[<span class="st">"revisions"</span>] + <span class="nm">1</span>}
+
+<span class="kw">def</span> <span class="fn">critic_node</span>(state: <span class="tp">ReflectState</span>) -> <span class="tp">dict</span>:
+    result = critic_llm.<span class="fn">invoke</span>(<span class="st">f"Evaluate this draft for the task '{state['task']}':\n\n{state['draft']}"</span>)
+    <span class="kw">return</span> {<span class="st">"feedback"</span>: result.feedback, <span class="st">"approved"</span>: result.approved}
+
+<span class="kw">def</span> <span class="fn">should_revise</span>(state: <span class="tp">ReflectState</span>) -> <span class="tp">str</span>:
+    <span class="kw">if</span> state[<span class="st">"approved"</span>] <span class="kw">or</span> state[<span class="st">"revisions"</span>] >= state[<span class="st">"max_revisions"</span>]:
+        <span class="kw">return</span> <span class="st">"end"</span>
+    <span class="kw">return</span> <span class="st">"generate"</span>
+
+builder = <span class="tp">StateGraph</span>(<span class="tp">ReflectState</span>)
+builder.<span class="fn">add_node</span>(<span class="st">"generate"</span>, generator_node)
+builder.<span class="fn">add_node</span>(<span class="st">"critique"</span>, critic_node)
+builder.<span class="fn">add_edge</span>(<span class="tp">START</span>, <span class="st">"generate"</span>)
+builder.<span class="fn">add_edge</span>(<span class="st">"generate"</span>, <span class="st">"critique"</span>)
+builder.<span class="fn">add_conditional_edges</span>(<span class="st">"critique"</span>, should_revise, {<span class="st">"generate"</span>:<span class="st">"generate"</span>, <span class="st">"end"</span>:<span class="tp">END</span>})</code></pre>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: Agent-as-Tool</div>
+            <div class="cta-block__sub">Module 7.4 covers the lightweight alternative to full graph orchestration — wrapping a specialist agent behind a normal <code>@tool</code> interface so a parent agent can call it like any other function.</div>
+          </div>
+          <a class="cta-block__btn" href="module-7-4.html">Module 7.4 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#supervisor">Supervisor + Workers</a></li>
+      <li><a class="toc__link" href="#sequential">Sequential Pipeline</a></li>
+      <li><a class="toc__link" href="#fan-out">Parallel Fan-out/Fan-in</a></li>
+      <li><a class="toc__link" href="#plan-execute">Plan and Execute</a></li>
+      <li><a class="toc__link" href="#reflection">Reflection Loop</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){const h=document.documentElement;const dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');localStorage.setItem('ae-theme',dark?'light':'dark');document.getElementById('themeIcon').textContent=dark?'☀':'☾';document.getElementById('themeLabel').textContent=dark?'Light':'Dark';}
+(function(){const t=localStorage.getItem('ae-theme');if(t){document.documentElement.setAttribute('data-theme',t);const dark=t==='dark';document.getElementById('themeIcon').textContent=dark?'☾':'☀';document.getElementById('themeLabel').textContent=dark?'Dark':'Light';}})();
+function copyCode(btn){const code=btn.closest('.code-wrap').querySelector('pre code');navigator.clipboard.writeText(code.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{es.forEach(e=>{const id=e.target.id;if(!id)return;const link=document.querySelector(`.toc__link[href="#${id}"]`);if(!link)return;if(e.isIntersecting){document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));link.classList.add('active');}});},{rootMargin:'-20% 0px -70% 0px'});document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

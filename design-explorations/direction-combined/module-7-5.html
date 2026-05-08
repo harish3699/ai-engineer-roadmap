@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 7.5 State Management · by Harish Mondepu</title>
+<meta name="description" content="Typed state design with Pydantic, what belongs in graph state versus context, and LangGraph checkpointers for resumable multi-agent workflows — MemorySaver, SqliteSaver, PostgresSaver."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#c2410c;--phase-hi:#ea580c;--phase-soft:rgba(234,88,12,.1);--phase-text:#c2410c}
+[data-theme="dark"]{--phase:#f97316;--phase-hi:#fb923c;--phase-soft:rgba(249,115,22,.1);--phase-text:#fed7aa}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 7 · <strong>State Management</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 49 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#1aada0"></span>Phase 1 · Python Foundations ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#06b6d4"></span>Phase 2 · LLM Mental Model ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#a78bfa"></span>Phase 3 · Prompt Engineering ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f06292"></span>Phase 4 · RAG + Evaluation ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#10b981"></span>Phase 5 · Tools, MCP &amp; Agents ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f59e0b"></span>Phase 6 · Memory &amp; Context ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 7 · Multi-Agent Orchestration
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-7-1.html"><span class="sidebar__mod-num">7.1</span>When Multi-Agent? ✓</a>
+        <a class="sidebar__mod done" href="module-7-2.html"><span class="sidebar__mod-num">7.2</span>LangGraph Fundamentals ✓</a>
+        <a class="sidebar__mod done" href="module-7-3.html"><span class="sidebar__mod-num">7.3</span>Common Patterns ✓</a>
+        <a class="sidebar__mod done" href="module-7-4.html"><span class="sidebar__mod-num">7.4</span>Agent-as-Tool ✓</a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">7.5</span>State Management</a>
+        <a class="sidebar__mod" href="module-7-6.html"><span class="sidebar__mod-num">7.6</span>A2A Protocol</a>
+        <a class="sidebar__mod" href="module-7-7.html"><span class="sidebar__mod-num">7.7</span>Frameworks Compared</a>
+        <a class="sidebar__mod" href="module-7-8.html"><span class="sidebar__mod-num">7.8</span>Debugging Multi-Agent</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 07</span>
+        <span class="tag tag--level">Expert</span>
+        <span class="tag tag--week">Week 21</span>
+      </div>
+      <h1 class="mod-head__title">State <em>Management</em></h1>
+      <p class="mod-head__sub">Graph state is the spine of a multi-agent system — it's what every node reads from and writes to. Poor state design is the single most common source of multi-agent bugs: too much in state causes bloated context, wrong things in state cause nodes to behave unpredictably, and missing checkpointing means a 30-minute workflow starts over from scratch on the first transient error. This module covers typed state design with Pydantic, the state-vs-context distinction, and the three LangGraph checkpointers you'll use in production: <code>MemorySaver</code>, <code>SqliteSaver</code>, and <code>PostgresSaver</code>.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~22 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>4 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>State should contain <em>coordination metadata</em> (what step we're on, what was decided, what still needs doing) — not the full raw content that nodes process</li>
+          <li>Use Pydantic models for state instead of plain <code>TypedDict</code> when you need validation — Pydantic state gives you type-safe field access with validation at write time</li>
+          <li><code>MemorySaver</code> is in-process and non-persistent — loses all state on restart. Use for development and tests only</li>
+          <li><code>SqliteSaver</code> is file-based persistence — durable across restarts, single-process, good for single-node deployments and multi-step tasks that take minutes</li>
+          <li><code>PostgresSaver</code> is distributed — durable, multi-process, production-ready for multi-user or horizontally scaled deployments</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Module 7.2 — LangGraph fundamentals (you understand TypedDict state)</li>
+            <li><div class="meta-list__dot">!</div>Module 5.6 — checkpointers in single-agent context</li>
+            <li><div class="meta-list__dot">!</div><code>pip install langgraph langgraph-checkpoint-sqlite langgraph-checkpoint-postgres</code></li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Design a well-scoped graph state that separates coordination from content</li>
+            <li><div class="meta-list__dot">2</div>Use a Pydantic model as LangGraph state with field validation</li>
+            <li><div class="meta-list__dot">3</div>Wire SqliteSaver into a graph and demonstrate resume after interruption</li>
+            <li><div class="meta-list__dot">4</div>Choose the right checkpointer for dev vs production</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="state-vs-context">State vs context — the key distinction <a class="anchor" href="#state-vs-context">#</a></h2>
+        <p>Graph state is persisted across node invocations and stored by the checkpointer. Context (the messages array sent to the LLM) is constructed from state but is not the same thing as state. A common mistake is putting raw LLM responses or large retrieved documents directly into state — this causes checkpoints to balloon and nodes to work with unnecessarily large data structures.</p>
+
+        <div class="reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+          <div style="padding:.6rem 1rem;background:var(--phase-soft);border-bottom:1px solid var(--border);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--phase-text)">State vs Context</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+            <div style="padding:1rem;border-right:1px solid var(--border)">
+              <div style="font-size:12px;font-weight:700;color:var(--phase-text);margin-bottom:.5rem">Belongs in graph STATE</div>
+              <ul style="font-size:12px;color:var(--fg);margin:0;padding-left:1rem">
+                <li>Current step / phase in the workflow</li>
+                <li>Routing decisions (which worker was called)</li>
+                <li>Structured results: IDs, counts, status flags</li>
+                <li>Error records with retry counts</li>
+                <li>Final outputs (after all processing)</li>
+                <li>Configuration: max iterations, flags</li>
+              </ul>
+            </div>
+            <div style="padding:1rem">
+              <div style="font-size:12px;font-weight:700;color:var(--phase-text);margin-bottom:.5rem">Belongs in node's local CONTEXT</div>
+              <ul style="font-size:12px;color:var(--fg);margin:0;padding-left:1rem">
+                <li>Raw retrieved documents (reference them by ID)</li>
+                <li>Full API responses (keep only extracted fields)</li>
+                <li>Intermediate reasoning scratchpad</li>
+                <li>Tool call logs (unless you need to audit them)</li>
+                <li>Large binary data or file contents</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="pydantic-state">Pydantic state model <a class="anchor" href="#pydantic-state">#</a></h2>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">pydantic_state.py — typed state with validation</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field, field_validator
+<span class="kw">from</span> typing <span class="kw">import</span> Annotated
+<span class="kw">from</span> langgraph.graph.message <span class="kw">import</span> add_messages
+
+<span class="kw">class</span> <span class="tp">WorkflowState</span>(<span class="tp">BaseModel</span>):
+    <span class="cm"># Coordination metadata — keeps state small</span>
+    task_id: <span class="tp">str</span>
+    task_description: <span class="tp">str</span>
+    current_phase: <span class="tp">str</span> = <span class="st">"planning"</span>
+    completed_phases: <span class="tp">list</span>[<span class="tp">str</span>] = <span class="tp">Field</span>(default_factory=<span class="tp">list</span>)
+    error_count: <span class="tp">int</span> = <span class="nm">0</span>
+    max_errors: <span class="tp">int</span> = <span class="nm">3</span>
+    approved: <span class="tp">bool</span> = <span class="kw">False</span>
+
+    <span class="cm"># Structured results (small, not raw content)</span>
+    plan_steps: <span class="tp">list</span>[<span class="tp">str</span>] = <span class="tp">Field</span>(default_factory=<span class="tp">list</span>)
+    current_step_index: <span class="tp">int</span> = <span class="nm">0</span>
+    step_results: <span class="tp">list</span>[<span class="tp">dict</span>] = <span class="tp">Field</span>(default_factory=<span class="tp">list</span>)
+    final_output: <span class="tp">str</span> = <span class="st">""</span>
+
+    <span class="cm"># Message history (reducers still work with Pydantic via Annotated)</span>
+    messages: <span class="tp">Annotated</span>[<span class="tp">list</span>, add_messages] = <span class="tp">Field</span>(default_factory=<span class="tp">list</span>)
+
+    @field_validator(<span class="st">"current_phase"</span>)
+    @classmethod
+    <span class="kw">def</span> <span class="fn">valid_phase</span>(cls, v):
+        <span class="kw">if</span> v <span class="kw">not</span> <span class="kw">in</span> {<span class="st">"planning"</span>, <span class="st">"executing"</span>, <span class="st">"reviewing"</span>, <span class="st">"done"</span>}:
+            <span class="kw">raise</span> <span class="tp">ValueError</span>(<span class="st">f"Invalid phase: {v}"</span>)
+        <span class="kw">return</span> v
+
+    <span class="kw">def</span> <span class="fn">is_over_error_limit</span>(self) -> <span class="tp">bool</span>:
+        <span class="kw">return</span> self.error_count >= self.max_errors
+
+    <span class="kw">def</span> <span class="fn">has_more_steps</span>(self) -> <span class="tp">bool</span>:
+        <span class="kw">return</span> self.current_step_index < <span class="fn">len</span>(self.plan_steps)
+
+<span class="cm"># Use WorkflowState as the StateGraph schema</span>
+builder = <span class="tp">StateGraph</span>(<span class="tp">WorkflowState</span>)</code></pre>
+        </div>
+
+        <h2 id="checkpointers">Checkpointers — durable state across node executions <a class="anchor" href="#checkpointers">#</a></h2>
+        <p>A checkpointer stores the full graph state after every node execution. If the process dies or an exception is thrown, you can resume from the last checkpoint rather than restarting the entire graph. The checkpointer is attached at graph compilation time and uses a <code>config</code> dict with a <code>thread_id</code> to identify which run to save/restore.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">checkpointers.py — MemorySaver, SqliteSaver, PostgresSaver</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> langgraph.checkpoint.memory <span class="kw">import</span> MemorySaver
+<span class="kw">from</span> langgraph.checkpoint.sqlite <span class="kw">import</span> SqliteSaver
+<span class="kw">from</span> langgraph.checkpoint.postgres <span class="kw">import</span> PostgresSaver
+<span class="kw">import</span> sqlite3, psycopg
+
+<span class="cm"># ── Dev / tests — in-memory, resets on restart ────────────────────────</span>
+memory_checkpointer = <span class="tp">MemorySaver</span>()
+graph_dev = builder.<span class="fn">compile</span>(checkpointer=memory_checkpointer)
+
+<span class="cm"># ── Single-node production — durable SQLite file ───────────────────────</span>
+conn = sqlite3.<span class="fn">connect</span>(<span class="st">"./agent_state.db"</span>, check_same_thread=<span class="kw">False</span>)
+sqlite_checkpointer = <span class="tp">SqliteSaver</span>(conn)
+graph_prod = builder.<span class="fn">compile</span>(checkpointer=sqlite_checkpointer)
+
+<span class="cm"># ── Multi-node production — PostgreSQL ────────────────────────────────</span>
+pg_conn = psycopg.<span class="fn">connect</span>(<span class="st">"postgresql://user:pass@host/db"</span>)
+pg_checkpointer = <span class="tp">PostgresSaver</span>(pg_conn)
+pg_checkpointer.<span class="fn">setup</span>()    <span class="cm"># creates checkpoints table on first run</span>
+graph_scaled = builder.<span class="fn">compile</span>(checkpointer=pg_checkpointer)
+
+<span class="cm"># ── Using a checkpointed graph ────────────────────────────────────────</span>
+config = {<span class="st">"configurable"</span>: {<span class="st">"thread_id"</span>: <span class="st">"workflow-job-42"</span>}}
+
+<span class="cm"># First run — starts from scratch</span>
+result = graph_prod.<span class="fn">invoke</span>(initial_state, config=config)
+
+<span class="cm"># If the process dies and restarts, resume with same thread_id:</span>
+result = graph_prod.<span class="fn">invoke</span>(<span class="kw">None</span>, config=config)  <span class="cm"># None = resume from checkpoint</span>
+
+<span class="cm"># Inspect the state of a saved run</span>
+state = graph_prod.<span class="fn">get_state</span>(config=config)
+<span class="fn">print</span>(state.values)   <span class="cm"># current state dict</span>
+<span class="fn">print</span>(state.next)     <span class="cm"># which nodes would run next</span></code></pre>
+        </div>
+
+        <h2 id="subgraph-state">Subgraph state isolation <a class="anchor" href="#subgraph-state">#</a></h2>
+        <p>When composing graphs (a parent graph that calls a child graph as a node), each graph has its own state schema. The parent must explicitly map the fields it wants to share with the child. This is the LangGraph equivalent of the context isolation benefit from agent-as-tool — each graph operates on its own typed state without accidentally sharing unintended fields.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">subgraph_state.py — parent-child state isolation</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">class</span> <span class="tp">ParentState</span>(<span class="tp">TypedDict</span>):
+    task: <span class="tp">str</span>
+    sub_result: <span class="tp">str</span>      <span class="cm"># receives output from child graph</span>
+
+<span class="kw">class</span> <span class="tp">ChildState</span>(<span class="tp">TypedDict</span>):
+    input_text: <span class="tp">str</span>     <span class="cm"># receives input from parent</span>
+    output: <span class="tp">str</span>
+
+child_graph = <span class="fn">build_child_graph</span>().<span class="fn">compile</span>()
+
+<span class="kw">def</span> <span class="fn">call_child</span>(state: <span class="tp">ParentState</span>) -> <span class="tp">dict</span>:
+    <span class="cm"># Explicit field mapping parent → child</span>
+    child_result = child_graph.<span class="fn">invoke</span>({<span class="st">"input_text"</span>: state[<span class="st">"task"</span>]})
+    <span class="cm"># Explicit field mapping child → parent</span>
+    <span class="kw">return</span> {<span class="st">"sub_result"</span>: child_result[<span class="st">"output"</span>]}</code></pre>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: A2A — Agent-to-Agent Protocol</div>
+            <div class="cta-block__sub">Module 7.6 covers Google's Agent-to-Agent protocol — agent discovery via capability cards, cross-framework delegation, and when A2A is the right architectural choice versus direct function calls.</div>
+          </div>
+          <a class="cta-block__btn" href="module-7-6.html">Module 7.6 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#state-vs-context">State vs context</a></li>
+      <li><a class="toc__link" href="#pydantic-state">Pydantic state model</a></li>
+      <li><a class="toc__link" href="#checkpointers">Checkpointers</a></li>
+      <li><a class="toc__link" href="#subgraph-state">Subgraph state isolation</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){const h=document.documentElement;const dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');localStorage.setItem('ae-theme',dark?'light':'dark');document.getElementById('themeIcon').textContent=dark?'☀':'☾';document.getElementById('themeLabel').textContent=dark?'Light':'Dark';}
+(function(){const t=localStorage.getItem('ae-theme');if(t){document.documentElement.setAttribute('data-theme',t);const dark=t==='dark';document.getElementById('themeIcon').textContent=dark?'☾':'☀';document.getElementById('themeLabel').textContent=dark?'Dark':'Light';}})();
+function copyCode(btn){const code=btn.closest('.code-wrap').querySelector('pre code');navigator.clipboard.writeText(code.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{es.forEach(e=>{const id=e.target.id;if(!id)return;const link=document.querySelector(`.toc__link[href="#${id}"]`);if(!link)return;if(e.isIntersecting){document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));link.classList.add('active');}});},{rootMargin:'-20% 0px -70% 0px'});document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

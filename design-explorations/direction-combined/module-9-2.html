@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 9.2 Compute · by Harish Mondepu</title>
+<meta name="description" content="Lambda for event-driven flows, ECS Fargate for long-running containerised agents, ECR for image management — choosing the right compute shape for each part of your system."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#3730a3;--phase-hi:#4338ca;--phase-soft:rgba(67,56,202,.1);--phase-text:#3730a3}
+[data-theme="dark"]{--phase:#818cf8;--phase-hi:#a5b4fc;--phase-soft:rgba(129,140,248,.1);--phase-text:#c7d2fe}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 9 · <strong>Compute</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 58 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#1aada0"></span>Phase 1 · Python Foundations ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#06b6d4"></span>Phase 2 · LLM Mental Model ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#a78bfa"></span>Phase 3 · Prompt Engineering ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f06292"></span>Phase 4 · RAG + Evaluation ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#10b981"></span>Phase 5 · Tools, MCP &amp; Agents ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f59e0b"></span>Phase 6 · Memory &amp; Context ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f97316"></span>Phase 7 · Multi-Agent Orchestration ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#eab308"></span>Phase 8 · Guardrails &amp; LLMOps ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 9 · Cloud Infrastructure
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-9-1.html"><span class="sidebar__mod-num">9.1</span>Storage &amp; Data ✓</a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">9.2</span>Compute</a>
+        <a class="sidebar__mod" href="module-9-3.html"><span class="sidebar__mod-num">9.3</span>Networking &amp; Access</a>
+        <a class="sidebar__mod" href="module-9-4.html"><span class="sidebar__mod-num">9.4</span>AI-Specific Services</a>
+        <a class="sidebar__mod" href="module-9-5.html"><span class="sidebar__mod-num">9.5</span>Deployment &amp; Realtime</a>
+        <a class="sidebar__mod" href="module-9-6.html"><span class="sidebar__mod-num">9.6</span>Cost &amp; Capacity</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 09</span>
+        <span class="tag tag--level">Advanced</span>
+        <span class="tag tag--week">Week 25</span>
+      </div>
+      <h1 class="mod-head__title"><em>Compute</em></h1>
+      <p class="mod-head__sub">LLM applications have unusual compute requirements: they make external API calls that take 1–30 seconds, they run in loops with unpredictable iteration counts, and they need to hold state across multiple steps. Lambda's 15-minute timeout and cold-start penalties make it the wrong choice for interactive agents. ECS Fargate runs containers indefinitely and is the standard compute target for production agent deployments. This module explains when to use each, and how to manage container images with ECR.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~18 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>3 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li><strong>Lambda fits:</strong> short, event-driven tasks — document ingestion triggers (S3 event → chunk → embed), webhook handlers, scheduled evaluation jobs. Max 15 min, 10 GB RAM, no persistent connections</li>
+          <li><strong>ECS Fargate fits:</strong> long-running interactive agents, streaming API servers, any workflow that holds a database connection open, multi-agent pipelines that run &gt;5 minutes</li>
+          <li><strong>ECR:</strong> private container registry in your AWS account — always use ECR for production images, not Docker Hub (rate limits, no IAM integration)</li>
+          <li><strong>The agent compute shape:</strong> FastAPI app in a Docker container, deployed as a Fargate task, behind an Application Load Balancer — this covers 90% of production agent deployments</li>
+          <li><strong>Cold start:</strong> Lambda cold starts add 1–3 s for Python containers; Fargate tasks take 20–60 s to start but stay warm — provision minimum 1 always-on task for interactive endpoints</li>
+        </ul>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="lambda-vs-fargate">Lambda vs Fargate — the decision <a class="anchor" href="#lambda-vs-fargate">#</a></h2>
+
+        <div class="reveal" style="margin:1.5rem 0;overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border)">
+                <th style="text-align:left;padding:.5rem .7rem;color:var(--fg-dim);font-weight:600">Constraint</th>
+                <th style="text-align:left;padding:.5rem .7rem;color:var(--fg-dim);font-weight:600">Lambda</th>
+                <th style="text-align:left;padding:.5rem .7rem;color:var(--fg-dim);font-weight:600">ECS Fargate</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.5rem .7rem">Max execution time</td>
+                <td style="padding:.5rem .7rem">15 minutes</td>
+                <td style="padding:.5rem .7rem;color:var(--phase-text)">Unlimited</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.5rem .7rem">Startup time</td>
+                <td style="padding:.5rem .7rem">1–3 s (cold), &lt;100ms (warm)</td>
+                <td style="padding:.5rem .7rem">20–60 s first start, then instant</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.5rem .7rem">Persistent connections</td>
+                <td style="padding:.5rem .7rem">Problematic (connection pooling unreliable)</td>
+                <td style="padding:.5rem .7rem;color:var(--phase-text)">Full support — keep RDS/Redis connections alive</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.5rem .7rem">Cost model</td>
+                <td style="padding:.5rem .7rem;color:var(--phase-text)">Pay per invocation + ms — zero cost at zero traffic</td>
+                <td style="padding:.5rem .7rem">Pay per vCPU/hour + GB/hour while running</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.5rem .7rem">Best for agents</td>
+                <td style="padding:.5rem .7rem">Ingestion triggers, webhooks, scheduled jobs</td>
+                <td style="padding:.5rem .7rem;color:var(--phase-text)">Interactive chat, streaming API, long pipelines</td>
+              </tr>
+              <tr>
+                <td style="padding:.5rem .7rem">Scaling</td>
+                <td style="padding:.5rem .7rem;color:var(--phase-text)">Instant to 1000 concurrent — no config</td>
+                <td style="padding:.5rem .7rem">Minutes via ECS Service Auto Scaling (target tracking)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="ecr-fargate">ECR and Fargate workflow <a class="anchor" href="#ecr-fargate">#</a></h2>
+        <p>The deployment loop is: build image locally → push to ECR → update ECS service to pull the new image → Fargate drains old tasks and starts new ones. All of this can be triggered from a CI/CD pipeline with a few AWS CLI commands.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">bash</span><span class="code-file">deploy.sh — build, push to ECR, update ECS service</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>AWS_ACCOUNT=123456789012
+AWS_REGION=us-east-1
+ECR_REPO=${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com
+IMAGE_TAG=$(git rev-parse --short HEAD)    # use git SHA as image tag
+
+# Authenticate Docker to ECR
+aws ecr get-login-password --region ${AWS_REGION} \
+  | docker login --username AWS --password-stdin ${ECR_REPO}
+
+# Build and push
+docker build -t agent-api:${IMAGE_TAG} .
+docker tag agent-api:${IMAGE_TAG} ${ECR_REPO}/agent-api:${IMAGE_TAG}
+docker push ${ECR_REPO}/agent-api:${IMAGE_TAG}
+
+# Update the ECS service to use the new image
+# (ECS will register a new task definition revision automatically with --force-new-deployment)
+aws ecs update-service \
+  --cluster agent-cluster \
+  --service agent-api-service \
+  --force-new-deployment \
+  --region ${AWS_REGION}
+
+echo "Deployed ${IMAGE_TAG} to ECS Fargate"</code></pre>
+        </div>
+
+        <h2 id="lambda-ingestion">Lambda for document ingestion <a class="anchor" href="#lambda-ingestion">#</a></h2>
+        <p>Lambda is the right choice for S3-triggered ingestion: a user uploads a PDF, S3 fires an event, Lambda picks it up, extracts text, chunks it, embeds it, and writes chunks to Postgres. The whole pipeline runs in under 2 minutes for most documents — well within Lambda's 15-minute limit.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">lambda_ingestion.py — S3-triggered document processing</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> json, boto3
+
+s3 = boto3.<span class="fn">client</span>(<span class="st">"s3"</span>)
+
+<span class="kw">def</span> <span class="fn">handler</span>(event: <span class="tp">dict</span>, context) -&gt; <span class="tp">dict</span>:
+    <span class="kw">for</span> record <span class="kw">in</span> event[<span class="st">"Records"</span>]:
+        bucket = record[<span class="st">"s3"</span>][<span class="st">"bucket"</span>][<span class="st">"name"</span>]
+        key    = record[<span class="st">"s3"</span>][<span class="st">"object"</span>][<span class="st">"key"</span>]
+
+        <span class="kw">try</span>:
+            <span class="cm"># 1. Fetch document from S3</span>
+            obj = s3.<span class="fn">get_object</span>(Bucket=bucket, Key=key)
+            file_bytes = obj[<span class="st">"Body"</span>].<span class="fn">read</span>()
+
+            <span class="cm"># 2. Extract text (use textract or pypdf depending on format)</span>
+            text = <span class="fn">extract_text</span>(file_bytes, key)
+
+            <span class="cm"># 3. Chunk</span>
+            chunks = <span class="fn">recursive_chunk</span>(text, chunk_size=<span class="nm">512</span>, overlap=<span class="nm">64</span>)
+
+            <span class="cm"># 4. Embed (batch to stay within rate limits)</span>
+            embeddings = <span class="fn">embed_batch</span>(chunks)
+
+            <span class="cm"># 5. Write to Postgres (use connection pooling via RDS Proxy)</span>
+            <span class="fn">upsert_chunks</span>(key, chunks, embeddings)
+
+            <span class="fn">print</span>(<span class="st">f"Processed {key}: {len(chunks)} chunks"</span>)
+
+        <span class="kw">except</span> <span class="tp">Exception</span> <span class="kw">as</span> e:
+            <span class="cm"># Use ErrorLogger pattern — log and continue processing other records</span>
+            <span class="fn">log_error</span>(<span class="st">"IngestionLambda"</span>, <span class="st">"handler"</span>, e, key)
+
+    <span class="kw">return</span> {<span class="st">"statusCode"</span>: <span class="nm">200</span>}
+
+<span class="cm"># Lambda function config (SAM template excerpt):</span>
+<span class="cm"># Timeout: 300  # 5 minutes — sufficient for most documents</span>
+<span class="cm"># MemorySize: 1024  # enough for PDF parsing without thrashing</span>
+<span class="cm"># Events:</span>
+<span class="cm">#   S3Upload:</span>
+<span class="cm">#     Type: S3</span>
+<span class="cm">#     Properties:</span>
+<span class="cm">#       Bucket: !Ref DocumentBucket</span>
+<span class="cm">#       Events: s3:ObjectCreated:*</span>
+<span class="cm">#       Filter:</span>
+<span class="cm">#         S3Key:</span>
+<span class="cm">#           Rules: [{Name: prefix, Value: "documents/raw/"}]</span></code></pre>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">✦</span>
+          <div>
+            <strong class="callout__title">Use RDS Proxy for Lambda → Postgres connections</strong>
+            Lambda functions spin up and down rapidly — each new instance tries to open a Postgres connection. At scale this exhausts the connection pool. RDS Proxy sits between Lambda and RDS, multiplexes connections, and eliminates this problem. Enable it for any Lambda that touches RDS.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: Networking &amp; Access</div>
+            <div class="cta-block__sub">Module 9.3 covers the minimum viable VPC setup, security groups, IAM roles, and API Gateway — just enough networking knowledge to deploy securely without getting lost in AWS infrastructure details.</div>
+          </div>
+          <a class="cta-block__btn" href="module-9-3.html">Module 9.3 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#lambda-vs-fargate">Lambda vs Fargate</a></li>
+      <li><a class="toc__link" href="#ecr-fargate">ECR and Fargate workflow</a></li>
+      <li><a class="toc__link" href="#lambda-ingestion">Lambda for ingestion</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){const h=document.documentElement;const dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');localStorage.setItem('ae-theme',dark?'light':'dark');document.getElementById('themeIcon').textContent=dark?'☀':'☾';document.getElementById('themeLabel').textContent=dark?'Light':'Dark';}
+(function(){const t=localStorage.getItem('ae-theme');if(t){document.documentElement.setAttribute('data-theme',t);const dark=t==='dark';document.getElementById('themeIcon').textContent=dark?'☾':'☀';document.getElementById('themeLabel').textContent=dark?'Dark':'Light';}})();
+function copyCode(btn){const code=btn.closest('.code-wrap').querySelector('pre code');navigator.clipboard.writeText(code.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{es.forEach(e=>{const id=e.target.id;if(!id)return;const link=document.querySelector(`.toc__link[href="#${id}"]`);if(!link)return;if(e.isIntersecting){document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));link.classList.add('active');}});},{rootMargin:'-20% 0px -70% 0px'});document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

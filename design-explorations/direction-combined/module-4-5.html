@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 4.5 Retrieval Techniques · by Harish Mondepu</title>
+<meta name="description" content="Beyond cosine similarity — hybrid BM25 + vector search with RRF, MMR for diversity, multi-query retrieval, HyDE, and parent-child chunk retrieval for better RAG context quality."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#c2185b;--phase-hi:#e85a7a;--phase-soft:rgba(232,90,122,.1);--phase-text:#c2185b}
+[data-theme="dark"]{--phase:#f06292;--phase-hi:#f48fb1;--phase-soft:rgba(240,98,146,.1);--phase-text:#f9a8d4}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 4 · <strong>Retrieval Techniques</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 25 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 4 · RAG + Evaluation
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-4-1.html"><span class="sidebar__mod-num">4.1</span>What is RAG<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-2.html"><span class="sidebar__mod-num">4.2</span>Chunking Strategies<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-3.html"><span class="sidebar__mod-num">4.3</span>Embedding Models<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-4-4.html"><span class="sidebar__mod-num">4.4</span>Vector Databases<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">4.5</span>Retrieval Techniques<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod" href="module-4-6.html"><span class="sidebar__mod-num">4.6</span>Reranking<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-7.html"><span class="sidebar__mod-num">4.7</span>RAG Pipeline Assembly<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-8.html"><span class="sidebar__mod-num">4.8</span>Evaluating RAG<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-9.html"><span class="sidebar__mod-num">4.9</span>Advanced RAG Patterns<span class="sidebar__check"></span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#10b981;opacity:.6"></span>Phase 5–9 · Agents &amp; Deployment</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 04</span>
+        <span class="tag tag--level">Practical</span>
+        <span class="tag tag--week">Week 10</span>
+      </div>
+      <h1 class="mod-head__title">Retrieval <em>Techniques</em></h1>
+      <p class="mod-head__sub">Basic cosine similarity retrieval works, but it fails in predictable ways: it misses exact-match keywords that happen to have low vector similarity, it returns redundant chunks that all say the same thing, and it struggles with complex multi-part questions. This module covers the techniques that fix these failures — hybrid BM25+vector search with Reciprocal Rank Fusion, MMR for diverse result sets, multi-query decomposition, HyDE for vocabulary mismatch, and parent-child retrieval for better context windows.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~26 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>5 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Vector similarity alone misses exact-match keywords; BM25 alone misses semantic paraphrases — hybrid search with Reciprocal Rank Fusion combines both signals reliably</li>
+          <li>MMR (Maximal Marginal Relevance) trades a little relevance for diversity — it prevents the top-K context window from being filled with near-duplicate chunks all saying the same thing</li>
+          <li>HyDE (Hypothetical Document Embeddings) generates a plausible answer to the question and searches with that answer's embedding rather than the raw question — it dramatically improves retrieval when query vocabulary differs from corpus vocabulary</li>
+          <li>Multi-query retrieval decomposes a complex question into simpler sub-queries, retrieves independently for each, then deduplicates — it improves recall on multi-hop questions</li>
+          <li>Parent-child retrieval indexes small child chunks for precise matching but returns their larger parent chunk as context — the LLM sees more surrounding information without sacrificing retrieval precision</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Modules 4.3 and 4.4 complete — embeddings and vector stores</li>
+            <li><div class="meta-list__dot">!</div><code>pip install rank-bm25 sentence-transformers openai numpy</code></li>
+            <li><div class="meta-list__dot">!</div>OpenAI API key in environment for HyDE examples</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Implement hybrid BM25 + vector search with RRF from scratch</li>
+            <li><div class="meta-list__dot">2</div>Apply MMR to reduce redundancy in retrieved context</li>
+            <li><div class="meta-list__dot">3</div>Use HyDE to improve retrieval for vocabulary-mismatch queries</li>
+            <li><div class="meta-list__dot">4</div>Design a parent-child chunk hierarchy for context-rich retrieval</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">Advanced RAG Retrieval — Hybrid Search, HyDE and Parent-Child Chunks</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· search "advanced RAG retrieval techniques hybrid search HyDE LangChain"</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/cVA1RPsmchA" title="Advanced RAG Retrieval Techniques" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ Beyond cosine similarity — practical retrieval strategies for production RAG</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="why-vector-alone-fails">Why vector-only retrieval fails <a class="anchor" href="#why-vector-alone-fails">#</a></h2>
+        <p>Dense vector retrieval works by capturing semantic meaning — but it has two systematic blind spots. First, <strong>keyword mismatch</strong>: if a user asks "What is the EBITDA adjustment for Q3?" and the corpus contains that exact phrase, a dense retrieval model may score a general "financial reporting overview" chunk higher than the specific EBITDA chunk, because the query's semantic neighbourhood includes finance broadly. Second, <strong>redundancy</strong>: the top-5 results can all be near-identical chunks from the same section of the same document, wasting your context window on repetition.</p>
+
+        <h2 id="hybrid-search">Hybrid search: BM25 + vector with RRF <a class="anchor" href="#hybrid-search">#</a></h2>
+        <p>BM25 is a classical keyword retrieval algorithm that ranks documents by how often query terms appear in them, adjusted for document length and term frequency across the corpus. It excels at exact-match retrieval that dense search misses. Combining BM25 and vector scores via <strong>Reciprocal Rank Fusion (RRF)</strong> is the simplest and most robust fusion method — it ranks each candidate by the sum of the reciprocals of its BM25 rank and vector rank.</p>
+
+        <div class="callout callout--note">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">RRF formula: 1/(k + rank_bm25) + 1/(k + rank_vector)</strong>
+            The constant <code>k=60</code> (common default) dampens the influence of very high ranks. A result that ranks #1 in BM25 and #3 in vector gets score 1/61 + 1/63 ≈ 0.0322. A result that ranks #2 in both gets 1/62 + 1/62 ≈ 0.0323 — effectively the same. RRF does not require score normalisation between BM25 and cosine similarity, which have incompatible ranges, making it far more robust than weighted score addition.
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">hybrid_search.py — BM25 + vector search with Reciprocal Rank Fusion</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> rank_bm25 <span class="kw">import</span> BM25Okapi
+<span class="kw">from</span> sentence_transformers <span class="kw">import</span> SentenceTransformer
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+model = <span class="fn">SentenceTransformer</span>(<span class="st">"BAAI/bge-small-en-v1.5"</span>)
+
+chunks = [
+    <span class="st">"Employees may claim up to $150 per month for home internet."</span>,
+    <span class="st">"A one-time $600 allowance is available for ergonomic furniture."</span>,
+    <span class="st">"All claims must be submitted via Workday by the 5th of the month."</span>,
+    <span class="st">"AcmeCorp was founded in Austin, Texas in 2018 and employs 400 people."</span>,
+    <span class="st">"Software subscriptions may be expensed up to $50 per month with approval."</span>,
+    <span class="st">"The EBITDA adjustment for Q3 is detailed in the supplemental finance report."</span>,
+    <span class="st">"Code reviews are mandatory for all pull requests before merging to main."</span>,
+]
+
+<span class="cm"># ── BM25 index ────────────────────────────────────────────────────────</span>
+tokenised = [doc.<span class="fn">lower</span>().<span class="fn">split</span>() <span class="kw">for</span> doc <span class="kw">in</span> chunks]
+bm25 = <span class="fn">BM25Okapi</span>(tokenised)
+
+<span class="cm"># ── Vector index ──────────────────────────────────────────────────────</span>
+doc_vecs = model.<span class="fn">encode</span>(chunks, normalize_embeddings=<span class="tp">True</span>)
+
+<span class="kw">def</span> <span class="fn">rrf_search</span>(query: <span class="tp">str</span>, k: <span class="tp">int</span> = <span class="nm">3</span>, rrf_k: <span class="tp">int</span> = <span class="nm">60</span>) -> <span class="tp">list</span>[<span class="tp">tuple</span>[<span class="tp">int</span>, <span class="tp">float</span>]]:
+    n = <span class="fn">len</span>(chunks)
+
+    <span class="cm"># BM25 ranks</span>
+    bm25_scores = bm25.<span class="fn">get_scores</span>(query.<span class="fn">lower</span>().<span class="fn">split</span>())
+    bm25_ranks = np.<span class="fn">argsort</span>(bm25_scores)[::-<span class="nm">1</span>]   <span class="cm"># descending</span>
+
+    <span class="cm"># Vector ranks</span>
+    q_prefix = <span class="st">f"Represent this sentence for searching relevant passages: {query}"</span>
+    q_vec = model.<span class="fn">encode</span>([q_prefix], normalize_embeddings=<span class="tp">True</span>)[<span class="nm">0</span>]
+    vec_scores = doc_vecs @ q_vec
+    vec_ranks = np.<span class="fn">argsort</span>(vec_scores)[::-<span class="nm">1</span>]
+
+    <span class="cm"># Build rank lookup dicts</span>
+    bm25_rank = {idx: r <span class="kw">for</span> r, idx <span class="kw">in</span> <span class="fn">enumerate</span>(bm25_ranks)}
+    vec_rank  = {idx: r <span class="kw">for</span> r, idx <span class="kw">in</span> <span class="fn">enumerate</span>(vec_ranks)}
+
+    <span class="cm"># RRF score for every candidate</span>
+    rrf_scores = {
+        i: <span class="nm">1</span> / (rrf_k + bm25_rank[i]) + <span class="nm">1</span> / (rrf_k + vec_rank[i])
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(n)
+    }
+    ranked = <span class="fn">sorted</span>(rrf_scores.<span class="fn">items</span>(), key=<span class="kw">lambda</span> x: x[<span class="nm">1</span>], reverse=<span class="tp">True</span>)
+    <span class="kw">return</span> ranked[:k]
+
+<span class="kw">for</span> idx, score <span class="kw">in</span> <span class="fn">rrf_search</span>(<span class="st">"EBITDA adjustment Q3"</span>):
+    <span class="fn">print</span>(<span class="st">f"[{idx}] rrf={score:.4f}  {chunks[idx]}"</span>)
+<span class="cm"># → [5] rrf=0.0323  "The EBITDA adjustment for Q3..."  ← exact match wins</span></code></pre>
+        </div>
+
+        <h2 id="mmr">MMR: maximum marginal relevance <a class="anchor" href="#mmr">#</a></h2>
+        <p>MMR selects results iteratively. It picks the most relevant chunk first, then at each step selects the chunk that maximises <code>λ · relevance_to_query − (1−λ) · max_similarity_to_already_selected</code>. The result set is diverse — high-relevance but non-redundant. The parameter λ ∈ [0, 1] controls the diversity/relevance tradeoff: λ=1 is pure relevance (standard top-K); λ=0 is pure diversity; λ=0.6–0.7 is a good default for RAG.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">mmr.py — iterative diverse chunk selection</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">from</span> sentence_transformers <span class="kw">import</span> SentenceTransformer
+
+model = <span class="fn">SentenceTransformer</span>(<span class="st">"BAAI/bge-small-en-v1.5"</span>)
+
+chunks = [
+    <span class="st">"Employees may claim $150/mo for home internet."</span>,
+    <span class="st">"Home internet allowance is $150 per month for all employees."</span>,   <span class="cm"># near-duplicate</span>
+    <span class="st">"The internet expense cap of $150 applies to primary residence only."</span>,  <span class="cm"># near-duplicate</span>
+    <span class="st">"Ergonomic furniture: one-time $600 allowance."</span>,
+    <span class="st">"Claims must be submitted via Workday by the 5th."</span>,
+]
+
+doc_vecs = model.<span class="fn">encode</span>(chunks, normalize_embeddings=<span class="tp">True</span>)
+
+<span class="kw">def</span> <span class="fn">mmr</span>(
+    query: <span class="tp">str</span>,
+    k: <span class="tp">int</span> = <span class="nm">3</span>,
+    lambda_: <span class="tp">float</span> = <span class="nm">0.65</span>,
+    fetch_k: <span class="tp">int</span> = <span class="nm">10</span>,
+) -> <span class="tp">list</span>[<span class="tp">int</span>]:
+    <span class="st">"""Return k diverse chunk indices via MMR selection."""</span>
+    q_vec = model.<span class="fn">encode</span>([query], normalize_embeddings=<span class="tp">True</span>)[<span class="nm">0</span>]
+
+    <span class="cm"># Start with top-fetch_k by cosine similarity</span>
+    relevance = doc_vecs @ q_vec
+    candidates = <span class="fn">list</span>(np.<span class="fn">argsort</span>(relevance)[::-<span class="nm">1</span>][:fetch_k])
+
+    selected = []
+    <span class="kw">while</span> candidates <span class="kw">and</span> <span class="fn">len</span>(selected) < k:
+        <span class="kw">if</span> <span class="kw">not</span> selected:
+            <span class="cm"># First pick: highest relevance</span>
+            best = candidates[<span class="nm">0</span>]
+        <span class="kw">else</span>:
+            selected_vecs = doc_vecs[selected]  <span class="cm"># shape: (|selected|, dim)</span>
+            scores = []
+            <span class="kw">for</span> idx <span class="kw">in</span> candidates:
+                rel = relevance[idx]
+                redundancy = <span class="tp">float</span>(np.<span class="fn">max</span>(doc_vecs[idx] @ selected_vecs.T))
+                mmr_score = lambda_ * rel - (<span class="nm">1</span> - lambda_) * redundancy
+                scores.<span class="fn">append</span>((idx, mmr_score))
+            best = <span class="fn">max</span>(scores, key=<span class="kw">lambda</span> x: x[<span class="nm">1</span>])[<span class="nm">0</span>]
+
+        selected.<span class="fn">append</span>(best)
+        candidates.<span class="fn">remove</span>(best)
+
+    <span class="kw">return</span> selected
+
+<span class="kw">for</span> idx <span class="kw">in</span> <span class="fn">mmr</span>(<span class="st">"internet expense allowance"</span>, k=<span class="nm">3</span>, lambda_=<span class="nm">0.65</span>):
+    <span class="fn">print</span>(<span class="st">f"[{idx}] {chunks[idx]}"</span>)
+<span class="cm"># → [0] "Employees may claim $150/mo..." ← top result</span>
+<span class="cm"># → [3] "Ergonomic furniture: $600..." ← different topic, not the duplicate</span>
+<span class="cm"># → [4] "Claims must be submitted..." ← another different topic</span></code></pre>
+        </div>
+
+        <h2 id="hyde">HyDE: hypothetical document embeddings <a class="anchor" href="#hyde">#</a></h2>
+        <p>Queries and documents live in different parts of the embedding space — a question like "What is the expense reimbursement deadline?" embeds differently from the answer "Claims must be submitted by the 5th of the month." HyDE addresses this by using an LLM to generate a <em>hypothetical answer</em> to the query, then embedding that answer and searching with it. The hypothetical answer's embedding lands closer to actual answer documents in the vector space.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">hyde.py — generate a hypothetical answer, search with its embedding</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> os
+<span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+<span class="kw">from</span> sentence_transformers <span class="kw">import</span> SentenceTransformer
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+oai = <span class="fn">OpenAI</span>(api_key=os.environ[<span class="st">"OPENAI_API_KEY"</span>])
+model = <span class="fn">SentenceTransformer</span>(<span class="st">"BAAI/bge-small-en-v1.5"</span>)
+
+chunks = [
+    <span class="st">"Employees may claim $150/mo for home internet."</span>,
+    <span class="st">"One-time $600 allowance for ergonomic furniture."</span>,
+    <span class="st">"Claims must be submitted via Workday by the 5th of the month."</span>,
+    <span class="st">"AcmeCorp was founded in Austin, Texas in 2018."</span>,
+]
+doc_vecs = model.<span class="fn">encode</span>(chunks, normalize_embeddings=<span class="tp">True</span>)
+
+<span class="kw">def</span> <span class="fn">hyde_search</span>(query: <span class="tp">str</span>, k: <span class="tp">int</span> = <span class="nm">3</span>) -> <span class="tp">list</span>[<span class="tp">tuple</span>[<span class="tp">int</span>, <span class="tp">float</span>]]:
+    <span class="cm"># Step 1: generate a hypothetical answer</span>
+    resp = oai.chat.completions.<span class="fn">create</span>(
+        model=<span class="st">"claude-haiku-4-5-20251001"</span>,  <span class="cm"># fast, cheap for hypothesis generation</span>
+        messages=[{
+            <span class="st">"role"</span>: <span class="st">"user"</span>,
+            <span class="st">"content"</span>: (
+                <span class="st">f"Write a one-paragraph passage from a company policy document "</span>
+                <span class="st">f"that directly answers this question:\n\n{query}\n\n"</span>
+                <span class="st">f"Answer only with the passage, no preamble."</span>
+            ),
+        }],
+        max_tokens=<span class="nm">120</span>,
+    )
+    hypothesis = resp.choices[<span class="nm">0</span>].message.content.<span class="fn">strip</span>()
+
+    <span class="cm"># Step 2: embed the hypothesis and search</span>
+    h_vec = model.<span class="fn">encode</span>([hypothesis], normalize_embeddings=<span class="tp">True</span>)[<span class="nm">0</span>]
+    scores = doc_vecs @ h_vec
+    ranked = <span class="fn">sorted</span>(<span class="fn">enumerate</span>(scores), key=<span class="kw">lambda</span> x: x[<span class="nm">1</span>], reverse=<span class="tp">True</span>)
+
+    <span class="fn">print</span>(<span class="st">f"\nHypothesis: {hypothesis[:100]}…"</span>)
+    <span class="kw">return</span> ranked[:k]
+
+query = <span class="st">"When do I need to submit my expense claim?"</span>
+<span class="kw">for</span> idx, score <span class="kw">in</span> <span class="fn">hyde_search</span>(query):
+    <span class="fn">print</span>(<span class="st">f"[{idx}] score={score:.3f}  {chunks[idx]}"</span>)</code></pre>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">HyDE adds latency and LLM cost to every query</strong>
+            Generating a hypothesis requires one extra LLM call before retrieval. This adds 200–800ms depending on the model. Use HyDE selectively: (1) when your eval shows low context recall on queries where vocabulary mismatch is likely (user query uses different terms than the corpus), (2) not by default on every query. You can run HyDE in parallel with standard vector search and merge results with RRF — this hedges against the hypothesis being wrong.
+          </div>
+        </div>
+
+        <h2 id="multi-query">Multi-query retrieval <a class="anchor" href="#multi-query">#</a></h2>
+        <p>Complex questions often have multiple sub-questions embedded in them. "What are the expense limits for internet and equipment, and how do I submit a claim?" contains three retrievable intents. Multi-query retrieval uses an LLM to decompose the query into sub-questions, retrieves independently for each, then deduplicates the result set before passing to the LLM.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">multi_query.py — LLM-decomposed query retrieval with deduplication</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> os, json
+<span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+<span class="kw">from</span> sentence_transformers <span class="kw">import</span> SentenceTransformer
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+oai = <span class="fn">OpenAI</span>(api_key=os.environ[<span class="st">"OPENAI_API_KEY"</span>])
+model = <span class="fn">SentenceTransformer</span>(<span class="st">"BAAI/bge-small-en-v1.5"</span>)
+
+chunks = [
+    <span class="st">"Employees may claim $150/mo for home internet."</span>,
+    <span class="st">"One-time $600 allowance for ergonomic furniture."</span>,
+    <span class="st">"Claims must be submitted via Workday by the 5th of the month."</span>,
+    <span class="st">"Manager approval required for claims over $200."</span>,
+    <span class="st">"Software subscriptions: up to $50/mo with pre-approval."</span>,
+]
+doc_vecs = model.<span class="fn">encode</span>(chunks, normalize_embeddings=<span class="tp">True</span>)
+
+<span class="kw">def</span> <span class="fn">decompose_query</span>(query: <span class="tp">str</span>) -> <span class="tp">list</span>[<span class="tp">str</span>]:
+    resp = oai.chat.completions.<span class="fn">create</span>(
+        model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+        messages=[{
+            <span class="st">"role"</span>: <span class="st">"user"</span>,
+            <span class="st">"content"</span>: (
+                <span class="st">f"Decompose this question into at most 3 simpler sub-questions, "</span>
+                <span class="st">f"each independently answerable. Return a JSON array of strings.\n\n"</span>
+                <span class="st">f"Question: {query}"</span>
+            ),
+        }],
+        max_tokens=<span class="nm">200</span>,
+    )
+    <span class="kw">return</span> json.<span class="fn">loads</span>(resp.choices[<span class="nm">0</span>].message.content)
+
+<span class="kw">def</span> <span class="fn">multi_query_search</span>(query: <span class="tp">str</span>, k: <span class="tp">int</span> = <span class="nm">5</span>) -> <span class="tp">list</span>[<span class="tp">int</span>]:
+    sub_queries = <span class="fn">decompose_query</span>(query)
+    <span class="fn">print</span>(<span class="st">f"Sub-queries: {sub_queries}"</span>)
+
+    all_indices = <span class="fn">set</span>()
+    <span class="kw">for</span> sq <span class="kw">in</span> sub_queries:
+        sq_vec = model.<span class="fn">encode</span>([sq], normalize_embeddings=<span class="tp">True</span>)[<span class="nm">0</span>]
+        scores = doc_vecs @ sq_vec
+        top = np.<span class="fn">argsort</span>(scores)[-<span class="nm">3</span>:][::-<span class="nm">1</span>]  <span class="cm"># top-3 per sub-query</span>
+        all_indices.<span class="fn">update</span>(top.<span class="fn">tolist</span>())
+
+    <span class="kw">return</span> <span class="fn">list</span>(all_indices)[:k]  <span class="cm"># deduplicate, return up to k</span>
+
+complex_query = <span class="st">"What are the expense limits for internet and equipment, and how do I submit a claim?"</span>
+result_indices = <span class="fn">multi_query_search</span>(complex_query)
+<span class="kw">for</span> idx <span class="kw">in</span> result_indices:
+    <span class="fn">print</span>(<span class="st">f"[{idx}] {chunks[idx]}"</span>)</code></pre>
+        </div>
+
+        <h2 id="parent-child">Parent-child chunk retrieval <a class="anchor" href="#parent-child">#</a></h2>
+        <p>Small chunks produce precise embeddings but leave the LLM without surrounding context. Large chunks produce noisy embeddings but give the LLM rich context. Parent-child retrieval gets the best of both: <strong>index small child chunks</strong> (high precision), but when a child chunk is retrieved, <strong>return its parent chunk</strong> (rich context) to the LLM.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">parent_child_retrieval.py — index children, return parents</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> sentence_transformers <span class="kw">import</span> SentenceTransformer
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+model = <span class="fn">SentenceTransformer</span>(<span class="st">"BAAI/bge-small-en-v1.5"</span>)
+
+<span class="cm"># Parent chunks — large, context-rich sections</span>
+parents = {
+    <span class="st">"p0"</span>: <span class="st">"""EXPENSE POLICY — REMOTE WORK.
+Employees working from home may claim up to $150 per month for home internet.
+A one-time $600 allowance is available for ergonomic furniture.
+Software subscriptions related to work may be expensed up to $50 per month.
+All claims require manager pre-approval for amounts over $200."""</span>,
+
+    <span class="st">"p1"</span>: <span class="st">"""EXPENSE CLAIM PROCESS.
+All expense claims must be submitted via Workday.
+The deadline is the 5th of the following month.
+Claims submitted after the deadline are processed in the next cycle.
+Receipts must be attached for all claims above $50."""</span>,
+}
+
+<span class="cm"># Child chunks — small, precision-focused sentences</span>
+children = [
+    {<span class="st">"text"</span>: <span class="st">"Employees may claim $150/mo for home internet."</span>,              <span class="st">"parent_id"</span>: <span class="st">"p0"</span>},
+    {<span class="st">"text"</span>: <span class="st">"One-time $600 allowance for ergonomic furniture."</span>,            <span class="st">"parent_id"</span>: <span class="st">"p0"</span>},
+    {<span class="st">"text"</span>: <span class="st">"Software subscriptions: up to $50/mo with pre-approval."</span>,     <span class="st">"parent_id"</span>: <span class="st">"p0"</span>},
+    {<span class="st">"text"</span>: <span class="st">"Expense claims submitted via Workday by the 5th."</span>,            <span class="st">"parent_id"</span>: <span class="st">"p1"</span>},
+    {<span class="st">"text"</span>: <span class="st">"Late claims are processed in the following cycle."</span>,           <span class="st">"parent_id"</span>: <span class="st">"p1"</span>},
+    {<span class="st">"text"</span>: <span class="st">"Receipts required for claims over $50."</span>,                      <span class="st">"parent_id"</span>: <span class="st">"p1"</span>},
+]
+
+<span class="cm"># Embed children (not parents)</span>
+child_vecs = model.<span class="fn">encode</span>([c[<span class="st">"text"</span>] <span class="kw">for</span> c <span class="kw">in</span> children], normalize_embeddings=<span class="tp">True</span>)
+
+<span class="kw">def</span> <span class="fn">parent_child_search</span>(query: <span class="tp">str</span>, k: <span class="tp">int</span> = <span class="nm">2</span>) -> <span class="tp">list</span>[<span class="tp">str</span>]:
+    q_vec = model.<span class="fn">encode</span>([query], normalize_embeddings=<span class="tp">True</span>)[<span class="nm">0</span>]
+    scores = child_vecs @ q_vec
+    top_child_indices = np.<span class="fn">argsort</span>(scores)[-k*<span class="nm">3</span>:][::-<span class="nm">1</span>]  <span class="cm"># over-retrieve children</span>
+
+    <span class="cm"># Deduplicate: collect unique parent_ids from top children</span>
+    seen_parents, context_chunks = <span class="fn">set</span>(), []
+    <span class="kw">for</span> ci <span class="kw">in</span> top_child_indices:
+        pid = children[ci][<span class="st">"parent_id"</span>]
+        <span class="kw">if</span> pid <span class="kw">not in</span> seen_parents:
+            seen_parents.<span class="fn">add</span>(pid)
+            context_chunks.<span class="fn">append</span>(parents[pid])
+        <span class="kw">if</span> <span class="fn">len</span>(context_chunks) >= k:
+            <span class="kw">break</span>
+
+    <span class="kw">return</span> context_chunks  <span class="cm"># full parent text goes to LLM context</span>
+
+<span class="kw">for</span> ctx <span class="kw">in</span> <span class="fn">parent_child_search</span>(<span class="st">"standing desk reimbursement deadline"</span>):
+    <span class="fn">print</span>(<span class="st">f"--- PARENT CONTEXT ---\n{ctx}\n"</span>)</code></pre>
+        </div>
+
+        <h2 id="choosing-techniques">Which technique to use <a class="anchor" href="#choosing-techniques">#</a></h2>
+        <p>Stack these techniques based on the failure mode you observe in evaluation (module 4.8), not by default. Each technique adds latency or complexity — apply only what your evals show is needed.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem">Technique selection by failure mode</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem;font-size:13px">
+            <div style="display:grid;grid-template-columns:200px 130px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:600;color:var(--fg)">Exact-match terms not found</div>
+              <div style="font-weight:700;color:var(--phase-text)">Hybrid (BM25 + RRF)</div>
+              <div style="color:var(--fg-dim)">BM25 catches keyword matches that dense search misses. Low complexity, high impact.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:200px 130px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:600;color:var(--fg)">Redundant top-K context</div>
+              <div style="font-weight:700;color:var(--phase-text)">MMR (λ=0.65)</div>
+              <div style="color:var(--fg-dim)">Diversifies results when many chunks say the same thing from the same section.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:200px 130px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:600;color:var(--fg)">Query vocabulary ≠ corpus vocabulary</div>
+              <div style="font-weight:700;color:var(--phase-text)">HyDE</div>
+              <div style="color:var(--fg-dim)">User asks in casual language; documents use formal terminology. HyDE bridges the gap.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:200px 130px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:600;color:var(--fg)">Multi-part complex questions</div>
+              <div style="font-weight:700;color:var(--phase-text)">Multi-query</div>
+              <div style="color:var(--fg-dim)">Decomposes multi-hop questions; each sub-question retrieves its own relevant chunks.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:200px 130px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:600;color:var(--fg)">Context too narrow / missing context</div>
+              <div style="font-weight:700;color:var(--phase-text)">Parent-child</div>
+              <div style="color:var(--fg-dim)">Precise child chunk retrieval + rich parent context delivery to LLM.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">The recommended production stack: hybrid + parent-child + reranker</strong>
+            If you only implement three techniques, these give the highest average ROI across diverse RAG workloads: (1) Hybrid BM25 + vector with RRF — fixes keyword misses at near-zero latency cost. (2) Parent-child chunks — fixes context narrowness without hurting precision. (3) A cross-encoder reranker on the merged result set (module 4.6) — fine-grained relevance scoring after coarse retrieval. Add MMR and HyDE only if eval shows they fix specific failures in your corpus.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 4.5: Retrieval Techniques</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~26 min · 5 live code demos</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 3:00</span><span class="script-action">INTRO</span><span class="script-narration">"We've been using cosine similarity throughout this phase. Let me show you where it fails. I'll search for 'EBITDA adjustment Q3' in a corpus that literally contains that phrase — and watch cosine similarity rank a generic finance overview above it. That's the failure mode we're fixing today."</span></div>
+          <div class="script-line"><span class="script-ts">3:00 – 8:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run hybrid_search.py. Show pure BM25 ranking and pure vector ranking side by side. "BM25 finds 'EBITDA' because it's an exact keyword match. Vector search finds general finance chunks because 'EBITDA' lives in a semantic neighbourhood of all financial content. RRF combines both rank lists — the EBITDA chunk rises to the top because it ranks high in BM25 even if it ranks mid in vector."</span></div>
+          <div class="script-line"><span class="script-ts">8:00 – 13:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run mmr.py. "I added three near-identical chunks about the $150 internet allowance. With standard top-3, all three appear — the LLM gets three sentences that say the same thing. With MMR at λ=0.65, only the first appears; the other two slots go to the furniture allowance and Workday deadline. The context window is now actually informative."</span></div>
+          <div class="script-line"><span class="script-ts">13:00 – 18:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run hyde.py. "The query is 'When do I need to submit my expense claim?' Watch the hypothesis it generates — something like 'Expense claims must be submitted by the 5th of the following month via the Workday system.' That hypothesis embeds closer to the actual policy chunk than the raw question. This is vocabulary bridging."</span></div>
+          <div class="script-line"><span class="script-ts">18:00 – 24:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run parent_child_retrieval.py. "The child chunk 'Ergonomic furniture: $600' is tiny — great for precision. But the LLM needs to know the full context: that it's a one-time allowance, what it covers, that there's also a monthly internet allowance. The parent chunk has all of that. We retrieve the child (precise match), then hand the parent (rich context) to the LLM."</span></div>
+          <div class="script-line"><span class="script-ts">24:00 – 26:00</span><span class="script-action">DIAGRAM</span><span class="script-narration">Show the technique selection table. "Start with hybrid search — almost every production RAG system benefits. Add parent-child if your chunks are small. Add a reranker (next module) for fine-grained ranking. HyDE and multi-query are for specific failure modes — don't add them blindly."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>Explain why Reciprocal Rank Fusion is preferred over weighted score addition when combining BM25 and vector search results.</summary>
+          <div class="selfcheck__a">BM25 scores are frequencies (typically 0–10 or more, corpus-dependent). Cosine similarity scores are bounded in [-1, 1] (practically 0–1 for similar texts). These ranges are incompatible — any fixed weighting like <code>0.5 × BM25_score + 0.5 × cosine</code> is dominated by whichever score has larger magnitude, which varies per query. Normalising both to [0,1] works but requires knowing their ranges in advance. RRF avoids this entirely: it works only with ranks (ordinal positions), which are comparable across any two retrieval systems. A result ranked #1 contributes the same RRF score regardless of whether BM25 gave it a score of 0.3 or 8.7. This makes RRF robust, requiring no tuning for score normalisation.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>In MMR, what happens as λ approaches 0, and when would you want that behaviour?</summary>
+          <div class="selfcheck__a">As λ → 0, the MMR objective becomes pure diversity: <code>−max_similarity_to_already_selected</code>. The algorithm selects the next chunk that is most different from all already-selected chunks, ignoring relevance to the query entirely. You would want this in an exploratory retrieval scenario — for example, a "show me diverse perspectives on this topic" use case, or when building a summary that needs to cover multiple different aspects of a document. For standard Q&amp;A RAG where the user wants precise answers, λ=0 is counterproductive — it will select off-topic chunks. The practical RAG range is λ=0.5–0.7, balancing relevance with enough diversity to prevent context window waste on near-duplicates.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What is the vocabulary mismatch problem that HyDE addresses, and why does it arise in embedding-based retrieval?</summary>
+          <div class="selfcheck__a">Vocabulary mismatch is the phenomenon where a user query and the relevant document express the same concept using different words. Example: query "when is the form due?" → relevant chunk "claims must be submitted by the 5th of the month." The embedding models are trained to encode semantic meaning, but query–document asymmetry means the embedding of a question often lands in a different region of the vector space from the embedding of the answer, even when they are about the same concept. This is because question phrasing activates question-type semantic features while answer phrasing activates declarative statement features. HyDE bypasses this by having the LLM generate a plausible answer in the same declarative register as the corpus documents, then embedding that answer. The hypothesis embedding lands in the same region of the vector space as actual answer chunks, even though the hypothesis may be factually wrong — the point is the vector similarity, not factual correctness.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Describe the parent-child chunking architecture: what is indexed, what is retrieved, and why this is better than either small-chunk or large-chunk retrieval alone.</summary>
+          <div class="selfcheck__a"><strong>Architecture:</strong> Documents are split at two granularities. Child chunks are small (50–150 tokens) — single sentences or short passages optimised for embedding precision. Parent chunks are large (300–800 tokens) — full paragraphs or sections that contain the child plus surrounding context. Each child chunk stores a reference to its parent ID. <strong>Index:</strong> Only child chunk embeddings are stored in the vector index. <strong>Retrieval:</strong> The query is matched against child embeddings (high precision — the dense signal is undiluted by surrounding text). When child chunks are retrieved, the retriever fetches their parent chunk IDs and returns the full parent text to the LLM. <strong>Why better:</strong> Pure small-chunk retrieval: precise retrieval, but the LLM gets narrow context and may miss necessary surrounding information. Pure large-chunk retrieval: noisy embedding (multiple topics dilute the signal), lower retrieval precision. Parent-child gives retrieval precision of small chunks and context richness of large chunks.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Up next</div>
+          <div class="next-mod__title">4.6 · Reranking</div>
+          <p class="next-mod__desc">How cross-encoder rerankers score (query, chunk) pairs together — why they outperform bi-encoder retrieval for final ranking, implementing Cohere Rerank and sentence-transformers cross-encoders, and where to place reranking in your pipeline.</p>
+        </div>
+        <a class="next-btn" href="module-4-6.html">Continue →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#why-vector-alone-fails">Why vector-only fails</a>
+    <a href="#hybrid-search">Hybrid search with RRF</a>
+    <a href="#mmr">MMR for diversity</a>
+    <a href="#hyde">HyDE</a>
+    <a href="#multi-query">Multi-query retrieval</a>
+    <a href="#parent-child">Parent-child retrieval</a>
+    <a href="#choosing-techniques">Which technique to use</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 4.5 / 62<br/>Phase 4 · Week 10<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 6.3 Short-Term Memory — Session History · by Harish Mondepu</title>
+<meta name="description" content="Managing the conversation history buffer — sliding window truncation, token-based trimming, summary compression, and deciding what to keep versus drop as sessions grow long."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#d97706;--phase-hi:#f59e0b;--phase-soft:rgba(245,158,11,.1);--phase-text:#d97706}
+[data-theme="dark"]{--phase:#f59e0b;--phase-hi:#fbbf24;--phase-soft:rgba(251,191,36,.1);--phase-text:#fde68a}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 6 · <strong>Short-Term Memory</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 40 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#f06292"></span>
+        Phase 4 · RAG + Evaluation ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#10b981"></span>
+        Phase 5 · Tools, MCP &amp; Agents ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 6 · Memory &amp; Context
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-6-1.html"><span class="sidebar__mod-num">6.1</span>Context Window ✓</a>
+        <a class="sidebar__mod done" href="module-6-2.html"><span class="sidebar__mod-num">6.2</span>Context Structure ✓</a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">6.3</span>Short-Term Memory</a>
+        <a class="sidebar__mod" href="module-6-4.html"><span class="sidebar__mod-num">6.4</span>Semantic Caching</a>
+        <a class="sidebar__mod" href="module-6-5.html"><span class="sidebar__mod-num">6.5</span>Episodic Memory</a>
+        <a class="sidebar__mod" href="module-6-6.html"><span class="sidebar__mod-num">6.6</span>Context Compression</a>
+        <a class="sidebar__mod" href="module-6-7.html"><span class="sidebar__mod-num">6.7</span>Long-Term Memory</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 06</span>
+        <span class="tag tag--level">Advanced</span>
+        <span class="tag tag--week">Week 18</span>
+      </div>
+      <h1 class="mod-head__title">Short-Term Memory — <em>Session History</em></h1>
+      <p class="mod-head__sub">Every multi-turn agent needs to manage a growing conversation buffer. As the session gets longer, naïve append-forever approaches hit the context limit and either crash or silently drop old turns. This module covers the three strategies for short-term memory management — sliding window, token-based trimming, and summary compression — and shows you when to apply each. You'll build a <code>ConversationBuffer</code> class that handles all three modes with a clean API.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~20 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>3 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li><strong>Sliding window:</strong> keep only the last N message pairs — fast, simple, loses old context entirely; good for task-focused agents where conversational continuity matters less</li>
+          <li><strong>Token-based trimming:</strong> drop oldest messages until total tokens fit the budget — precise, respects the context limit hard, can split pairs awkwardly if you don't trim in pairs</li>
+          <li><strong>Summary compression:</strong> periodically compress older turns into a single summary message — preserves semantic content while freeing tokens; requires an extra LLM call and introduces summarisation latency</li>
+          <li>Always trim in <em>message pairs</em> (user + assistant together) — dropping a user message without its response creates a dangling assistant turn that confuses the model</li>
+          <li>The system prompt must never be trimmed — only the history buffer between system and the current user message is eligible for reduction</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Module 6.1 — token counting with tiktoken</li>
+            <li><div class="meta-list__dot">!</div>Module 6.2 — context structure and section roles</li>
+            <li><div class="meta-list__dot">!</div><code>pip install tiktoken openai</code></li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Explain the failure modes of append-forever history management</li>
+            <li><div class="meta-list__dot">2</div>Implement sliding window and token-based trimming for a message buffer</li>
+            <li><div class="meta-list__dot">3</div>Build a summary-compression step that fires when the buffer exceeds a threshold</li>
+            <li><div class="meta-list__dot">4</div>Choose the correct strategy for a given agent use case</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="the-problem">Why naive history management fails <a class="anchor" href="#the-problem">#</a></h2>
+        <p>The simplest history implementation is a list that grows forever: every user turn gets appended, every assistant response gets appended, and the whole list is sent with every API call. This works for a few turns. By turn 30 in a detailed conversation, you're sending 15,000+ tokens of history that the model barely attends to (the lost-in-the-middle problem from Module 6.1), paying for tokens you're not getting value from, and eventually hitting the context limit where the call either fails or your framework silently drops messages.</p>
+
+        <div class="reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+          <div style="padding:.6rem 1rem;background:var(--phase-soft);border-bottom:1px solid var(--border);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--phase-text)">Short-term memory strategies at a glance</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0">
+            <div style="padding:1rem;border-right:1px solid var(--border)">
+              <div style="font-size:12px;font-weight:700;color:var(--phase-text);margin-bottom:.4rem">Sliding Window</div>
+              <div style="font-size:12px;color:var(--fg);margin-bottom:.6rem">Keep last N turns</div>
+              <div style="font-size:11px;color:var(--fg-dim)">✓ O(1) overhead<br/>✓ Deterministic<br/>✗ Hard cutoff — context cliff<br/>✗ Loses early instructions</div>
+            </div>
+            <div style="padding:1rem;border-right:1px solid var(--border)">
+              <div style="font-size:12px;font-weight:700;color:var(--phase-text);margin-bottom:.4rem">Token Trimming</div>
+              <div style="font-size:12px;color:var(--fg);margin-bottom:.6rem">Drop until tokens fit</div>
+              <div style="font-size:11px;color:var(--fg-dim)">✓ Precise budget<br/>✓ No extra LLM call<br/>✗ Hard cutoff<br/>✗ Must trim in pairs</div>
+            </div>
+            <div style="padding:1rem">
+              <div style="font-size:12px;font-weight:700;color:var(--phase-text);margin-bottom:.4rem">Summary Compression</div>
+              <div style="font-size:12px;color:var(--fg);margin-bottom:.6rem">Compress old turns to summary</div>
+              <div style="font-size:11px;color:var(--fg-dim)">✓ Preserves semantics<br/>✓ Soft context retention<br/>✗ Extra LLM call + latency<br/>✗ Summary can hallucinate</div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="sliding-window">Strategy 1 — Sliding window <a class="anchor" href="#sliding-window">#</a></h2>
+        <p>Keep only the last <code>k</code> message <em>pairs</em> (user + assistant = 1 pair). The implementation is trivial but the pair constraint is critical — never keep an assistant message without its preceding user message, or you'll send a history that starts with the model talking to itself.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">sliding_window.py — pair-safe sliding window buffer</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">class</span> <span class="tp">SlidingWindowBuffer</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, max_pairs: <span class="tp">int</span> = <span class="nm">10</span>):
+        self.max_pairs = max_pairs
+        self._history: <span class="tp">list</span>[<span class="tp">dict</span>] = []  <span class="cm"># alternating user / assistant messages</span>
+
+    <span class="kw">def</span> <span class="fn">add_turn</span>(self, user_msg: <span class="tp">str</span>, assistant_msg: <span class="tp">str</span>) -> <span class="kw">None</span>:
+        self._history.<span class="fn">append</span>({<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: user_msg})
+        self._history.<span class="fn">append</span>({<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: assistant_msg})
+        <span class="cm"># Trim to max_pairs — each pair = 2 messages</span>
+        max_messages = self.max_pairs * <span class="nm">2</span>
+        <span class="kw">if</span> <span class="fn">len</span>(self._history) > max_messages:
+            self._history = self._history[-max_messages:]
+
+    <span class="kw">def</span> <span class="fn">get_messages</span>(self, system_prompt: <span class="tp">str</span>, user_query: <span class="tp">str</span>) -> <span class="tp">list</span>[<span class="tp">dict</span>]:
+        <span class="kw">return</span> [
+            {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: system_prompt},
+            *self._history,
+            {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: user_query},
+        ]
+
+    <span class="kw">def</span> <span class="fn">__len__</span>(self) -> <span class="tp">int</span>:
+        <span class="kw">return</span> <span class="fn">len</span>(self._history) // <span class="nm">2</span>  <span class="cm"># number of pairs</span>
+
+
+<span class="cm"># ── Usage ──────────────────────────────────────────────────────────────</span>
+buf = <span class="tp">SlidingWindowBuffer</span>(max_pairs=<span class="nm">8</span>)
+<span class="cm"># After each turn:</span>
+buf.<span class="fn">add_turn</span>(user_msg=query, assistant_msg=response)
+msgs = buf.<span class="fn">get_messages</span>(SYSTEM_PROMPT, current_query)</code></pre>
+        </div>
+
+        <h2 id="token-trimming">Strategy 2 — Token-based trimming <a class="anchor" href="#token-trimming">#</a></h2>
+        <p>More precise than sliding window — drop the oldest pair until the total token count fits the budget. This adapts to message length, so a session with short messages retains more turns than one with long tool results:</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">token_trim.py — token-budget history trimming</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> tiktoken
+
+enc = tiktoken.<span class="fn">get_encoding</span>(<span class="st">"cl100k_base"</span>)
+
+<span class="kw">def</span> <span class="fn">count_msg_tokens</span>(messages: <span class="tp">list</span>[<span class="tp">dict</span>]) -> <span class="tp">int</span>:
+    total = <span class="nm">3</span>  <span class="cm"># reply primer</span>
+    <span class="kw">for</span> m <span class="kw">in</span> messages:
+        total += <span class="nm">4</span> + <span class="fn">len</span>(enc.<span class="fn">encode</span>(m.<span class="fn">get</span>(<span class="st">"content"</span>, <span class="st">""</span>)))
+    <span class="kw">return</span> total
+
+
+<span class="kw">class</span> <span class="tp">TokenBudgetBuffer</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, history_budget: <span class="tp">int</span> = <span class="nm">2500</span>):
+        self.budget = history_budget
+        self._history: <span class="tp">list</span>[<span class="tp">dict</span>] = []
+
+    <span class="kw">def</span> <span class="fn">add_turn</span>(self, user_msg: <span class="tp">str</span>, assistant_msg: <span class="tp">str</span>) -> <span class="kw">None</span>:
+        self._history.<span class="fn">append</span>({<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: user_msg})
+        self._history.<span class="fn">append</span>({<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: assistant_msg})
+        self.<span class="fn">_trim</span>()
+
+    <span class="kw">def</span> <span class="fn">_trim</span>(self) -> <span class="kw">None</span>:
+        <span class="cm"># Remove pairs from the front until we fit the budget</span>
+        <span class="kw">while</span> <span class="fn">len</span>(self._history) >= <span class="nm">2</span>:
+            <span class="kw">if</span> <span class="fn">count_msg_tokens</span>(self._history) <= self.budget:
+                <span class="kw">break</span>
+            self._history = self._history[<span class="nm">2</span>:]  <span class="cm"># drop oldest pair atomically</span>
+
+    <span class="kw">def</span> <span class="fn">get_messages</span>(self, system_prompt: <span class="tp">str</span>, user_query: <span class="tp">str</span>) -> <span class="tp">list</span>[<span class="tp">dict</span>]:
+        <span class="kw">return</span> [
+            {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: system_prompt},
+            *self._history,
+            {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: user_query},
+        ]
+
+    <span class="kw">def</span> <span class="fn">token_usage</span>(self) -> <span class="tp">int</span>:
+        <span class="kw">return</span> <span class="fn">count_msg_tokens</span>(self._history)</code></pre>
+        </div>
+
+        <h2 id="summary-compression">Strategy 3 — Summary compression <a class="anchor" href="#summary-compression">#</a></h2>
+        <p>When the buffer exceeds a threshold, call the LLM to summarise the oldest N turns into a compact summary message. The raw turns are replaced with the summary. Future turns can reference facts from early in the session without consuming the full token budget:</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">summary_buffer.py — LLM-driven conversation compression</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+
+client = <span class="tp">OpenAI</span>()
+
+SUMMARISE_PROMPT = <span class="st">"""Summarise the following conversation segment concisely.
+Preserve: key decisions, facts stated by the user, topics discussed.
+Omit: pleasantries, repeated information, verbose phrasing.
+Output a single paragraph starting with "Earlier in this conversation:"."""</span>
+
+<span class="kw">class</span> <span class="tp">SummaryBuffer</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(
+        self,
+        history_budget: <span class="tp">int</span> = <span class="nm">2500</span>,
+        compress_threshold: <span class="tp">int</span> = <span class="nm">2000</span>,  <span class="cm"># compress when history exceeds this</span>
+        keep_recent_pairs: <span class="tp">int</span> = <span class="nm">4</span>,       <span class="cm"># always keep last N pairs verbatim</span>
+    ):
+        self.history_budget = history_budget
+        self.threshold = compress_threshold
+        self.keep_recent = keep_recent_pairs
+        self._history: <span class="tp">list</span>[<span class="tp">dict</span>] = []
+        self._summary: <span class="tp">str</span> | <span class="kw">None</span> = <span class="kw">None</span>
+
+    <span class="kw">def</span> <span class="fn">add_turn</span>(self, user_msg: <span class="tp">str</span>, assistant_msg: <span class="tp">str</span>) -> <span class="kw">None</span>:
+        self._history.<span class="fn">append</span>({<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: user_msg})
+        self._history.<span class="fn">append</span>({<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: assistant_msg})
+        <span class="kw">if</span> <span class="fn">count_msg_tokens</span>(self._history) > self.threshold:
+            self.<span class="fn">_compress</span>()
+
+    <span class="kw">def</span> <span class="fn">_compress</span>(self) -> <span class="kw">None</span>:
+        <span class="cm"># Split: everything except the most recent pairs gets summarised</span>
+        recent_count = self.keep_recent * <span class="nm">2</span>
+        to_compress = self._history[:-recent_count] <span class="kw">if</span> <span class="fn">len</span>(self._history) > recent_count <span class="kw">else</span> []
+        <span class="kw">if</span> <span class="kw">not</span> to_compress:
+            <span class="kw">return</span>
+        raw = <span class="st">"\n"</span>.<span class="fn">join</span>(<span class="st">f"{m['role'].upper()}: {m['content']}"</span> <span class="kw">for</span> m <span class="kw">in</span> to_compress)
+        resp = client.chat.completions.<span class="fn">create</span>(
+            model=<span class="st">"gpt-4o-mini"</span>,
+            messages=[
+                {<span class="st">"role"</span>: <span class="st">"system"</span>,  <span class="st">"content"</span>: SUMMARISE_PROMPT},
+                {<span class="st">"role"</span>: <span class="st">"user"</span>,    <span class="st">"content"</span>: raw},
+            ],
+            max_tokens=<span class="nm">250</span>,
+        )
+        summary_text = resp.choices[<span class="nm">0</span>].message.content
+        <span class="cm"># Prepend to existing summary if there was one</span>
+        self._summary = (
+            (self._summary + <span class="st">"\n"</span> + summary_text) <span class="kw">if</span> self._summary <span class="kw">else</span> summary_text
+        )
+        <span class="cm"># Keep only the recent pairs</span>
+        self._history = self._history[-recent_count:]
+
+    <span class="kw">def</span> <span class="fn">get_messages</span>(self, system_prompt: <span class="tp">str</span>, user_query: <span class="tp">str</span>) -> <span class="tp">list</span>[<span class="tp">dict</span>]:
+        messages = [{<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: system_prompt}]
+        <span class="kw">if</span> self._summary:
+            <span class="cm"># Inject the running summary as the first user/assistant exchange</span>
+            messages.<span class="fn">append</span>({<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: <span class="st">"[conversation context]"</span>})
+            messages.<span class="fn">append</span>({<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: self._summary})
+        messages.<span class="fn">extend</span>(self._history)
+        messages.<span class="fn">append</span>({<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: user_query})
+        <span class="kw">return</span> messages</code></pre>
+        </div>
+
+        <h2 id="when-to-use">Choosing the right strategy <a class="anchor" href="#when-to-use">#</a></h2>
+
+        <div class="reveal" style="margin:1.5rem 0;overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border)">
+                <th style="text-align:left;padding:.6rem .8rem;color:var(--fg-dim);font-weight:600">Use case</th>
+                <th style="text-align:left;padding:.6rem .8rem;color:var(--fg-dim);font-weight:600">Recommended strategy</th>
+                <th style="text-align:left;padding:.6rem .8rem;color:var(--fg-dim);font-weight:600">Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem">Task-focused agent (coding, data analysis)</td>
+                <td style="padding:.6rem .8rem">Sliding window (k=6)</td>
+                <td style="padding:.6rem .8rem">Older turns rarely relevant; low latency priority</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem">Customer support bot</td>
+                <td style="padding:.6rem .8rem">Token trimming</td>
+                <td style="padding:.6rem .8rem">Sessions are bounded; precision matters over semantics</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem">Long-running personal assistant</td>
+                <td style="padding:.6rem .8rem">Summary compression</td>
+                <td style="padding:.6rem .8rem">Context from hours ago still relevant; user names, preferences</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.6rem .8rem">Research / document Q&A agent</td>
+                <td style="padding:.6rem .8rem">Token trimming + RAG retrieval</td>
+                <td style="padding:.6rem .8rem">History less important than retrieved documents</td>
+              </tr>
+              <tr>
+                <td style="padding:.6rem .8rem">Agentic workflow with many tool calls</td>
+                <td style="padding:.6rem .8rem">Summary + episodic (Module 6.5)</td>
+                <td style="padding:.6rem .8rem">Tool call results are verbose; full history unaffordable</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">The orphan message bug</strong>
+            Always trim history in complete pairs (user + assistant). If your trim logic drops the last user message but keeps the assistant response, you produce a messages array where the model appears to answer a question that isn't there. This causes the next response to seem contextually confused. The fix: trim indices <code>0:2</code>, <code>0:4</code> etc. — always even numbers from the front.
+          </div>
+        </div>
+
+        <h2 id="hybrid">Hybrid approach — trim then compress on demand <a class="anchor" href="#hybrid">#</a></h2>
+        <p>Production agents typically combine all three: use token trimming as the baseline, trigger summary compression only when the token count crosses a higher threshold (to amortise the latency cost of the extra LLM call), and apply a hard sliding window cap as a safety backstop. The compression event is invisible to the user — the next response just happens to have more headroom:</p>
+
+        <div class="callout callout--info">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">LangChain ConversationSummaryBufferMemory</strong>
+            LangChain's <code>ConversationSummaryBufferMemory</code> implements this hybrid pattern out of the box. It keeps a full buffer up to <code>max_token_limit</code>, then progressively summarises older turns as the session grows. It's a good starting point for chat applications before you need to build a custom buffer.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: Semantic Caching</div>
+            <div class="cta-block__sub">Module 6.4 covers caching responses by semantic similarity — so when a user asks the same question in different words, the agent serves a cached answer instantly without hitting the LLM at all.</div>
+          </div>
+          <a class="cta-block__btn" href="module-6-4.html">Module 6.4 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#the-problem">Why naive management fails</a></li>
+      <li><a class="toc__link" href="#sliding-window">Sliding window</a></li>
+      <li><a class="toc__link" href="#token-trimming">Token-based trimming</a></li>
+      <li><a class="toc__link" href="#summary-compression">Summary compression</a></li>
+      <li><a class="toc__link" href="#when-to-use">Choosing the strategy</a></li>
+      <li><a class="toc__link" href="#hybrid">Hybrid approach</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){
+  const h=document.documentElement;
+  const dark=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',dark?'light':'dark');
+  localStorage.setItem('ae-theme',dark?'light':'dark');
+  document.getElementById('themeIcon').textContent=dark?'☀':'☾';
+  document.getElementById('themeLabel').textContent=dark?'Light':'Dark';
+}
+(function(){
+  const t=localStorage.getItem('ae-theme');
+  if(t){
+    document.documentElement.setAttribute('data-theme',t);
+    const dark=t==='dark';
+    document.getElementById('themeIcon').textContent=dark?'☾':'☀';
+    document.getElementById('themeLabel').textContent=dark?'Dark':'Light';
+  }
+})();
+function copyCode(btn){
+  const code=btn.closest('.code-wrap').querySelector('pre code');
+  navigator.clipboard.writeText(code.innerText).then(()=>{
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent='Copy',2000);
+  });
+}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    const id=e.target.id;
+    if(!id)return;
+    const link=document.querySelector(`.toc__link[href="#${id}"]`);
+    if(!link)return;
+    if(e.isIntersecting){
+      document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));
+      link.classList.add('active');
+    }
+  });
+},{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

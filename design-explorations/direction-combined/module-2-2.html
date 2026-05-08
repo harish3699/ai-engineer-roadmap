@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 2.2 How an LLM Thinks · by Harish Mondepu</title>
+<meta name="description" content="BPE tokenisation, context windows, sampling parameters (top-p, top-k), and why long context degrades — the internals every AI engineer must understand."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#0e7490;--phase-hi:#06b6d4;--phase-soft:rgba(6,182,212,.12);--phase-text:#0e7490}
+[data-theme="dark"]{--phase:#06b6d4;--phase-hi:#22d3ee;--phase-soft:rgba(34,211,238,.1);--phase-text:#22d3ee}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 2 · <strong>How an LLM Thinks</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 10 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 2 · LLM Mental Model
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-2-1.html"><span class="sidebar__mod-num">2.1</span>What an LLM Actually Is<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">2.2</span>How an LLM Thinks<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod" href="module-2-3.html"><span class="sidebar__mod-num">2.3</span>Reasoning vs Base Models<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-2-4.html"><span class="sidebar__mod-num">2.4</span>Reading Evals &amp; Benchmarks<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-2-5.html"><span class="sidebar__mod-num">2.5</span>Comparing Major Models<span class="sidebar__check"></span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#8865a3"></span>Phase 3 · Prompt Engineering</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#e85a7a"></span>Phase 4 · RAG + Evaluation</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#10b981;opacity:.6"></span>Phase 5–9 · Agents &amp; Deployment</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 02</span>
+        <span class="tag tag--level">Conceptual</span>
+        <span class="tag tag--week">Week 4</span>
+      </div>
+      <h1 class="mod-head__title">How an LLM <em>Thinks</em></h1>
+      <p class="mod-head__sub">You know what an LLM is — a probabilistic text generator trained on a fixed snapshot. Now zoom in one level. This module covers how text gets converted to tokens (and why that matters for cost), what a context window actually is and what happens at its edge, the sampling parameters that control output quality, and the "lost in the middle" failure mode that will catch you off guard in production.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~25 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>2 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Tokens are not words — common English words are 1 token, rare/long words split into several; non-English text and code tokenise less efficiently (more tokens = more cost)</li>
+          <li>The context window is the model's entire working memory for one request — everything outside it is invisible; silently truncated, not summarised</li>
+          <li><code>top_p</code> controls vocabulary breadth per step; <code>top_k</code> hard-caps the candidate list — combining them with temperature gives fine-grained output control</li>
+          <li>"Lost in the middle" — retrieval accuracy drops for content placed in the middle of a long context; keep the most important context at the beginning or end</li>
+          <li>Counting tokens before sending a request is not optional in production — unexpected truncation is a silent bug that changes model behaviour without any error</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Module 2.1 complete</li>
+            <li><div class="meta-list__dot">!</div><code>pip install tiktoken</code> (OpenAI's tokeniser, works for GPT + rough estimates for others)</li>
+            <li><div class="meta-list__dot">!</div>No deep math required — transformer covered at concept level only</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Count tokens for any string and estimate API cost before sending</li>
+            <li><div class="meta-list__dot">2</div>Explain context window limits and what happens when exceeded</li>
+            <li><div class="meta-list__dot">3</div>Configure temperature, top-p, and top-k appropriately per use case</li>
+            <li><div class="meta-list__dot">4</div>Avoid the "lost in the middle" failure in RAG and long-context prompts</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">Intro to Large Language Models — Andrej Karpathy</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· 1-hour talk · covers tokenisation, context, parameters · Andrej Karpathy</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/zjkBMFhNj_g" title="Intro to Large Language Models — Andrej Karpathy" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ Best single-video overview of LLM internals by the person who built GPT-2 · 60 min</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="tokenisation">BPE Tokenisation <a class="anchor" href="#tokenisation">#</a></h2>
+        <p>Models don't process characters or words — they process <em>tokens</em>. A token is a chunk of text, typically 3–4 characters for common English. The tokeniser uses Byte-Pair Encoding (BPE): it starts with individual characters and repeatedly merges the most frequent pairs until it has a vocabulary of ~50,000–100,000 tokens. The result is that common words get a single token, while rare, long, or non-English words split into many.</p>
+
+        <!-- Token visualisation -->
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">Token count examples — GPT-4 tokeniser</div>
+          <div style="display:flex;flex-direction:column;gap:.6rem;font-family:'JetBrains Mono',monospace;font-size:13px">
+            <div style="display:flex;align-items:center;gap:.75rem"><span style="background:var(--phase-soft);color:var(--phase-text);padding:.15rem .5rem;border-radius:4px;min-width:260px">"hello"</span><span style="color:#10b981;font-weight:600">1 token</span></div>
+            <div style="display:flex;align-items:center;gap:.75rem"><span style="background:var(--phase-soft);color:var(--phase-text);padding:.15rem .5rem;border-radius:4px;min-width:260px">"Hello world"</span><span style="color:#10b981;font-weight:600">2 tokens</span></div>
+            <div style="display:flex;align-items:center;gap:.75rem"><span style="background:var(--phase-soft);color:var(--phase-text);padding:.15rem .5rem;border-radius:4px;min-width:260px">"antidisestablishmentarianism"</span><span style="color:#f59e0b;font-weight:600">6 tokens</span></div>
+            <div style="display:flex;align-items:center;gap:.75rem"><span style="background:var(--phase-soft);color:var(--phase-text);padding:.15rem .5rem;border-radius:4px;min-width:260px">"Künstliche Intelligenz"</span><span style="color:#f59e0b;font-weight:600">7 tokens</span><span style="color:var(--fg-dim);font-size:11px">(German tokenises ~2× less efficiently)</span></div>
+            <div style="display:flex;align-items:center;gap:.75rem"><span style="background:var(--phase-soft);color:var(--phase-text);padding:.15rem .5rem;border-radius:4px;min-width:260px">"人工智能"</span><span style="color:#ef4444;font-weight:600">6 tokens</span><span style="color:var(--fg-dim);font-size:11px">(Chinese: each character ~2 tokens)</span></div>
+            <div style="display:flex;align-items:center;gap:.75rem"><span style="background:var(--phase-soft);color:var(--phase-text);padding:.15rem .5rem;border-radius:4px;min-width:260px">"def calculate_embeddings():"</span><span style="color:#f59e0b;font-weight:600">7 tokens</span><span style="color:var(--fg-dim);font-size:11px">(code tokenises well)</span></div>
+          </div>
+        </div>
+
+        <p>Why this matters for you as an engineer: <strong>you pay per token</strong>. A 1000-word English document is roughly 1300 tokens. The same document in Chinese or Arabic costs 2–3× more. Code is efficient. Whitespace counts. Numbers tokenise unpredictably (each digit is often its own token). Always count tokens before you budget an API call.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">count_tokens.py — count tokens before sending to the API</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> tiktoken
+
+<span class="cm"># cl100k_base = GPT-4 / GPT-3.5 tokeniser. Use as a rough estimate for Claude too.</span>
+enc = tiktoken.<span class="fn">get_encoding</span>(<span class="st">"cl100k_base"</span>)
+
+<span class="kw">def</span> <span class="fn">count_tokens</span>(text: <span class="tp">str</span>) -> <span class="tp">int</span>:
+    <span class="kw">return</span> <span class="fn">len</span>(enc.<span class="fn">encode</span>(text))
+
+<span class="kw">def</span> <span class="fn">estimate_cost</span>(text: <span class="tp">str</span>, price_per_million: <span class="tp">float</span> = <span class="nm">3.0</span>) -> <span class="tp">float</span>:
+    <span class="kw">return</span> <span class="fn">count_tokens</span>(text) / <span class="nm">1_000_000</span> * price_per_million
+
+system_prompt = <span class="st">"You are an expert AI engineer helping students learn about LLMs."</span>
+user_message  = <span class="st">"Explain context windows in plain English, under 100 words."</span>
+
+total = <span class="fn">count_tokens</span>(system_prompt) + <span class="fn">count_tokens</span>(user_message)
+<span class="fn">print</span>(<span class="st">f"Input tokens: {total}"</span>)                           <span class="cm"># ~30</span>
+<span class="fn">print</span>(<span class="st">f"Estimated cost: ${estimate_cost(system_prompt + user_message):.6f}"</span>)
+
+<span class="cm"># ── Check if a document fits in the context window ───────────────────</span>
+CLAUDE_SONNET_CONTEXT = <span class="nm">200_000</span>   <span class="cm"># tokens</span>
+GPT4O_CONTEXT         = <span class="nm">128_000</span>
+
+<span class="kw">with</span> <span class="fn">open</span>(<span class="st">"big_document.txt"</span>) <span class="kw">as</span> f:
+    doc = f.<span class="fn">read</span>()
+
+tokens = <span class="fn">count_tokens</span>(doc)
+<span class="kw">if</span> tokens > CLAUDE_SONNET_CONTEXT - <span class="nm">4000</span>:   <span class="cm"># leave 4k for output</span>
+    <span class="fn">print</span>(<span class="st">f"Document too large ({tokens} tokens) — needs chunking"</span>)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="st">f"Fits in context ({tokens}/{CLAUDE_SONNET_CONTEXT} tokens)"</span>)</code></pre>
+        </div>
+
+        <h2 id="context-window">Context windows <a class="anchor" href="#context-window">#</a></h2>
+        <p>The context window is everything the model can "see" at once — your system prompt, the conversation history, any retrieved documents, and the space reserved for the model's reply. Everything outside the window simply doesn't exist to the model. It isn't summarised or compressed — it's gone.</p>
+
+        <!-- Context window diagram -->
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">Context window — how tokens are spent (128k window example)</div>
+          <div style="display:flex;flex-direction:column;gap:.4rem">
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div style="width:15%;height:28px;background:#8865a3;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:600">~2k</div>
+              <span style="font-size:13px;color:var(--fg)">System prompt (instructions, persona, rules)</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div style="width:40%;height:28px;background:var(--phase);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:600">~50k</div>
+              <span style="font-size:13px;color:var(--fg)">Retrieved documents / RAG context</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div style="width:25%;height:28px;background:#f59e0b;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:600">~30k</div>
+              <span style="font-size:13px;color:var(--fg)">Conversation history (sliding window)</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div style="width:5%;height:28px;background:#10b981;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:600">~1k</div>
+              <span style="font-size:13px;color:var(--fg)">User message</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div style="width:12%;height:28px;background:#ef4444;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:600">~4k reserved</div>
+              <span style="font-size:13px;color:var(--fg)">Output (max_tokens budget)</span>
+            </div>
+          </div>
+          <div style="margin-top:.8rem;font-size:12px;color:var(--fg-dim)">Total: ~87k / 128k used. Anything pushed beyond 128k is silently dropped — the model never sees it.</div>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">Silent truncation is a production bug</strong>
+            When input exceeds the context limit, most APIs truncate silently — they drop tokens from the middle or end of the input without raising an error. Your agent responds as if everything was received, but it's missing half the context. Always count tokens before sending and enforce a hard limit in your code.
+          </div>
+        </div>
+
+        <h2 id="sampling">Sampling parameters: top-p and top-k <a class="anchor" href="#sampling">#</a></h2>
+        <p>You set temperature in Module 2.1. Two more parameters shape every token sample: <code>top_k</code> and <code>top_p</code>. They're applied <em>before</em> temperature scaling, filtering the candidate vocabulary down before sampling happens.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">sampling_params.py — when to use which combination</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic
+
+client = anthropic.<span class="fn">Anthropic</span>()
+
+<span class="cm"># ── Deterministic structured output (extraction, classification) ───────</span>
+extraction = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-sonnet-4-6"</span>,
+    max_tokens=<span class="nm">512</span>,
+    temperature=<span class="nm">0</span>,       <span class="cm"># no randomness</span>
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"Extract entities from: ..."</span>}],
+)
+
+<span class="cm"># ── Balanced chat response (general Q&A, summarisation) ────────────────</span>
+chat = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-sonnet-4-6"</span>,
+    max_tokens=<span class="nm">1024</span>,
+    temperature=<span class="nm">0.7</span>,
+    top_p=<span class="nm">0.9</span>,   <span class="cm"># sample from tokens covering 90% of probability mass</span>
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"Explain RAG in plain English."</span>}],
+)
+
+<span class="cm"># ── Creative generation (marketing copy, story, brainstorm) ────────────</span>
+creative = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-sonnet-4-6"</span>,
+    max_tokens=<span class="nm">2048</span>,
+    temperature=<span class="nm">1.0</span>,
+    top_p=<span class="nm">0.95</span>,
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"Write 5 taglines for an AI course."</span>}],
+)
+
+<span class="cm"># ── Parameter cheat sheet ─────────────────────────────────────────────</span>
+<span class="cm"># temperature=0, top_p=1   → deterministic, always pick top token</span>
+<span class="cm"># temperature=0.7, top_p=0.9 → balanced — good default for most tasks</span>
+<span class="cm"># temperature=1.0, top_p=0.95 → creative, more variety, higher hallucination risk</span>
+<span class="cm"># top_k=40 (OpenAI default) → hard limit vocabulary to top 40 tokens per step</span>
+<span class="cm"># top_p=0.1 → extreme focus — only tokens in top 10% of probability mass</span></code></pre>
+        </div>
+
+        <h2 id="lost-in-middle">Lost in the middle <a class="anchor" href="#lost-in-middle">#</a></h2>
+        <p>A 2023 Stanford paper ("Lost in the Middle") showed that LLMs reliably attend to content at the <em>beginning</em> and <em>end</em> of a long context window. Content buried in the middle gets significantly less attention — the model is demonstrably worse at recalling and reasoning about it, even though it was technically "in context."</p>
+
+        <!-- Lost in middle diagram -->
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">Attention strength vs position in context</div>
+          <div style="display:flex;align-items:flex-end;gap:3px;height:80px;padding:0 .5rem">
+            <div style="flex:1;background:#10b981;border-radius:3px 3px 0 0;height:95%" title="Start"></div>
+            <div style="flex:1;background:#10b981;border-radius:3px 3px 0 0;height:88%"></div>
+            <div style="flex:1;background:#f59e0b;border-radius:3px 3px 0 0;height:65%"></div>
+            <div style="flex:1;background:#f59e0b;border-radius:3px 3px 0 0;height:48%"></div>
+            <div style="flex:1;background:#ef4444;border-radius:3px 3px 0 0;height:32%"></div>
+            <div style="flex:1;background:#ef4444;border-radius:3px 3px 0 0;height:28%"></div>
+            <div style="flex:1;background:#ef4444;border-radius:3px 3px 0 0;height:30%"></div>
+            <div style="flex:1;background:#f59e0b;border-radius:3px 3px 0 0;height:52%"></div>
+            <div style="flex:1;background:#10b981;border-radius:3px 3px 0 0;height:85%"></div>
+            <div style="flex:1;background:#10b981;border-radius:3px 3px 0 0;height:92%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:.4rem;font-size:11px;color:var(--fg-dim)">
+            <span style="color:#10b981">↑ Beginning (high attention)</span>
+            <span style="color:#ef4444">↓ Middle (low attention)</span>
+            <span style="color:#10b981">↑ End (high attention)</span>
+          </div>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">How to work around lost-in-the-middle</strong>
+            <strong>For RAG:</strong> Put your highest-relevance retrieved chunks at the top of the context, not buried after 20 other chunks.<br/>
+            <strong>For long documents:</strong> Put your instructions and the specific question both at the start AND end of the context window (repeat them).<br/>
+            <strong>For multi-document:</strong> Fewer, more relevant chunks outperform many loosely relevant ones — retrieval quality matters more than retrieval quantity.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 2.2: How an LLM Thinks</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~25 min · code + whiteboard</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 1:00</span><span class="script-action">TITLE CARD</span><span class="script-narration">"Module 2.2 — How an LLM Thinks. Tokenisation, context windows, sampling parameters, and lost in the middle. These are the four things that will explain most production failures."</span></div>
+          <div class="script-line"><span class="script-ts">1:00 – 8:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run count_tokens.py. Encode "hello" — 1 token. Encode "antidisestablishmentarianism" — show the 6 tokens printed out individually. Try Chinese text. "A Chinese document costs roughly twice as much to process as English. Budget accordingly." Show the context window check on a large document.</span></div>
+          <div class="script-line"><span class="script-ts">8:00 – 15:00</span><span class="script-action">WHITEBOARD</span><span class="script-narration">Draw the context window diagram. Fill in each section: system prompt, retrieved docs, history, user message, output budget. "This is the finite space you're working with. The moment you exceed it, something falls off the edge — silently. No error. The model just never saw it." Show the truncation order for each provider (Claude truncates from start by default; GPT from end).</span></div>
+          <div class="script-line"><span class="script-ts">15:00 – 21:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run sampling_params.py three times with different parameter combos. Show output variance. "top_p=0.1 basically forces the model to pick from the most predictable tokens only — great for code generation, terrible for creative writing. Default top_p=1 is fine for most tasks; only tweak when you have a specific reason."</span></div>
+          <div class="script-line"><span class="script-ts">21:00 – 25:00</span><span class="script-action">WHITEBOARD</span><span class="script-narration">Draw the attention bar chart. "This is why your RAG system retrieves 20 chunks and the model ignores the 10 in the middle. The most important chunk goes at the top. Full stop." Mention the Stanford paper — worth reading if you want the numbers.</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>A 10,000-word English document is roughly how many tokens? What about the same content in Chinese?</summary>
+          <div class="selfcheck__a">A rough rule: 1 English word ≈ 1.3 tokens, so 10,000 words ≈ 13,000 tokens. The same content in Chinese tokenises at roughly 2–3× the cost, so approximately 26,000–39,000 tokens. This has direct cost implications — multilingual applications need to budget per language, not per word count.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What is the difference between <code>top_p</code> and <code>top_k</code>?</summary>
+          <div class="selfcheck__a"><code>top_k</code> is a hard count limit — it restricts sampling to the top K most probable tokens regardless of how much probability mass they represent. <code>top_p</code> (nucleus sampling) is probability-mass-based — it keeps the smallest set of tokens whose cumulative probability exceeds p. <code>top_p=0.9</code> adapts to the distribution: when the model is confident, it may sample from 5 tokens; when uncertain, it may sample from 50. <code>top_p</code> is generally preferred for production use.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Your RAG system retrieves 20 chunks and puts the most relevant one at position 10 out of 20. What is the likely problem?</summary>
+          <div class="selfcheck__a">The "lost in the middle" failure — LLMs attend more strongly to content at the start and end of the context window than to content in the middle. Chunk at position 10 of 20 is in the middle of the retrieved context and will receive less attention than chunks at positions 1 or 20. Solution: always put the most relevant chunks at the top of the retrieved context, not in the middle. Fewer, higher-quality chunks also outperform many mediocre ones.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>You send a request that is 130,000 tokens to GPT-4o (128k context limit). What happens?</summary>
+          <div class="selfcheck__a">The API will either return an error (if you're over the hard limit) or silently truncate the input to fit within the context window — typically dropping tokens from the end or middle of the input without raising an exception. The model responds as if nothing happened, but is missing 2,000+ tokens of context. This is why you must count tokens before sending and enforce limits in code, not rely on error handling.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Up next</div>
+          <div class="next-mod__title">2.3 · Reasoning Models vs Base Models</div>
+          <p class="next-mod__desc">The 2025 split — o1/o3, Claude thinking, Gemini 2.5, DeepSeek R1. What "thinking tokens" actually are, when reasoning models are worth the latency and cost, and when a base model with good prompting beats them.</p>
+        </div>
+        <a class="next-btn" href="module-2-3.html">Continue →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#tokenisation">Tokenisation</a>
+    <a href="#context-window">Context windows</a>
+    <a href="#sampling">Sampling params</a>
+    <a href="#lost-in-middle">Lost in the middle</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 2.2 / 62<br/>Phase 2 · Week 4<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

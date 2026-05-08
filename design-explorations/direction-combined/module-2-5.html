@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 2.5 Comparing the Major Models · by Harish Mondepu</title>
+<meta name="description" content="GPT, Claude, Gemini, Llama, Mistral, DeepSeek, Qwen — cost vs quality vs speed vs context tradeoffs, and when model choice actually matters."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#0e7490;--phase-hi:#06b6d4;--phase-soft:rgba(6,182,212,.12);--phase-text:#0e7490}
+[data-theme="dark"]{--phase:#06b6d4;--phase-hi:#22d3ee;--phase-soft:rgba(34,211,238,.1);--phase-text:#22d3ee}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 2 · <strong>Comparing the Major Models</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 13 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 2 · LLM Mental Model
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-2-1.html"><span class="sidebar__mod-num">2.1</span>What an LLM Actually Is<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-2-2.html"><span class="sidebar__mod-num">2.2</span>How an LLM Thinks<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-2-3.html"><span class="sidebar__mod-num">2.3</span>Reasoning vs Base Models<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-2-4.html"><span class="sidebar__mod-num">2.4</span>Reading Evals &amp; Benchmarks<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">2.5</span>Comparing Major Models<span class="sidebar__check">✓</span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#8865a3"></span>Phase 3 · Prompt Engineering</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#e85a7a"></span>Phase 4 · RAG + Evaluation</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#10b981;opacity:.6"></span>Phase 5–9 · Agents &amp; Deployment</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 02</span>
+        <span class="tag tag--level">Conceptual</span>
+        <span class="tag tag--week">Week 4</span>
+      </div>
+      <h1 class="mod-head__title">Comparing the <em>Major Models</em></h1>
+      <p class="mod-head__sub">GPT, Claude, Gemini, Llama, Mistral, DeepSeek, Qwen — seven model families, each with different tradeoffs across cost, quality, speed, context length, and licensing. This module gives you the mental map to pick the right model for any task, understand why engineers switch providers, and stop treating "just use GPT-4" as a strategy. It's also the final module of Phase 2.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~25 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>1 code example</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Model choice matters most for: complex reasoning, long-context tasks, tool use, cost-sensitive high-volume pipelines, and data-residency / licensing requirements</li>
+          <li>Model choice rarely matters for: simple extraction, classification, summarisation of short documents — a well-prompted mid-tier model matches a frontier model at a fraction of the cost</li>
+          <li>Open-weight models (Llama, Mistral, DeepSeek, Qwen) can be self-hosted — zero per-token cost at scale, full data control, but you own the infra and the safety layer</li>
+          <li>Provider APIs change constantly — build with an abstraction layer (LiteLLM, LangChain's ChatModel) so swapping providers is a one-line change</li>
+          <li>The model landscape shifts every 2–3 months. Build eval infrastructure (Module 2.4) so you can re-validate your model choice when new releases drop</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Modules 2.1–2.4 complete</li>
+            <li><div class="meta-list__dot">!</div><code>pip install litellm</code> for the provider-agnostic example</li>
+            <li><div class="meta-list__dot">!</div>Conceptual module — no new algorithms to understand</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Describe the tradeoff profile of each major model family</li>
+            <li><div class="meta-list__dot">2</div>Select the right model tier for a given task and budget</li>
+            <li><div class="meta-list__dot">3</div>Know when to consider open-weight models vs hosted APIs</li>
+            <li><div class="meta-list__dot">4</div>Write provider-agnostic code using LiteLLM</div></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">Every AI Model Explained — Fireship</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· AI model landscape overview · Fireship or AI Explained</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/TnGgjgRa6Z4" title="Every AI Model Explained" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ Fast overview of the current model landscape</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="model-families">The major model families <a class="anchor" href="#model-families">#</a></h2>
+        <p>Think in families, not individual models. Each family has a characteristic tradeoff profile that persists across generations — flagship models for complex tasks, mid-tier for everyday work, small/fast for high-volume pipelines.</p>
+
+        <!-- Model families table -->
+        <div class="diagram-block reveal" style="margin:1.5rem 0;overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border)">
+                <th style="text-align:left;padding:.65rem .8rem;color:var(--fg-dim);font-weight:600">Family</th>
+                <th style="text-align:left;padding:.65rem .8rem;color:var(--fg-dim);font-weight:600">Flagship</th>
+                <th style="text-align:left;padding:.65rem .8rem;color:var(--fg-dim);font-weight:600">Fast/cheap tier</th>
+                <th style="text-align:left;padding:.65rem .8rem;color:var(--fg-dim);font-weight:600">Known for</th>
+                <th style="text-align:left;padding:.65rem .8rem;color:var(--fg-dim);font-weight:600">Licensing</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.65rem .8rem;font-weight:700;color:var(--fg)">OpenAI GPT</td>
+                <td style="padding:.65rem .8rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--phase-text)">o3, GPT-4o</td>
+                <td style="padding:.65rem .8rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-dim)">o4-mini, GPT-4o-mini</td>
+                <td style="padding:.65rem .8rem;color:var(--fg)">Best ecosystem, widest tool support, DALL-E, Sora, Whisper</td>
+                <td style="padding:.65rem .8rem;color:var(--fg-dim)">Closed API</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.65rem .8rem;font-weight:700;color:var(--fg)">Anthropic Claude</td>
+                <td style="padding:.65rem .8rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--phase-text)">claude-opus-4-7</td>
+                <td style="padding:.65rem .8rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-dim)">claude-haiku-4-5</td>
+                <td style="padding:.65rem .8rem;color:var(--fg)">Long context (200k), instruction following, safety, coding</td>
+                <td style="padding:.65rem .8rem;color:var(--fg-dim)">Closed API</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.65rem .8rem;font-weight:700;color:var(--fg)">Google Gemini</td>
+                <td style="padding:.65rem .8rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--phase-text)">gemini-2.5-pro</td>
+                <td style="padding:.65rem .8rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-dim)">gemini-2.0-flash</td>
+                <td style="padding:.65rem .8rem;color:var(--fg)">Massive context (1M+), multimodal, native Google Workspace integration</td>
+                <td style="padding:.65rem .8rem;color:var(--fg-dim)">Closed API</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.65rem .8rem;font-weight:700;color:var(--fg)">Meta Llama</td>
+                <td style="padding:.65rem .8rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--phase-text)">Llama-4-Scout/Maverick</td>
+                <td style="padding:.65rem .8rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-dim)">Llama-3.2-3B</td>
+                <td style="padding:.65rem .8rem;color:var(--fg)">Open weights, self-hostable, strong community fine-tunes</td>
+                <td style="padding:.65rem .8rem;color:#10b981">Open weight*</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.65rem .8rem;font-weight:700;color:var(--fg)">Mistral</td>
+                <td style="padding:.65rem .8rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--phase-text)">mistral-large-2</td>
+                <td style="padding:.65rem .8rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-dim)">mistral-7b, mixtral-8x7b</td>
+                <td style="padding:.65rem .8rem;color:var(--fg)">Efficient, European data residency, strong for structured output</td>
+                <td style="padding:.65rem .8rem;color:#10b981">Open weight (some)</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.65rem .8rem;font-weight:700;color:var(--fg)">DeepSeek</td>
+                <td style="padding:.65rem .8rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--phase-text)">DeepSeek-V3, R1</td>
+                <td style="padding:.65rem .8rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-dim)">DeepSeek-R1-Distill</td>
+                <td style="padding:.65rem .8rem;color:var(--fg)">Frontier quality at dramatically lower cost, strong reasoning</td>
+                <td style="padding:.65rem .8rem;color:#10b981">Open weight</td>
+              </tr>
+              <tr>
+                <td style="padding:.65rem .8rem;font-weight:700;color:var(--fg)">Alibaba Qwen</td>
+                <td style="padding:.65rem .8rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--phase-text)">Qwen2.5-72B, QwQ-32B</td>
+                <td style="padding:.65rem .8rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--fg-dim)">Qwen2.5-7B</td>
+                <td style="padding:.65rem .8rem;color:var(--fg)">Strong multilingual (Chinese/Arabic), competitive coding, open weights</td>
+                <td style="padding:.65rem .8rem;color:#10b981">Open weight</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="font-size:11px;color:var(--fg-dim);margin-top:.5rem;padding:0 .4rem">* Llama open weight licence restricts use above 700M MAU</div>
+        </div>
+
+        <h2 id="tradeoffs">The four axes that matter <a class="anchor" href="#tradeoffs">#</a></h2>
+
+        <!-- Four axes -->
+        <div class="diagram-block reveal" style="margin:1.5rem 0;display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div style="background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.2rem">
+            <div style="font-size:12px;font-weight:700;color:var(--phase-text);margin-bottom:.6rem">COST</div>
+            <div style="font-size:13px;color:var(--fg);line-height:1.7">
+              Open-weight self-hosted: near zero at scale<br>
+              <span style="color:var(--fg-dim)">DeepSeek API: ~$0.27/M input tokens</span><br>
+              <span style="color:var(--fg-dim)">GPT-4o-mini / Haiku: ~$0.15–0.25/M</span><br>
+              <span style="color:var(--fg-dim)">Claude Sonnet / GPT-4o: ~$3–5/M</span><br>
+              <span style="color:var(--fg-dim)">Frontier (o3, Opus): ~$15–60/M</span>
+            </div>
+          </div>
+          <div style="background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.2rem">
+            <div style="font-size:12px;font-weight:700;color:var(--phase-text);margin-bottom:.6rem">SPEED</div>
+            <div style="font-size:13px;color:var(--fg);line-height:1.7">
+              Flash/mini tier: 100–200 tokens/sec<br>
+              <span style="color:var(--fg-dim)">Haiku, GPT-4o-mini, Gemini Flash</span><br>
+              Standard tier: 60–100 tokens/sec<br>
+              <span style="color:var(--fg-dim)">Sonnet, GPT-4o</span><br>
+              Reasoning models: 10–40 tokens/sec<br>
+              <span style="color:var(--fg-dim)">(thinking adds 5–60s before first token)</span>
+            </div>
+          </div>
+          <div style="background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.2rem">
+            <div style="font-size:12px;font-weight:700;color:var(--phase-text);margin-bottom:.6rem">CONTEXT LENGTH</div>
+            <div style="font-size:13px;color:var(--fg);line-height:1.7">
+              Gemini 2.5 Pro: 1M tokens<br>
+              <span style="color:var(--fg-dim)">Claude: 200k · GPT-4o: 128k</span><br>
+              Llama 3.1: 128k · Qwen2.5: 128k<br>
+              <span style="color:var(--fg-dim)">Most tasks need &lt;32k — context window rarely the deciding factor</span>
+            </div>
+          </div>
+          <div style="background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.2rem">
+            <div style="font-size:12px;font-weight:700;color:var(--phase-text);margin-bottom:.6rem">DATA &amp; LICENSING</div>
+            <div style="font-size:13px;color:var(--fg);line-height:1.7">
+              Closed APIs: data sent to provider<br>
+              <span style="color:var(--fg-dim)">GDPR: use EU endpoints (Claude EU, Azure OpenAI EU)</span><br>
+              Open weights: self-host for full control<br>
+              <span style="color:var(--fg-dim)">Mistral: GDPR-friendly hosted option</span><br>
+              <span style="color:var(--fg-dim)">Finance/health: check BAA availability</span>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="when-matters">When model choice actually matters <a class="anchor" href="#when-matters">#</a></h2>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">The 80/20 rule of model selection</strong>
+            For 80% of tasks — extraction, classification, summarisation, Q&A over retrieved docs — a well-prompted Haiku or GPT-4o-mini will match a frontier model. The remaining 20% — complex reasoning, agentic tool use, ambiguous multi-constraint problems, long-document analysis — is where the frontier model earns its premium. Start cheap, upgrade only when your micro-eval shows the quality gap justifies the cost.
+          </div>
+        </div>
+
+        <!-- When it matters vs doesn't -->
+        <div class="diagram-block reveal" style="margin:1.5rem 0;display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div style="background:var(--surface-1);border:1px solid #10b981;border-radius:10px;padding:1.2rem">
+            <div style="font-size:11px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem">Model choice MATTERS</div>
+            <ul style="font-size:13px;color:var(--fg);line-height:1.9;margin:0;padding-left:1.1rem">
+              <li>Multi-step reasoning &amp; planning</li>
+              <li>Agentic tool use (BFCL score matters)</li>
+              <li>Complex code generation / debugging</li>
+              <li>Long-document analysis (&gt;50k tokens)</li>
+              <li>Regulated domains (medical, legal, finance)</li>
+              <li>Data residency / compliance requirements</li>
+              <li>High-volume pipelines where cost/token adds up</li>
+            </ul>
+          </div>
+          <div style="background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.2rem">
+            <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem">Model choice rarely matters</div>
+            <ul style="font-size:13px;color:var(--fg);line-height:1.9;margin:0;padding-left:1.1rem">
+              <li>Entity / keyword extraction</li>
+              <li>Binary or multi-class classification</li>
+              <li>Summarisation of short documents</li>
+              <li>Translation between major languages</li>
+              <li>Simple Q&amp;A over retrieved chunks (RAG)</li>
+              <li>Format conversion (JSON → Markdown, etc.)</li>
+              <li>Sentiment analysis, tone detection</li>
+            </ul>
+          </div>
+        </div>
+
+        <h2 id="litellm">Provider-agnostic code with LiteLLM <a class="anchor" href="#litellm">#</a></h2>
+        <p>The model landscape changes every 2–3 months. Hardcoding <code>anthropic.Anthropic()</code> everywhere means a provider switch requires touching every file. LiteLLM provides a unified OpenAI-compatible interface across all major providers — swapping models is a one-line change.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">litellm_example.py — swap providers without changing call sites</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> litellm <span class="kw">import</span> completion
+<span class="kw">import</span> os
+
+<span class="cm"># ── Same call signature for every provider ────────────────────────────</span>
+messages = [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"Summarise this document in 3 bullet points."</span>}]
+
+<span class="cm"># Claude</span>
+resp = <span class="fn">completion</span>(model=<span class="st">"anthropic/claude-haiku-4-5-20251001"</span>, messages=messages)
+
+<span class="cm"># OpenAI — identical call, just change the model string</span>
+resp = <span class="fn">completion</span>(model=<span class="st">"gpt-4o-mini"</span>, messages=messages)
+
+<span class="cm"># Gemini</span>
+resp = <span class="fn">completion</span>(model=<span class="st">"gemini/gemini-2.0-flash"</span>, messages=messages)
+
+<span class="cm"># Self-hosted Llama via Ollama</span>
+resp = <span class="fn">completion</span>(model=<span class="st">"ollama/llama3.2"</span>, messages=messages,
+                  api_base=<span class="st">"http://localhost:11434"</span>)
+
+<span class="fn">print</span>(resp.choices[<span class="nm">0</span>].message.content)
+
+<span class="cm"># ── Use env vars for API keys — never hardcode ────────────────────────</span>
+<span class="cm"># ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY</span>
+<span class="cm"># LiteLLM picks them up automatically</span>
+
+<span class="cm"># ── Cost tracking built in ────────────────────────────────────────────</span>
+<span class="fn">print</span>(<span class="st">f"Cost: ${resp._hidden_params['response_cost']:.6f}"</span>)</code></pre>
+        </div>
+
+        <div class="callout callout--note">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">This landscape will look different in 6 months</strong>
+            The specific model names and prices in this module will be outdated — that's inevitable. What won't change: the four axes (cost, speed, context, licensing), the family tradeoff profiles, and the advice to build your own eval before committing. Bookmark Artificial Analysis and re-run your micro-eval whenever a major new release drops.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 2.5: Comparing the Major Models</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~25 min · browser + code · final Phase 2 module</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 2:00</span><span class="script-action">INTRO</span><span class="script-narration">"Module 2.5 — the final module of Phase 2. We're going to cover every major model family in 25 minutes. Not deep dives — mental models. After this you'll be able to answer 'which model should I use?' without Googling it every time."</span></div>
+          <div class="script-line"><span class="script-ts">2:00 – 10:00</span><span class="script-action">BROWSER</span><span class="script-narration">Open Artificial Analysis. Walk the scatter plot. "Each dot is a model. X axis is quality, Y axis is speed, size of dot is cost. Draw a line at your latency budget. Draw a line at your cost budget. The best model for you is in the top-right corner of that box." Show how the Sonnet-tier vs Haiku-tier tradeoff looks visually. Show DeepSeek's position — frontier quality, cheap tier pricing.</span></div>
+          <div class="script-line"><span class="script-ts">10:00 – 16:00</span><span class="script-action">WHITEBOARD</span><span class="script-narration">Walk the family profiles. "GPT: best ecosystem, most integrations, widest third-party support. Claude: best instruction following, best for long documents, extended thinking built in. Gemini: 1M context window — if you have a use case that genuinely needs that, it's the only real option. Open weights: Llama, Mistral, DeepSeek, Qwen. Self-host if you have data residency requirements, high volume, or a team that can run the infra."</span></div>
+          <div class="script-line"><span class="script-ts">16:00 – 22:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run litellm_example.py. Call Claude, then change one string to GPT-4o-mini, run again, same output. "That's the whole point. Your call sites don't change. The model string is a config value, not a code dependency." Show the cost tracking line. "You'll use this throughout the course."</span></div>
+          <div class="script-line"><span class="script-ts">22:00 – 25:00</span><span class="script-action">WRAP</span><span class="script-narration">"Phase 2 is done. You now have the mental model that will explain every confusing LLM behaviour you encounter. Phase 3 is where we go from understanding models to controlling them — prompt anatomy, few-shot, chain of thought, and cost optimisation with caching. See you there."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>Your application processes 200,000 customer support tickets per day with simple intent classification. Which model tier and family would you choose, and why?</summary>
+          <div class="selfcheck__a">A fast, cheap tier model — Claude Haiku, GPT-4o-mini, or Gemini Flash. Classification is a pattern-matching task where mid-tier models match frontier models. At 200k requests/day, the cost difference between a $0.15/M input tier and a $5/M input tier is roughly 33× — potentially thousands of dollars per day for zero quality gain. Always validate with a micro-eval (Module 2.4) first, but the starting hypothesis should always be the cheapest tier that passes your quality bar.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>A client requires that all data stays within EU jurisdiction. Which options do you have?</summary>
+          <div class="selfcheck__a">Several options: (1) Claude via AWS Bedrock EU regions — Anthropic's data processing agreement covers EU data residency; (2) Azure OpenAI with EU region deployment — Microsoft's GDPR compliance covers this; (3) Mistral AI — French company, EU-hosted, GDPR-compliant; (4) Self-hosted open-weight models (Llama, Mistral, Qwen) on EU cloud infrastructure — full data control, no third-party processing. The self-hosted option gives maximum control but requires infra expertise. Always check your provider's current Data Processing Agreement before committing — these change.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Why should you use LiteLLM or a similar abstraction layer rather than calling provider SDKs directly?</summary>
+          <div class="selfcheck__a">The model landscape changes every 2–3 months — new models drop, prices change, quality leaderboards shift. If you call <code>anthropic.Anthropic()</code> or <code>openai.OpenAI()</code> directly throughout your codebase, switching providers requires changing every call site. With LiteLLM, the provider and model are a configuration string — swapping from Claude to GPT-4o is a one-line change with no code modifications. It also provides unified cost tracking, retry logic, and fallback routing across providers.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>When would you choose a self-hosted open-weight model over a hosted API?</summary>
+          <div class="selfcheck__a">Four main scenarios: (1) <strong>Data residency / privacy</strong> — data cannot leave your infrastructure, or you're processing PII that can't go to third-party APIs; (2) <strong>High-volume cost</strong> — at millions of requests per day, the marginal cost of self-hosting (GPU infra) can be lower than per-token API pricing; (3) <strong>Latency control</strong> — you need guaranteed SLAs and can't rely on provider capacity or rate limits; (4) <strong>Fine-tuning</strong> — you need to modify model weights for a narrow domain task. The downside is that you own the infra, the scaling, the safety layer, and the updates — a non-trivial operational burden.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label" style="color:var(--phase-hi)">Phase 2 complete — 13 modules done</div>
+          <div class="next-mod__title">Phase 3 · Prompt Engineering</div>
+          <p class="next-mod__desc">You understand the models. Now you learn to control them. Phase 3 covers the UI vs API gap, the Anthropic and OpenAI SDKs, prompt anatomy, few-shot examples, chain of thought, and cutting your costs 5–10× with prompt caching. 7 modules.</p>
+        </div>
+        <a class="next-btn" href="module-3-1.html">Start Phase 3 →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#model-families">Model families</a>
+    <a href="#tradeoffs">Four axes</a>
+    <a href="#when-matters">When it matters</a>
+    <a href="#litellm">LiteLLM</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 2.5 / 62<br/>Phase 2 · Week 4<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

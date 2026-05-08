@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 5.4 The ReAct Pattern · by Harish Mondepu</title>
+<meta name="description" content="Reasoning + Acting — the thought→action→observation loop, why it enables complex multi-step behaviour, thinking models, and when to force ReAct vs let the model decide."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#059669;--phase-hi:#10b981;--phase-soft:rgba(16,185,129,.1);--phase-text:#059669}
+[data-theme="dark"]{--phase:#10b981;--phase-hi:#34d399;--phase-soft:rgba(16,185,129,.1);--phase-text:#a7f3d0}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 5 · <strong>The ReAct Pattern</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 33 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#f06292"></span>
+        Phase 4 · RAG + Evaluation ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 5 · Tools, MCP &amp; Agents
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-5-1.html"><span class="sidebar__mod-num">5.1</span>Function Calling<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-5-2.html"><span class="sidebar__mod-num">5.2</span>Tool Design Principles<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-5-3.html"><span class="sidebar__mod-num">5.3</span>MCP Protocol<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">5.4</span>The ReAct Pattern</a>
+        <a class="sidebar__mod" href="module-5-5.html"><span class="sidebar__mod-num">5.5</span>LangChain Agents</a>
+        <a class="sidebar__mod" href="module-5-6.html"><span class="sidebar__mod-num">5.6</span>Human in the Loop</a>
+        <a class="sidebar__mod" href="module-5-7.html"><span class="sidebar__mod-num">5.7</span>Tool Security</a>
+        <a class="sidebar__mod" href="module-5-8.html"><span class="sidebar__mod-num">5.8</span>Computer Use &amp; App SDKs</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 05</span>
+        <span class="tag tag--level">Intermediate</span>
+        <span class="tag tag--week">Week 14</span>
+      </div>
+      <h1 class="mod-head__title">The <em>ReAct Pattern</em></h1>
+      <p class="mod-head__sub">Most LLM tool-calling happens reactively: user asks → model calls tool → model answers. ReAct (Reasoning + Acting) is the pattern that makes agents capable of genuine multi-step problem solving: the model explicitly reasons about what to do, acts with a tool, observes the result, then reasons again — iterating until it has enough information to produce a final answer. Understanding ReAct is understanding how every production agent framework (LangChain, LlamaIndex, AutoGen) works under the hood.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~20 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>2 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>ReAct = Thought + Action + Observation, repeated until the agent has enough information — the loop is the agent</li>
+          <li>Thought steps are not function calls — they are the model generating its own reasoning trace, which improves action selection and is invaluable for debugging</li>
+          <li>Modern frontier models (Claude 3.7 Sonnet, GPT-o1/o3) implement "thinking" natively — the scratchpad is private, but the effect is the same: better reasoning before acting</li>
+          <li>Prompt-based ReAct (explicit Thought/Action/Observation format) still works well for smaller models, and gives you full visibility into the reasoning trace</li>
+          <li>Always set a hard max_steps guard — a confused ReAct agent can loop indefinitely; log every step to catch infinite loops early</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Module 5.1 — function calling loop</li>
+            <li><div class="meta-list__dot">!</div><code>pip install openai</code></li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Explain the Thought→Action→Observation loop and why it works</li>
+            <li><div class="meta-list__dot">2</div>Implement a prompt-based ReAct agent from scratch</li>
+            <li><div class="meta-list__dot">3</div>Distinguish between prompt-based and native thinking-model ReAct</li>
+            <li><div class="meta-list__dot">4</div>Know when to force ReAct vs use direct tool-calling</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">ReAct: Reasoning and Acting in Language Models Explained</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· search "ReAct agent pattern LLM reasoning acting tutorial"</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/Eug2clsLtFs" title="ReAct Pattern" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ The ReAct paper explained with a working implementation</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="the-problem">The problem with direct tool-calling <a class="anchor" href="#the-problem">#</a></h2>
+        <p>In module 5.1's tool loop, the model sees the user's question, decides which tool to call, gets the result, and answers. For simple single-step tasks this is fine. But for complex tasks — "Research our three main competitors, find their pricing pages, and summarise the key differences" — the model needs to plan a sequence of actions, adapt the plan based on intermediate results, and track what it has already learned. Direct tool-calling has no mechanism for this: the model just sees the conversation history and guesses what to do next.</p>
+
+        <p>ReAct solves this by giving the model an explicit reasoning step before each action — a <code>Thought</code> where it can plan, reflect on what it learned, and decide what to do next.</p>
+
+        <h2 id="the-loop">The Thought → Action → Observation loop <a class="anchor" href="#the-loop">#</a></h2>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">ReAct loop — one iteration</div>
+          <div style="display:flex;flex-direction:column;gap:.4rem;font-size:13px">
+            <div style="display:grid;grid-template-columns:120px 1fr;gap:.75rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:start">
+              <div style="font-weight:700;color:var(--phase-text)">Thought</div>
+              <div>The model generates a reasoning trace: "I need to find competitor pricing. Let me start by searching for the pricing pages of Company A, B, and C separately." <em>This is not a tool call — it's text the model writes to itself.</em></div>
+            </div>
+            <div style="display:grid;grid-template-columns:120px 1fr;gap:.75rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:start">
+              <div style="font-weight:700;color:var(--phase-text)">Action</div>
+              <div>The model issues a tool call: <code>search_web(query="Company A pricing")</code>. Your code executes the search and returns the result.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:120px 1fr;gap:.75rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:start">
+              <div style="font-weight:700;color:var(--phase-text)">Observation</div>
+              <div>The tool result injected back as context. The model sees: "Search result: Company A charges $49/mo for 5 seats, $99/mo for 20 seats."</div>
+            </div>
+            <div style="padding:.6rem;background:var(--phase-soft);border:1px solid var(--phase-hi);border-radius:6px;color:var(--fg-dim);font-size:12px;text-align:center'>
+              ↻ Repeat: model reasons about what it now knows and what to do next — until it decides it has enough information to produce a Final Answer
+            </div>
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">react_agent.py — prompt-based ReAct implementation</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> os, re
+<span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+
+client = <span class="fn">OpenAI</span>(api_key=os.environ[<span class="st">"OPENAI_API_KEY"</span>])
+
+REACT_SYSTEM = <span class="st">"""You are a research agent. Solve the task step by step using this format:
+
+Thought: [Reason about what you know and what to do next]
+Action: [tool_name(arg1="val1", arg2="val2")]
+Observation: [result will be filled in here]
+... (repeat Thought/Action/Observation as needed)
+Final Answer: [your complete answer to the original question]
+
+Available tools:
+- search_web(query: str) → search results as text
+- get_page(url: str) → page content as text
+- calculate(expression: str) → numeric result
+
+IMPORTANT: Always start with a Thought. Never skip straight to Action."""</span>
+
+<span class="cm"># Simulated tools</span>
+<span class="kw">def</span> <span class="fn">search_web</span>(query: <span class="tp">str</span>) -> <span class="tp">str</span>:
+    return {
+        <span class="st">"acme pricing"</span>: <span class="st">"ACME charges $49/mo (5 seats) and $99/mo (20 seats)."</span>,
+        <span class="st">"rival pricing"</span>: <span class="st">"Rival charges $39/mo flat, unlimited seats."</span>,
+    }.<span class="fn">get</span>(query.<span class="fn">lower</span>(), <span class="st">"No results found."</span>)
+
+<span class="kw">def</span> <span class="fn">calculate</span>(expression: <span class="tp">str</span>) -> <span class="tp">str</span>:
+    <span class="kw">try</span>: <span class="kw">return</span> <span class="tp">str</span>(<span class="fn">eval</span>(expression, {<span class="st">"__builtins__"</span>: {}}))
+    <span class="kw">except</span>: <span class="kw">return</span> <span class="st">"Error evaluating expression"</span>
+
+TOOL_MAP = {<span class="st">"search_web"</span>: search_web, <span class="st">"calculate"</span>: calculate}
+
+<span class="kw">def</span> <span class="fn">parse_action</span>(text: <span class="tp">str</span>) -> <span class="tp">tuple</span>[<span class="tp">str</span>, <span class="tp">dict</span>] | <span class="tp">None</span>:
+    <span class="st">"""Extract Action: tool_name(kwargs) from model output."""</span>
+    m = re.<span class="fn">search</span>(<span class="st">r'Action:\s*(\w+)\(([^)]*)\)'</span>, text)
+    <span class="kw">if not</span> m: <span class="kw">return None</span>
+    fn_name = m.<span class="fn">group</span>(<span class="nm">1</span>)
+    args_str = m.<span class="fn">group</span>(<span class="nm">2</span>)
+    <span class="cm"># Parse key="value" pairs</span>
+    kwargs = {}
+    <span class="kw">for</span> kv <span class="kw">in</span> re.<span class="fn">findall</span>(<span class="st">r'(\w+)=["\']([^"\']*)["\']'</span>, args_str):
+        kwargs[kv[<span class="nm">0</span>]] = kv[<span class="nm">1</span>]
+    <span class="kw">return</span> fn_name, kwargs
+
+<span class="kw">def</span> <span class="fn">react_agent</span>(question: <span class="tp">str</span>, max_steps: <span class="tp">int</span> = <span class="nm">6</span>) -> <span class="tp">str</span>:
+    messages = [
+        {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: REACT_SYSTEM},
+        {<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: question},
+    ]
+
+    <span class="kw">for</span> step <span class="kw">in</span> <span class="fn">range</span>(max_steps):
+        resp = client.chat.completions.<span class="fn">create</span>(
+            model=<span class="st">"gpt-4o-mini"</span>,
+            messages=messages,
+            stop=[<span class="st">"Observation:"</span>],  <span class="cm"># stop before filling in the observation</span>
+        )
+        text = resp.choices[<span class="nm">0</span>].message.content
+        <span class="fn">print</span>(<span class="st">f"\n[Step {step+1}]\n{text}"</span>)
+
+        <span class="kw">if</span> <span class="st">"Final Answer:"</span> <span class="kw">in</span> text:
+            <span class="kw">return</span> text.<span class="fn">split</span>(<span class="st">"Final Answer:"</span>)[<span class="nm">1</span>].<span class="fn">strip</span>()
+
+        action = <span class="fn">parse_action</span>(text)
+        <span class="kw">if</span> action:
+            fn_name, kwargs = action
+            <span class="fn">print</span>(<span class="st">f"→ Calling {fn_name}({kwargs})"</span>)
+            result = TOOL_MAP.<span class="fn">get</span>(fn_name, <span class="kw">lambda</span> **k: <span class="st">"Unknown tool"</span>)(**kwargs)
+            observation = <span class="st">f"\nObservation: {result}\n"</span>
+            messages.<span class="fn">append</span>({<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: text + observation})
+        <span class="kw">else</span>:
+            <span class="kw">break</span>
+
+    <span class="kw">return</span> <span class="st">"Max steps reached without final answer."</span>
+
+answer = <span class="fn">react_agent</span>(<span class="st">"Compare the pricing of ACME and Rival. Which is cheaper for a 10-seat team?"</span>)
+<span class="fn">print</span>(<span class="st">f"\n✅ Final Answer: {answer}"</span>)</code></pre>
+        </div>
+
+        <h2 id="thinking-models">Native thinking models vs prompt-based ReAct <a class="anchor" href="#thinking-models">#</a></h2>
+        <p>Modern frontier models implement thinking natively. Claude 3.7 Sonnet's extended thinking, GPT-o1 and o3's reasoning tokens, and Google Gemini's thinking mode all implement a private scratchpad — the model reasons before generating its visible output. You don't see the thoughts, but the quality of action selection and final answers improves significantly for complex tasks.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem">Prompt-based vs native thinking</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;font-size:13px">
+            <div style="background:var(--surface-0);border-radius:8px;padding:.9rem">
+              <div style="font-weight:700;color:var(--phase-text);margin-bottom:.4rem">Prompt-based ReAct</div>
+              <ul style="margin:0;padding-left:1rem;color:var(--fg-dim);line-height:1.7">
+                <li>Thought/Action/Observation in message text</li>
+                <li>Reasoning trace is visible — great for debugging</li>
+                <li>Works on any model, including smaller ones</li>
+                <li>Uses more tokens (thoughts in context)</li>
+                <li>Stop tokens or parsing required</li>
+              </ul>
+            </div>
+            <div style="background:var(--surface-0);border-radius:8px;padding:.9rem">
+              <div style="font-weight:700;color:var(--phase-text);margin-bottom:.4rem">Native thinking (o1/Claude thinking)</div>
+              <ul style="margin:0;padding-left:1rem;color:var(--fg-dim);line-height:1.7">
+                <li>Private scratchpad before output</li>
+                <li>Reasoning not visible to you</li>
+                <li>Model-specific, higher cost per call</li>
+                <li>Better performance on hard reasoning tasks</li>
+                <li>Just call the model — no prompt engineering</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">claude_thinking.py — extended thinking with Anthropic API</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic
+
+client = anthropic.<span class="fn">Anthropic</span>()
+
+<span class="cm"># Extended thinking — model reasons privately before answering</span>
+response = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-sonnet-4-6"</span>,
+    max_tokens=<span class="nm">8000</span>,
+    thinking={
+        <span class="st">"type"</span>: <span class="st">"enabled"</span>,
+        <span class="st">"budget_tokens"</span>: <span class="nm">5000</span>,  <span class="cm"># max tokens for private reasoning</span>
+    },
+    messages=[{
+        <span class="st">"role"</span>: <span class="st">"user"</span>,
+        <span class="st">"content"</span>: <span class="st">"Compare the pricing of ACME ($49/mo 5 seats, $99/mo 20 seats) and Rival ($39/mo unlimited). Which is cheaper for 10, 15, and 25 seats?"</span>
+    }],
+    tools=[
+        {
+            <span class="st">"name"</span>: <span class="st">"calculate"</span>,
+            <span class="st">"description"</span>: <span class="st">"Evaluate a mathematical expression"</span>,
+            <span class="st">"input_schema"</span>: {
+                <span class="st">"type"</span>: <span class="st">"object"</span>,
+                <span class="st">"properties"</span>: {<span class="st">"expression"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>}},
+                <span class="st">"required"</span>: [<span class="st">"expression"</span>],
+            },
+        }
+    ],
+)
+
+<span class="kw">for</span> block <span class="kw">in</span> response.content:
+    <span class="kw">if</span> block.<span class="fn">type</span> == <span class="st">"thinking"</span>:
+        <span class="fn">print</span>(<span class="st">f"[thinking — {len(block.thinking)} chars]"</span>)
+    <span class="kw">elif</span> block.<span class="fn">type</span> == <span class="st">"text"</span>:
+        <span class="fn">print</span>(block.text)</code></pre>
+        </div>
+
+        <h2 id="when-react">When to force ReAct vs let the model decide <a class="anchor" href="#when-react">#</a></h2>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">Use ReAct for tasks that need planning; direct tool-calling for tasks that don't</strong>
+            Direct tool-calling (module 5.1's loop) is simpler, cheaper, and sufficient for single-step or shallow-planning tasks. Add ReAct (explicit thought steps or a thinking model) when: the task requires more than 2–3 sequential decisions, the right tool to call depends on intermediate results, the model needs to evaluate whether it has gathered enough information, or the task is novel/ambiguous enough that explicit reasoning reduces errors. For most production agents, start with direct tool-calling and add thinking/ReAct only when you observe planning failures in your logs.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 5.4: The ReAct Pattern</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~20 min · 2 live code demos</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 5:00</span><span class="script-action">INTRO + DIAGRAM</span><span class="script-narration">"Every agent framework you've heard of — LangChain agents, AutoGen, CrewAI — is built on this loop. Thought, Action, Observation, repeat. The paper is from 2022. The idea is simple: before acting, reason. Watch the model figure out what to do, then do it, then figure out what to do next. I'll show you how it works at the prompt level, then show you what modern 'thinking' models have done to it."</span></div>
+          <div class="script-line"><span class="script-ts">5:00 – 13:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run react_agent.py with the competitor pricing question. Show the terminal output step by step: "Thought: I need to look up both companies' pricing... Action: search_web(query='acme pricing')... Observation: ACME charges $49/mo... Thought: Now I have ACME pricing. I still need Rival's pricing and need to calculate for 10 seats... Action: search_web(query='rival pricing')... Final Answer: ..." The reasoning trace is the entire debugging story — you can see exactly where the agent went right or wrong."</span></div>
+          <div class="script-line"><span class="script-ts">13:00 – 20:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run claude_thinking.py. "The output says '[thinking — 2400 chars]' — the model used 2400 tokens of private reasoning before answering. It called the calculate tool twice — once for 10 seats, once for 25. The answer is more accurate than the no-thinking version because the model had space to reason through the arithmetic. You don't see the thoughts, which can be a debugging challenge. My recommendation: use thinking models for hard multi-step tasks; use prompt-based ReAct when you need to see the reasoning chain."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>What is the fundamental difference between a ReAct agent and a simple tool-calling loop? In what type of task does ReAct provide the most benefit?</summary>
+          <div class="selfcheck__a">A simple tool-calling loop gives the model tools and lets it call them — but provides no mechanism for the model to explicitly plan or reason about its approach before acting. The model sees the message history and generates its best guess at the next action. A ReAct agent adds an explicit Thought step between each Observation and next Action — the model generates a reasoning trace about what it knows and what to do next. This thought step is not a tool call; it's text the model writes to itself, reasoning through its situation. ReAct provides the most benefit for: (1) multi-step tasks where the right next action depends on what was learned in previous steps — "research competitors, then compare, then calculate" requires knowing what you found before deciding what to search next; (2) tasks with ambiguous or multiple valid approaches, where reasoning helps the model pick the better path; (3) tasks that may require abandoning a planned approach based on intermediate results. For simple single-step queries ("What's the weather in Berlin?"), ReAct adds overhead without benefit — direct tool calling is better.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Explain the role of the stop parameter in the prompt-based ReAct implementation. What would happen without it?</summary>
+          <div class="selfcheck__a">In prompt-based ReAct, the model generates text following the Thought/Action/Observation template. After it generates an Action, the model would — if not stopped — continue generating and hallucinate the Observation (the tool result) based on its training data rather than waiting for your code to run the actual tool. The <code>stop=["Observation:"]</code> parameter tells the API to stop generation the moment the model outputs the text "Observation:" — at that point, your code extracts the Action, executes the real tool, appends the actual result as "Observation: {result}", and then calls the API again. Without the stop token, the model fills in its own observations — this is catastrophic for factual tasks because the model makes up tool results rather than using real data. The stop token is the mechanism that enforces the "your code runs the tool" contract that makes ReAct useful.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Your agent is supposed to research a topic in 3 steps but sometimes loops 15+ times without reaching a Final Answer. What are the two most likely causes and how do you diagnose each?</summary>
+          <div class="selfcheck__a">Cause 1 — The agent can't find what it needs and keeps retrying: the tool keeps returning "No results found" but the agent keeps searching with slightly modified queries hoping to find something. Diagnose by reading the thought traces — if you see increasingly desperate search queries for the same information, the problem is the knowledge base or search tool has gaps. Fix: add a "I've searched N times without finding X — I'll answer with what I have" instruction in the system prompt, or improve the data source. Cause 2 — The agent is confused about what constitutes "enough information" to produce a Final Answer: no explicit stopping criterion in the system prompt, so the model continues searching even when it already has sufficient data. Diagnose by checking whether the information gathered in steps 1–3 would already be sufficient to answer — if yes, the system prompt needs a clearer stopping rule like "Once you have pricing data for all requested companies, immediately write your Final Answer." Always set max_steps=5–8 as a hard guard regardless, and log every step with the current thought and action to catch both patterns in production.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Next in Phase 5</div>
+          <div class="next-mod__title">5.5 · LangChain Agents</div>
+          <p class="next-mod__desc">Building production agents with LangChain — create_react_agent, the @tool decorator with automatic schema generation, parallel tool execution, and structured outputs via Pydantic.</p>
+        </div>
+        <a class="next-btn" href="module-5-5.html">Next Module →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#the-problem">Problem with direct tool-calling</a>
+    <a href="#the-loop">Thought→Action→Observation loop</a>
+    <a href="#thinking-models">Native thinking models</a>
+    <a href="#when-react">When to use ReAct</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 5.4 / 62<br/>Phase 5 · Week 14<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

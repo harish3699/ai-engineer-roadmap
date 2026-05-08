@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 7.7 Frameworks Compared · by Harish Mondepu</title>
+<meta name="description" content="LangGraph, CrewAI, AutoGen, Pydantic AI, and OpenAI Swarm compared — pick one, understand its trade-offs, and stick to it."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#c2410c;--phase-hi:#ea580c;--phase-soft:rgba(234,88,12,.1);--phase-text:#c2410c}
+[data-theme="dark"]{--phase:#f97316;--phase-hi:#fb923c;--phase-soft:rgba(249,115,22,.1);--phase-text:#fed7aa}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 7 · <strong>Frameworks Compared</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 51 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#1aada0"></span>Phase 1 · Python Foundations ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#06b6d4"></span>Phase 2 · LLM Mental Model ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#a78bfa"></span>Phase 3 · Prompt Engineering ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f06292"></span>Phase 4 · RAG + Evaluation ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#10b981"></span>Phase 5 · Tools, MCP &amp; Agents ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f59e0b"></span>Phase 6 · Memory &amp; Context ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 7 · Multi-Agent Orchestration
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-7-1.html"><span class="sidebar__mod-num">7.1</span>When Multi-Agent? ✓</a>
+        <a class="sidebar__mod done" href="module-7-2.html"><span class="sidebar__mod-num">7.2</span>LangGraph Fundamentals ✓</a>
+        <a class="sidebar__mod done" href="module-7-3.html"><span class="sidebar__mod-num">7.3</span>Common Patterns ✓</a>
+        <a class="sidebar__mod done" href="module-7-4.html"><span class="sidebar__mod-num">7.4</span>Agent-as-Tool ✓</a>
+        <a class="sidebar__mod done" href="module-7-5.html"><span class="sidebar__mod-num">7.5</span>State Management ✓</a>
+        <a class="sidebar__mod done" href="module-7-6.html"><span class="sidebar__mod-num">7.6</span>A2A Protocol ✓</a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">7.7</span>Frameworks Compared</a>
+        <a class="sidebar__mod" href="module-7-8.html"><span class="sidebar__mod-num">7.8</span>Debugging Multi-Agent</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 07</span>
+        <span class="tag tag--level">Expert</span>
+        <span class="tag tag--week">Week 22</span>
+      </div>
+      <h1 class="mod-head__title">Frameworks <em>Compared</em></h1>
+      <p class="mod-head__sub">The multi-agent framework landscape is crowded and changes quickly. This module cuts through the noise with honest trade-off analysis of the five frameworks you'll encounter: LangGraph (most mature, most control), CrewAI (simplest, most opinionated), AutoGen (Microsoft, conversation-based), Pydantic AI (typed, FastAPI-flavoured), and OpenAI Swarm / its successors (minimal, handoff-style). The advice at the end is intentionally direct: pick one, get good at it, and stop re-evaluating until you hit a concrete limitation it can't solve.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~20 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>2 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li><strong>LangGraph:</strong> most mature, explicit graph control flow, best observability (LangSmith), steepest learning curve — the default recommendation for production systems in 2026</li>
+          <li><strong>CrewAI:</strong> simplest API, role-based agent abstraction, good for demos and simple supervisor patterns — hits walls quickly when you need non-standard control flow</li>
+          <li><strong>AutoGen:</strong> Microsoft-backed, conversation-based multi-agent, strong for code generation workflows, less suitable for structured data pipelines</li>
+          <li><strong>Pydantic AI:</strong> FastAPI-flavoured ergonomics, fully typed, structured outputs first-class — best if you already live in a Pydantic/FastAPI codebase</li>
+          <li><strong>The right choice:</strong> LangGraph for new production systems in 2026. Pick something else only if you have a specific reason — team familiarity, an existing codebase, or a concrete limitation</li>
+        </ul>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="comparison-table">Full comparison <a class="anchor" href="#comparison-table">#</a></h2>
+
+        <div class="reveal" style="margin:1.5rem 0;overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border)">
+                <th style="text-align:left;padding:.5rem .7rem;color:var(--fg-dim);font-weight:600">Framework</th>
+                <th style="text-align:left;padding:.5rem .7rem;color:var(--fg-dim);font-weight:600">Model</th>
+                <th style="text-align:left;padding:.5rem .7rem;color:var(--fg-dim);font-weight:600">Strengths</th>
+                <th style="text-align:left;padding:.5rem .7rem;color:var(--fg-dim);font-weight:600">Weaknesses</th>
+                <th style="text-align:left;padding:.5rem .7rem;color:var(--fg-dim);font-weight:600">Pick when</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.5rem .7rem;font-weight:600;color:var(--phase-text)">LangGraph</td>
+                <td style="padding:.5rem .7rem">Directed graph + typed state</td>
+                <td style="padding:.5rem .7rem">Explicit control flow, checkpointing, LangSmith tracing, cycles, HumanInLoop, subgraphs</td>
+                <td style="padding:.5rem .7rem">Verbose for simple cases, steep learning curve, lots of boilerplate</td>
+                <td style="padding:.5rem .7rem">Complex production workflows, need observability</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.5rem .7rem;font-weight:600;color:var(--phase-text)">CrewAI</td>
+                <td style="padding:.5rem .7rem">Role-based agents + tasks</td>
+                <td style="padding:.5rem .7rem">Simple API, fast to prototype, good docs, built-in memory, flows for sequential pipelines</td>
+                <td style="padding:.5rem .7rem">Less control, harder to debug, opinionated abstractions break at edges</td>
+                <td style="padding:.5rem .7rem">Quick prototypes, team unfamiliar with graphs</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.5rem .7rem;font-weight:600;color:var(--phase-text)">AutoGen</td>
+                <td style="padding:.5rem .7rem">Conversational multi-agent</td>
+                <td style="padding:.5rem .7rem">Strong for code execution workflows, GroupChat for dynamic team conversations, Microsoft backing</td>
+                <td style="padding:.5rem .7rem">Conversation-centric model fits poorly for non-chat workflows, harder state management</td>
+                <td style="padding:.5rem .7rem">Code generation teams, Azure-first orgs</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.5rem .7rem;font-weight:600;color:var(--phase-text)">Pydantic AI</td>
+                <td style="padding:.5rem .7rem">Type-safe agent functions</td>
+                <td style="padding:.5rem .7rem">FastAPI-like ergonomics, full type safety, structured outputs first-class, clean DI</td>
+                <td style="padding:.5rem .7rem">Younger ecosystem, less native multi-agent support than LangGraph</td>
+                <td style="padding:.5rem .7rem">Pydantic/FastAPI codebases, typed-first teams</td>
+              </tr>
+              <tr>
+                <td style="padding:.5rem .7rem;font-weight:600;color:var(--phase-text)">OpenAI Swarm</td>
+                <td style="padding:.5rem .7rem">Minimal handoff routing</td>
+                <td style="padding:.5rem .7rem">Extremely simple, educational, low abstraction — you understand every line</td>
+                <td style="padding:.5rem .7rem">Experimental (Swarm itself was archived), no persistence, no complex routing</td>
+                <td style="padding:.5rem .7rem">Learning the concepts, simple handoff patterns</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="same-graph">How the same graph looks in different frameworks <a class="anchor" href="#same-graph">#</a></h2>
+        <p>The same supervisor + 2 workers pattern in LangGraph vs CrewAI illustrates the ergonomics difference — CrewAI is more concise but gives you less control over routing:</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">crewai_vs_langgraph.py — same pattern, different frameworks</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="cm"># ── CrewAI (simpler API, less control) ───────────────────────────────</span>
+<span class="kw">from</span> crewai <span class="kw">import</span> Agent, Task, Crew
+
+researcher = <span class="tp">Agent</span>(role=<span class="st">"Researcher"</span>, goal=<span class="st">"Find facts"</span>, backstory=<span class="st">"Expert at web research"</span>,
+    tools=[web_search_tool], llm=llm)
+writer = <span class="tp">Agent</span>(role=<span class="st">"Writer"</span>, goal=<span class="st">"Write reports"</span>, backstory=<span class="st">"Expert technical writer"</span>, llm=llm)
+
+research_task = <span class="tp">Task</span>(description=<span class="st">"Research {topic}"</span>, agent=researcher, expected_output=<span class="st">"Research summary"</span>)
+write_task    = <span class="tp">Task</span>(description=<span class="st">"Write report on findings"</span>, agent=writer,
+    expected_output=<span class="st">"Full report"</span>, context=[research_task])
+
+crew = <span class="tp">Crew</span>(agents=[researcher, writer], tasks=[research_task, write_task])
+result = crew.<span class="fn">kickoff</span>(inputs={<span class="st">"topic"</span>: <span class="st">"quantum computing"</span>})
+<span class="cm"># 15 lines to a working 2-agent pipeline</span>
+
+<span class="cm"># ── LangGraph (more control, more explicit) ───────────────────────────</span>
+<span class="cm"># See module-7-3.html for the full LangGraph supervisor pattern (~40 lines)</span>
+<span class="cm"># Trade-off: 3× more code, but you own every routing decision,</span>
+<span class="cm"># can stream intermediate states, add checkpointing, inject human approval,
+# and debug individual node outputs in LangSmith</span></code></pre>
+        </div>
+
+        <h2 id="pydantic-ai-example">Pydantic AI — typed agents <a class="anchor" href="#pydantic-ai-example">#</a></h2>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">pydantic_ai_example.py — fully typed agent with structured output</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="cm"># pip install pydantic-ai</span>
+<span class="kw">from</span> pydantic_ai <span class="kw">import</span> Agent
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+
+<span class="kw">class</span> <span class="tp">ResearchReport</span>(<span class="tp">BaseModel</span>):
+    topic: <span class="tp">str</span>
+    summary: <span class="tp">str</span>
+    key_findings: <span class="tp">list</span>[<span class="tp">str</span>]
+    confidence: <span class="tp">float</span>
+
+research_agent = <span class="tp">Agent</span>(
+    <span class="st">"openai:gpt-4o-mini"</span>,
+    result_type=<span class="tp">ResearchReport</span>,         <span class="cm"># fully typed return — no JSON parsing</span>
+    system_prompt=<span class="st">"You are a research specialist. Be factual and cite confidence."</span>,
+)
+
+result = <span class="kw">await</span> research_agent.<span class="fn">run</span>(<span class="st">"Research the latest advances in LLM context windows"</span>)
+report: <span class="tp">ResearchReport</span> = result.data   <span class="cm"># strongly typed — IDE autocomplete works</span>
+<span class="fn">print</span>(report.key_findings)              <span class="cm"># list[str] — guaranteed by Pydantic</span></code></pre>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">The recommendation: pick LangGraph for new production work</strong>
+            In mid-2026, LangGraph has the most mature production story: LangSmith for tracing, checkpointers for durability, first-class streaming, and the largest community of production deployments to learn from. CrewAI is fine for demos. AutoGen is valid if your team is already on Azure. Pydantic AI is worth watching. OpenAI Swarm is educational only. Switching frameworks mid-project is expensive — make one decision and stick to it until you have a concrete reason to move.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: Debugging Multi-Agent Systems</div>
+            <div class="cta-block__sub">Module 7.8 — the Phase 7 finale — covers LangSmith tracing, diagnosing agents talking past each other, infinite loop detection, and cost explosion analysis.</div>
+          </div>
+          <a class="cta-block__btn" href="module-7-8.html">Module 7.8 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#comparison-table">Full comparison</a></li>
+      <li><a class="toc__link" href="#same-graph">Same graph in each framework</a></li>
+      <li><a class="toc__link" href="#pydantic-ai-example">Pydantic AI</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){const h=document.documentElement;const dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');localStorage.setItem('ae-theme',dark?'light':'dark');document.getElementById('themeIcon').textContent=dark?'☀':'☾';document.getElementById('themeLabel').textContent=dark?'Light':'Dark';}
+(function(){const t=localStorage.getItem('ae-theme');if(t){document.documentElement.setAttribute('data-theme',t);const dark=t==='dark';document.getElementById('themeIcon').textContent=dark?'☾':'☀';document.getElementById('themeLabel').textContent=dark?'Dark':'Light';}})();
+function copyCode(btn){const code=btn.closest('.code-wrap').querySelector('pre code');navigator.clipboard.writeText(code.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{es.forEach(e=>{const id=e.target.id;if(!id)return;const link=document.querySelector(`.toc__link[href="#${id}"]`);if(!link)return;if(e.isIntersecting){document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));link.classList.add('active');}});},{rootMargin:'-20% 0px -70% 0px'});document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 3.7 Prompts in Production · by Harish Mondepu</title>
+<meta name="description" content="Prompt versioning, A/B testing, Anthropic prompt caching, DSPy automated optimisation, and operational practices for running LLM systems reliably at scale."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#7c3aed;--phase-hi:#8865a3;--phase-soft:rgba(124,58,237,.1);--phase-text:#7c3aed}
+[data-theme="dark"]{--phase:#a78bfa;--phase-hi:#c4b5fd;--phase-soft:rgba(167,139,250,.1);--phase-text:#c4b5fd}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 3 · <strong>Prompts in Production</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 20 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 3 · Prompt Engineering
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-3-1.html"><span class="sidebar__mod-num">3.1</span>UI vs API<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-3-2.html"><span class="sidebar__mod-num">3.2</span>Calling LLMs via API<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-3-3.html"><span class="sidebar__mod-num">3.3</span>Prompt Anatomy<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-3-4.html"><span class="sidebar__mod-num">3.4</span>Core Techniques<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-3-5.html"><span class="sidebar__mod-num">3.5</span>Applied Patterns<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-3-6.html"><span class="sidebar__mod-num">3.6</span>Advanced Reasoning<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">3.7</span>Prompts in Production<span class="sidebar__check">✓</span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#e85a7a"></span>Phase 4 · RAG + Evaluation</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#10b981;opacity:.6"></span>Phase 5–9 · Agents &amp; Deployment</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 03</span>
+        <span class="tag tag--level">Engineering</span>
+        <span class="tag tag--week">Week 8</span>
+      </div>
+      <h1 class="mod-head__title">Prompts in <em>Production</em></h1>
+      <p class="mod-head__sub">A prompt that works on Tuesday may silently degrade by Thursday after a model update. An unversioned prompt changed by a teammate breaks your eval suite with no rollback path. A 2,000-token system prompt sent on every request costs ten times what it needs to. This module covers the operational practices that turn prompt engineering from an art into a repeatable engineering discipline: versioning, caching, A/B testing, automated optimisation with DSPy, and the observability layer that tells you when something is wrong before users do.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~30 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>4 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Treat prompts as code — version them in Git, load them from environment-specific config, and never hard-code them inside function bodies where they can't be reviewed or rolled back</li>
+          <li>Anthropic's prompt caching reduces cost by up to 90% for large static content (system prompts, reference documents) — the cache has a 5-minute TTL and charges 10% of normal input price on cache hits</li>
+          <li>A/B testing prompts requires a scoring function, not just a feeling — route a percentage of traffic, score both variants on the same rubric, and promote only when the difference is statistically significant</li>
+          <li>DSPy replaces hand-written prompt text with compiled optimised instructions — when you have an eval set, DSPy can find a better prompt than you can write by hand, automatically</li>
+          <li>The minimum viable observability layer for any LLM system: log every request (prompt version, model, tokens, latency), alert on <code>stop_reason=max_tokens</code>, and track cost per feature per day</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>All Phase 3 modules (3.1 – 3.6) complete</li>
+            <li><div class="meta-list__dot">!</div><code>pip install anthropic dspy-ai python-dotenv</code></li>
+            <li><div class="meta-list__dot">!</div>Basic understanding of statistical significance (p-value)</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Version and load prompts from a registry, not hard-coded strings</li>
+            <li><div class="meta-list__dot">2</div>Apply <code>cache_control</code> to cut costs on repeated large-context calls</li>
+            <li><div class="meta-list__dot">3</div>Run a statistically valid A/B test between two prompt variants</li>
+            <li><div class="meta-list__dot">4</div>Build a basic DSPy pipeline with an optimised signature</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">DSPy: Programming—not Prompting—Language Models</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· Stanford · search "DSPy programming language models prompt optimisation"</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/41EfOY0Ldkc" title="DSPy Prompt Optimisation" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ DSPy — replacing hand-written prompts with compiled, optimised instructions</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="prompt-versioning">Prompt versioning <a class="anchor" href="#prompt-versioning">#</a></h2>
+        <p>A prompt is code. It has the same failure modes as code: silent regressions, undocumented changes, no rollback path. The discipline is the same: version it, review it, test it before deploying it. The minimum viable pattern is a prompt registry — a dict or YAML file where prompts live, keyed by name and version, loaded at runtime from environment-specific config.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">prompt_registry.py — versioned prompts loaded from config</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic, os, json
+<span class="kw">from</span> pathlib <span class="kw">import</span> Path
+client = anthropic.<span class="fn">Anthropic</span>()
+
+<span class="cm"># ── prompts.json — lives in Git, reviewed like any code change ────────</span>
+<span class="cm"># {</span>
+<span class="cm">#   "support_triage": {</span>
+<span class="cm">#     "v1": "Classify the support ticket. Return: team, priority.",</span>
+<span class="cm">#     "v2": "You are a support triage system. Classify tickets accurately.\nReturn JSON: {team, priority, confidence}."</span>
+<span class="cm">#   },</span>
+<span class="cm">#   "active": {"support_triage": "v2"}   ← which version is live</span>
+<span class="cm"># }</span>
+
+<span class="kw">class</span> <span class="tp">PromptRegistry</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, path: <span class="tp">str</span>):
+        self.registry = json.<span class="fn">loads</span>(<span class="tp">Path</span>(path).<span class="fn">read_text</span>())
+
+    <span class="kw">def</span> <span class="fn">get</span>(self, name: <span class="tp">str</span>, version: <span class="tp">str</span> = <span class="st">"active"</span>) -> <span class="tp">str</span>:
+        v = self.registry[<span class="st">"active"</span>][name] <span class="kw">if</span> version == <span class="st">"active"</span> <span class="kw">else</span> version
+        <span class="kw">return</span> self.registry[name][v]
+
+    <span class="kw">def</span> <span class="fn">active_version</span>(self, name: <span class="tp">str</span>) -> <span class="tp">str</span>:
+        <span class="kw">return</span> self.registry[<span class="st">"active"</span>][name]
+
+registry = <span class="tp">PromptRegistry</span>(<span class="st">"prompts.json"</span>)
+
+<span class="kw">def</span> <span class="fn">call_with_version_tag</span>(ticket: <span class="tp">str</span>) -> <span class="tp">dict</span>:
+    prompt_name = <span class="st">"support_triage"</span>
+    system = registry.<span class="fn">get</span>(prompt_name)
+    version = registry.<span class="fn">active_version</span>(prompt_name)
+
+    resp = client.messages.<span class="fn">create</span>(
+        model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+        max_tokens=<span class="nm">128</span>,
+        system=system,
+        messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: ticket}],
+    )
+    <span class="kw">return</span> {
+        <span class="st">"result"</span>: resp.content[<span class="nm">0</span>].text,
+        <span class="st">"prompt_version"</span>: <span class="st">f"{prompt_name}@{version}"</span>,   <span class="cm"># log this — critical for debugging</span>
+        <span class="st">"model"</span>: <span class="st">"claude-haiku-4-5-20251001"</span>,
+        <span class="st">"tokens_in"</span>: resp.usage.input_tokens,
+        <span class="st">"tokens_out"</span>: resp.usage.output_tokens,
+    }</code></pre>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">Always log the prompt version alongside the response</strong>
+            When a user reports a bad output two weeks from now, you need to know which prompt version produced it. If you only log the response text, you can't reproduce or debug the issue. Log: prompt name + version, model ID, input/output token counts, latency, and <code>stop_reason</code>. Four fields. Do it from day one.
+          </div>
+        </div>
+
+        <h2 id="prompt-caching">Prompt caching <a class="anchor" href="#prompt-caching">#</a></h2>
+        <p>Anthropic's prompt caching lets you mark large static blocks of your prompt — the system prompt, a reference document, few-shot examples — with a <code>cache_control</code> breakpoint. On the first call, the prefix is computed and cached server-side. Subsequent calls within the 5-minute TTL pay 10% of the normal input token price for the cached portion. On a 2,000-token system prompt sent 1,000 times per day, this reduces that portion's cost by 90%.</p>
+
+        <!-- Cache cost comparison diagram -->
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">Cache pricing at a glance (Sonnet 4.6)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem;font-size:13px;text-align:center">
+            <div style="background:var(--surface-0);border-radius:6px;padding:.8rem">
+              <div style="font-weight:700;color:var(--fg);margin-bottom:.3rem">Cache write</div>
+              <div style="font-size:18px;font-weight:800;color:#f59e0b">$3.75</div>
+              <div style="font-size:11px;color:var(--fg-dim)">per million tokens<br>(25% markup)</div>
+            </div>
+            <div style="background:var(--surface-0);border-radius:6px;padding:.8rem">
+              <div style="font-weight:700;color:var(--fg);margin-bottom:.3rem">Cache read</div>
+              <div style="font-size:18px;font-weight:800;color:#10b981">$0.30</div>
+              <div style="font-size:11px;color:var(--fg-dim)">per million tokens<br>(10% of normal)</div>
+            </div>
+            <div style="background:var(--surface-0);border-radius:6px;padding:.8rem">
+              <div style="font-weight:700;color:var(--fg);margin-bottom:.3rem">Normal input</div>
+              <div style="font-size:18px;font-weight:800;color:var(--fg-dim)">$3.00</div>
+              <div style="font-size:11px;color:var(--fg-dim)">per million tokens<br>(baseline)</div>
+            </div>
+          </div>
+          <div style="margin-top:.8rem;font-size:12px;color:var(--fg-dim)"><strong style="color:var(--fg)">Break-even:</strong> A cache prefix is profitable if you reuse it more than ~2.3 times within the 5-minute TTL. Any system prompt called more than 3× per 5-minute window benefits immediately.</div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">prompt_caching.py — cache_control on system prompt and injected documents</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic
+client = anthropic.<span class="fn">Anthropic</span>()
+
+large_system_prompt = <span class="st">"""You are a financial analysis assistant for AcmeCorp.
+[... 1,800 tokens of domain context, rules, and formatting instructions ...]"""</span>
+
+reference_doc = <span class="st">"""[Full 3,000-token product specification document injected here]"""</span>
+
+<span class="cm"># ── cache_control marks the prefix boundary ───────────────────────────</span>
+resp = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-sonnet-4-6"</span>,
+    max_tokens=<span class="nm">512</span>,
+
+    <span class="cm"># system as list of blocks to enable cache_control</span>
+    system=[{
+        <span class="st">"type"</span>: <span class="st">"text"</span>,
+        <span class="st">"text"</span>: large_system_prompt,
+        <span class="st">"cache_control"</span>: {<span class="st">"type"</span>: <span class="st">"ephemeral"</span>},  <span class="cm"># ← cache this prefix, 5-min TTL</span>
+    }],
+
+    messages=[
+        <span class="cm"># cache the reference document too — it's the same every call</span>
+        {<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: [
+            {<span class="st">"type"</span>: <span class="st">"text"</span>, <span class="st">"text"</span>: <span class="st">f"&lt;reference&gt;\n{reference_doc}\n&lt;/reference&gt;"</span>,
+             <span class="st">"cache_control"</span>: {<span class="st">"type"</span>: <span class="st">"ephemeral"</span>}},             <span class="cm"># ← also cached</span>
+            {<span class="st">"type"</span>: <span class="st">"text"</span>, <span class="st">"text"</span>: <span class="st">"What is the recommended pricing model for SMBs?"</span>}, <span class="cm"># not cached — changes every call</span>
+        ]},
+    ],
+)
+
+<span class="cm"># ── usage shows cache hit/miss ────────────────────────────────────────</span>
+u = resp.usage
+<span class="fn">print</span>(<span class="st">f"Cache write tokens : {u.cache_creation_input_tokens}"</span>)   <span class="cm"># first call — writing the cache</span>
+<span class="fn">print</span>(<span class="st">f"Cache read tokens  : {u.cache_read_input_tokens}"</span>)      <span class="cm"># subsequent calls — cache hit</span>
+<span class="fn">print</span>(<span class="st">f"Uncached input     : {u.input_tokens}"</span>)                  <span class="cm"># user question — not cached</span></code></pre>
+        </div>
+
+        <h2 id="ab-testing">A/B testing prompts <a class="anchor" href="#ab-testing">#</a></h2>
+        <p>When you think a new prompt version is better, "better" needs to be measurable. Route a percentage of traffic to each variant, score both with the same rubric or eval function, collect enough samples for statistical confidence, then promote or roll back. Gut feel does not scale. An eval function does.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">ab_testing.py — traffic split with quality scoring</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic, random, statistics
+client = anthropic.<span class="fn">Anthropic</span>()
+
+PROMPTS = {
+    <span class="st">"v1"</span>: <span class="st">"Summarise the text in 2 sentences."</span>,
+    <span class="st">"v2"</span>: <span class="st">"Summarise the text in exactly 2 sentences. First sentence: main finding. Second sentence: key implication. Plain text only."</span>,
+}
+
+<span class="kw">def</span> <span class="fn">call_variant</span>(text: <span class="tp">str</span>, variant: <span class="tp">str</span>) -> <span class="tp">str</span>:
+    resp = client.messages.<span class="fn">create</span>(
+        model=<span class="st">"claude-haiku-4-5-20251001"</span>, max_tokens=<span class="nm">128</span>,
+        system=PROMPTS[variant],
+        messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">f"&lt;text&gt;{text}&lt;/text&gt;"</span>}],
+    )
+    <span class="kw">return</span> resp.content[<span class="nm">0</span>].text
+
+<span class="kw">def</span> <span class="fn">score_response</span>(response: <span class="tp">str</span>) -> <span class="tp">float</span>:
+    <span class="cm"># use an LLM as judge — consistent, cheap at Haiku rates</span>
+    judge_resp = client.messages.<span class="fn">create</span>(
+        model=<span class="st">"claude-haiku-4-5-20251001"</span>, max_tokens=<span class="nm">16</span>,
+        system=<span class="st">"Score this summary 1–5: 5=exactly 2 sentences, plain text, clear main finding + implication. Respond with the number only."</span>,
+        messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: response},
+                  {<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: <span class="st">""</span>}],
+    )
+    <span class="kw">try</span>:
+        <span class="kw">return</span> <span class="fn">float</span>(judge_resp.content[<span class="nm">0</span>].text.<span class="fn">strip</span>())
+    <span class="kw">except</span> <span class="tp">ValueError</span>:
+        <span class="kw">return</span> <span class="nm">3.0</span>
+
+<span class="cm"># ── Run the A/B test — 20 samples per variant ─────────────────────────</span>
+test_texts = [<span class="st">"[sample article text]"</span>] * <span class="nm">20</span>   <span class="cm"># replace with real eval set</span>
+scores = {<span class="st">"v1"</span>: [], <span class="st">"v2"</span>: []}
+
+<span class="kw">for</span> text <span class="kw">in</span> test_texts:
+    <span class="cm"># route 50/50 for equal sample sizes</span>
+    variant = random.<span class="fn">choice</span>([<span class="st">"v1"</span>, <span class="st">"v2"</span>])
+    result = <span class="fn">call_variant</span>(text, variant)
+    scores[variant].<span class="fn">append</span>(<span class="fn">score_response</span>(result))
+
+<span class="kw">for</span> v, s <span class="kw">in</span> scores.<span class="fn">items</span>():
+    <span class="kw">if</span> s:
+        <span class="fn">print</span>(<span class="st">f"{v}: n={len(s)}  mean={statistics.mean(s):.2f}  stdev={statistics.stdev(s):.2f}"</span>)
+
+<span class="cm"># ── Decision rule ─────────────────────────────────────────────────────</span>
+<span class="cm"># promote v2 if: mean(v2) > mean(v1) + 0.3 AND n >= 30 per variant</span>
+<span class="cm"># 30 samples per variant gives ~80% power to detect a 0.5-point difference</span></code></pre>
+        </div>
+
+        <h2 id="dspy">DSPy — automated prompt optimisation <a class="anchor" href="#dspy">#</a></h2>
+        <p>DSPy (Declarative Self-improving Python) replaces hand-written prompt text with <em>signatures</em> — typed input/output specifications. Given an eval set and a metric function, DSPy's optimisers (called teleprompters) automatically search for the prompt instructions and few-shot examples that maximise your metric. The result: a compiled prompt that often outperforms what you'd write by hand, without manual iteration.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">dspy_intro.py — signature + optimiser for classification</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> dspy
+
+<span class="cm"># ── Configure the language model ──────────────────────────────────────</span>
+lm = dspy.<span class="fn">LM</span>(<span class="st">"anthropic/claude-haiku-4-5-20251001"</span>)
+dspy.<span class="fn">configure</span>(lm=lm)
+
+<span class="cm"># ── Define a signature: typed inputs and outputs ──────────────────────</span>
+<span class="kw">class</span> <span class="tp">SupportClassifier</span>(dspy.<span class="tp">Signature</span>):
+    <span class="st">"""Classify a support ticket into the correct team and priority."""</span>
+    ticket: <span class="tp">str</span>    = dspy.<span class="fn">InputField</span>(desc=<span class="st">"The raw support ticket text"</span>)
+    team: <span class="tp">str</span>      = dspy.<span class="fn">OutputField</span>(desc=<span class="st">"billing | technical | onboarding | account"</span>)
+    priority: <span class="tp">str</span>  = dspy.<span class="fn">OutputField</span>(desc=<span class="st">"low | medium | high | critical"</span>)
+
+<span class="cm"># ── Build the module ──────────────────────────────────────────────────</span>
+classifier = dspy.<span class="fn">Predict</span>(<span class="tp">SupportClassifier</span>)
+
+<span class="cm"># ── Run unoptimised — DSPy writes the prompt from the signature ───────</span>
+result = <span class="fn">classifier</span>(ticket=<span class="st">"I was double-charged last month and need a refund."</span>)
+<span class="fn">print</span>(<span class="st">f"Team: {result.team}, Priority: {result.priority}"</span>)
+
+<span class="cm"># ── Optimise with a small labelled eval set ───────────────────────────</span>
+trainset = [
+    dspy.<span class="fn">Example</span>(ticket=<span class="st">"Charged twice this month"</span>,           team=<span class="st">"billing"</span>,   priority=<span class="st">"high"</span>).<span class="fn">with_inputs</span>(<span class="st">"ticket"</span>),
+    dspy.<span class="fn">Example</span>(ticket=<span class="st">"API returning 500 errors"</span>,             team=<span class="st">"technical"</span>, priority=<span class="st">"critical"</span>).<span class="fn">with_inputs</span>(<span class="st">"ticket"</span>),
+    dspy.<span class="fn">Example</span>(ticket=<span class="st">"How do I add a team member?"</span>,          team=<span class="st">"onboarding"</span>,priority=<span class="st">"low"</span>).<span class="fn">with_inputs</span>(<span class="st">"ticket"</span>),
+    dspy.<span class="fn">Example</span>(ticket=<span class="st">"Need to update billing email address"</span>, team=<span class="st">"account"</span>,   priority=<span class="st">"low"</span>).<span class="fn">with_inputs</span>(<span class="st">"ticket"</span>),
+]
+
+<span class="kw">def</span> <span class="fn">accuracy_metric</span>(example, prediction, trace=<span class="tp">None</span>):
+    <span class="kw">return</span> (example.team == prediction.team) <span class="kw">and</span> (example.priority == prediction.priority)
+
+<span class="cm"># BootstrapFewShot automatically selects the best few-shot examples</span>
+optimiser = dspy.teleprompt.<span class="fn">BootstrapFewShot</span>(metric=accuracy_metric, max_bootstrapped_demos=<span class="nm">3</span>)
+optimised_classifier = optimiser.<span class="fn">compile</span>(dspy.<span class="fn">Predict</span>(<span class="tp">SupportClassifier</span>), trainset=trainset)
+
+result2 = <span class="fn">optimised_classifier</span>(ticket=<span class="st">"I was double-charged last month."</span>)
+<span class="fn">print</span>(<span class="st">f"Optimised — Team: {result2.team}, Priority: {result2.priority}"</span>)</code></pre>
+        </div>
+
+        <h2 id="observability">The minimum viable observability layer <a class="anchor" href="#observability">#</a></h2>
+        <p>You cannot manage what you don't measure. For any LLM system in production, four data points on every call give you everything you need to debug failures, track costs, and catch regressions before users notice.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">Four fields to log on every LLM call</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem;font-size:13px">
+            <div style="display:grid;grid-template-columns:180px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:700;color:var(--phase-text);font-family:'JetBrains Mono',monospace;font-size:12px">prompt_version</div>
+              <div>Which prompt produced this output. Enables reproducing any failure. Format: <code>name@version</code>.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:180px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:700;color:#10b981;font-family:'JetBrains Mono',monospace;font-size:12px">tokens_in / out</div>
+              <div>Input and output token counts. Track cost per feature daily. Alert if average input tokens spike — often indicates a context accumulation bug.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:180px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:700;color:#f59e0b;font-family:'JetBrains Mono',monospace;font-size:12px">stop_reason</div>
+              <div>Alert immediately if <code>stop_reason == "max_tokens"</code> for more than 1% of calls. Truncated outputs are silent failures — users get incomplete responses.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:180px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:700;color:#e85a7a;font-family:'JetBrains Mono',monospace;font-size:12px">latency_ms</div>
+              <div>Time from request to first token (TTFT) and total response time. Track p50 and p95. Unexplained latency spikes indicate upstream API issues or context window growth.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">Phase 3 complete — what you can now build</strong>
+            You have a complete prompt engineering toolkit: structured system prompts, prefilling, XML tags, zero/few-shot, COSTAR, CoT, self-consistency, least-to-most, self-refine, extended thinking, the five production patterns, versioning, caching, A/B testing, and DSPy. Phase 4 uses all of this as the foundation for RAG — retrieving real-time context and injecting it into your prompts to give models access to your data, not just their training knowledge.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 3.7: Prompts in Production</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~30 min · live code + cost calculations</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 3:00</span><span class="script-action">INTRO</span><span class="script-narration">"Everything in Phase 3 so far has been about getting great outputs. Module 3.7 is about keeping them great at scale — when teammates edit prompts, when models update, when your daily call volume hits 50,000. The difference between a prototype and a production system is almost entirely what we cover today."</span></div>
+          <div class="script-line"><span class="script-ts">3:00 – 10:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Show prompt_registry.py. Open prompts.json in the editor. "This is your source of truth. It's committed to Git. It gets code reviewed. When I call active version, it returns v2 — and I log that version tag alongside every response. In three weeks when a user reports a bad summary, I search my logs for the version tag and I know exactly what prompt produced it and can reproduce it locally."</span></div>
+          <div class="script-line"><span class="script-ts">10:00 – 18:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run prompt_caching.py twice in a row. "First call: cache_creation_input_tokens = 1,800. That's a cache write — 25% markup. Second call: cache_read_input_tokens = 1,800, cache_creation = 0. That's a cache hit — 10% of normal price." Calculate on screen: 1,800 tokens × $3/M = $0.0054 without cache. Same tokens × $0.30/M = $0.00054 with cache hit. "At 1,000 calls per day that's $5.40 vs $0.54. $1,782 saved per year on the system prompt alone — for zero engineering work beyond adding one JSON field."</span></div>
+          <div class="script-line"><span class="script-ts">18:00 – 24:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run ab_testing.py. "v1 scores 3.2 average, v2 scores 4.4. But n=8 per variant — not enough. Decision rule: 30 samples minimum, difference must be > 0.3 points. Why 30? Below that, a 0.5-point difference is indistinguishable from noise." Show what happens if you promote on n=5: run it again, the means flip. "This is why we don't promote on gut feel."</span></div>
+          <div class="script-line"><span class="script-ts">24:00 – 30:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run dspy_intro.py. "Without optimisation: the prompt DSPy writes from the signature is generic. After BootstrapFewShot: it selects the 3 best few-shot examples from the training set and compiles them in. The optimised classifier is noticeably more accurate on edge cases." Close with the observability diagram: "Log these four fields from day one. When something goes wrong — and it will — you'll thank yourself."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>You have a 2,000-token system prompt sent on 5,000 API calls per day. The cache TTL is 5 minutes. Your traffic is spread evenly across 24 hours. How many cache writes vs cache reads do you expect per day?</summary>
+          <div class="selfcheck__a">With 5,000 calls evenly over 24 hours: ~208 calls per hour, ~3.5 calls per minute. The 5-minute TTL means each cache write covers the next ~17 calls before expiring. Approximately: 5,000 / 17 ≈ 295 cache writes per day, and 5,000 − 295 ≈ 4,705 cache reads. Cache hit rate ≈ 94%. Cost estimate: (295 × 2,000 × $3.75 + 4,705 × 2,000 × $0.30) / 1,000,000 ≈ $2.22 + $2.82 = $5.04/day for the system prompt portion. Without caching that same volume would cost 5,000 × 2,000 × $3.00 / 1,000,000 = $30/day. Caching saves ~$25/day, ~$9,000/year on the system prompt alone.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Your observability dashboard shows <code>stop_reason == "max_tokens"</code> on 4% of calls. What should you investigate first?</summary>
+          <div class="selfcheck__a">4% is well above the 1% alert threshold and indicates a systematic problem, not an edge case. Investigate in order: (1) <strong>Context accumulation</strong> — check average <code>tokens_in</code> over time. If it's growing, your code is probably appending conversation history without a truncation limit, causing prompts to grow unbounded. (2) <strong>max_tokens setting</strong> — it may be set too low for the task complexity. Check p95 output length on successful calls and set <code>max_tokens</code> to at least 1.5× that. (3) <strong>Task scope creep</strong> — if users are sending longer inputs than the system was designed for, you may need input validation. All 4% of truncated calls produced incomplete outputs that users received silently — audit whether any of those caused downstream failures.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What does DSPy's BootstrapFewShot optimiser actually do, and why might it outperform hand-written few-shot examples?</summary>
+          <div class="selfcheck__a">BootstrapFewShot runs the unoptimised module on the training set, collects examples where the module produces correct outputs, and selects the best subset of those as compiled few-shot demonstrations. It outperforms hand-written examples for two reasons: (1) <strong>Selection</strong> — it evaluates candidate examples against your metric and picks the ones that actually improve accuracy, rather than examples that feel representative to a human; (2) <strong>Coverage</strong> — it can find edge-case examples that a human wouldn't think to write but that cover the failure modes the model struggles with. The key requirement: you need a labelled eval set and a clear metric function. Without those, DSPy has nothing to optimise against.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>A teammate wants to improve the support triage prompt and edits the string directly in the Python file. What is the risk and how does prompt versioning address it?</summary>
+          <div class="selfcheck__a">Two risks: (1) <strong>No rollback path</strong> — if the edited prompt degrades quality, you can't quickly revert to what was working without digging through git blame, if it was even committed; (2) <strong>No audit trail</strong> — your logs show the response but not which prompt version produced it, making debugging impossible. Prompt versioning addresses both: the prompt lives in a reviewed, versioned file (e.g. prompts.json) with named versions. The registry always loads the active version. Changing the active version is a one-line config change that can be rolled back instantly. Every API call logs the version tag, so any bad output is traceable to the exact prompt text that produced it.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal" style="background:linear-gradient(135deg,rgba(232,90,122,.08),rgba(232,90,122,.04));border-color:rgba(232,90,122,.3)">
+        <div>
+          <div class="next-mod__label" style="color:#e85a7a">Phase 3 Complete · Start Phase 4</div>
+          <div class="next-mod__title">4.1 · What is RAG</div>
+          <p class="next-mod__desc">Retrieval-Augmented Generation — giving your LLM access to your own data at inference time. Why models hallucinate on proprietary knowledge, how retrieval fixes it, and the architecture of a production RAG pipeline.</p>
+        </div>
+        <a class="next-btn" href="module-4-1.html" style="background:#e85a7a">Start Phase 4 →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#prompt-versioning">Prompt versioning</a>
+    <a href="#prompt-caching">Prompt caching</a>
+    <a href="#ab-testing">A/B testing</a>
+    <a href="#dspy">DSPy optimisation</a>
+    <a href="#observability">Observability layer</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 3.7 / 62<br/>Phase 3 · Week 8<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

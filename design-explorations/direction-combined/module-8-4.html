@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 8.4 LLMOps — Evaluation in Production · by Harish Mondepu</title>
+<meta name="description" content="Golden dataset regression tests in CI, A/B testing prompt and model changes, user feedback loops, and drift detection on retrieval quality."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#854d0e;--phase-hi:#a16207;--phase-soft:rgba(161,98,7,.1);--phase-text:#854d0e}
+[data-theme="dark"]{--phase:#eab308;--phase-hi:#facc15;--phase-soft:rgba(234,179,8,.1);--phase-text:#fef08a}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 8 · <strong>LLMOps — Evaluation in Production</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 56 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#1aada0"></span>Phase 1 · Python Foundations ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#06b6d4"></span>Phase 2 · LLM Mental Model ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#a78bfa"></span>Phase 3 · Prompt Engineering ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f06292"></span>Phase 4 · RAG + Evaluation ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#10b981"></span>Phase 5 · Tools, MCP &amp; Agents ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f59e0b"></span>Phase 6 · Memory &amp; Context ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f97316"></span>Phase 7 · Multi-Agent Orchestration ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 8 · Guardrails &amp; LLMOps
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-8-1.html"><span class="sidebar__mod-num">8.1</span>Three-Layer Guardrails ✓</a>
+        <a class="sidebar__mod done" href="module-8-2.html"><span class="sidebar__mod-num">8.2</span>AWS Bedrock Guardrails ✓</a>
+        <a class="sidebar__mod done" href="module-8-3.html"><span class="sidebar__mod-num">8.3</span>LLMOps — Observability ✓</a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">8.4</span>LLMOps — Evaluation</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 08</span>
+        <span class="tag tag--level">Advanced</span>
+        <span class="tag tag--week">Week 24</span>
+      </div>
+      <h1 class="mod-head__title">LLMOps — <em>Evaluation in Production</em></h1>
+      <p class="mod-head__sub">Observability tells you something is wrong. Evaluation tells you whether what you shipped is better or worse than what it replaced. This module closes the production feedback loop with four interlocking practices: golden dataset regression tests that run in CI, A/B testing frameworks for prompt and model changes, user feedback collection and surfacing, and automated drift detection on retrieval quality — so you ship with confidence and know the moment a model update silently breaks something.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~22 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>4 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li><strong>Golden datasets:</strong> 50–200 representative examples with expected outputs; run as pytest cases in CI; fail the build if LLM-judge score drops below a threshold (not string matching — LLM judge handles paraphrase)</li>
+          <li><strong>A/B testing:</strong> route a percentage of real traffic to the new prompt/model, compare LLM-judge scores and user feedback rates over 48–72 hours before full rollout</li>
+          <li><strong>Feedback loops:</strong> thumbs-up/down is free signal — collect it, tie it to trace IDs, surface it in your observability dashboard</li>
+          <li><strong>Retrieval drift:</strong> embedding models change, knowledge bases grow stale — run a nightly eval on 50 fixed queries and alert when NDCG@5 drops more than 5% from the rolling baseline</li>
+          <li><strong>The CI gate:</strong> golden dataset pass rate ≥ 90% AND no regression on any priority-1 case is the minimum bar before any prompt or model change ships to production</li>
+        </ul>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="golden-dataset">Golden dataset regression tests in CI <a class="anchor" href="#golden-dataset">#</a></h2>
+        <p>A golden dataset is a curated set of (input, expected_output) pairs that represent the range of things your application should do correctly. It's your regression safety net — every prompt or model change must pass these tests before merging.</p>
+        <p>Don't use string matching. Use an LLM judge with structured output that evaluates semantic equivalence — otherwise a paraphrase of the correct answer will fail the test.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">eval_ci.py — golden dataset as pytest cases</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="cm"># eval/golden_dataset.json — checked into the repo</span>
+<span class="cm"># [{"id": "q1", "priority": 1, "input": "...", "expected": "...", "criteria": "..."}]</span>
+
+<span class="kw">import</span> json, pytest
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+
+<span class="kw">class</span> <span class="tp">EvalResult</span>(<span class="tp">BaseModel</span>):
+    score: <span class="tp">float</span>       <span class="cm"># 0.0 to 1.0</span>
+    passed: <span class="tp">bool</span>
+    reasoning: <span class="tp">str</span>
+
+JUDGE_SYSTEM = <span class="st">"""You are an LLM output evaluator.
+Given an [EXPECTED] answer and an [ACTUAL] answer, score the actual answer 0.0–1.0.
+- 1.0: Correct, complete, and well-phrased
+- 0.7–0.9: Correct but incomplete or awkwardly phrased
+- 0.4–0.6: Partially correct
+- 0.0–0.3: Wrong or misleading
+passed=true if score >= 0.7. Be strict about factual accuracy."""</span>
+
+judge_llm = llm.<span class="fn">with_structured_output</span>(<span class="tp">EvalResult</span>)
+
+<span class="kw">def</span> <span class="fn">evaluate_response</span>(expected: <span class="tp">str</span>, actual: <span class="tp">str</span>, criteria: <span class="tp">str</span>) -&gt; <span class="tp">EvalResult</span>:
+    <span class="kw">return</span> judge_llm.<span class="fn">invoke</span>([
+        {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: JUDGE_SYSTEM},
+        {<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>:
+            <span class="st">f"[CRITERIA]\n{criteria}\n\n[EXPECTED]\n{expected}\n\n[ACTUAL]\n{actual}"</span>},
+    ])
+
+<span class="kw">with</span> <span class="fn">open</span>(<span class="st">"eval/golden_dataset.json"</span>) <span class="kw">as</span> f:
+    GOLDEN = json.<span class="fn">load</span>(f)
+
+@pytest.mark.<span class="fn">parametrize</span>(<span class="st">"case"</span>, GOLDEN)
+<span class="kw">def</span> <span class="fn">test_golden</span>(case):
+    actual = agent.<span class="fn">invoke</span>(case[<span class="st">"input"</span>])
+    result = <span class="fn">evaluate_response</span>(case[<span class="st">"expected"</span>], actual, case[<span class="st">"criteria"</span>])
+
+    <span class="cm"># Priority-1 cases must always pass — no exceptions</span>
+    <span class="kw">if</span> case.get(<span class="st">"priority"</span>) == <span class="nm">1</span>:
+        <span class="kw">assert</span> result.passed, <span class="st">f"P1 case {case['id']} failed: {result.reasoning}"</span>
+    <span class="kw">else</span>:
+        <span class="kw">assert</span> result.score &gt;= <span class="nm">0.7</span>, <span class="st">f"Case {case['id']} score {result.score:.2f}: {result.reasoning}"</span>
+
+<span class="cm"># CI gate: overall pass rate must be ≥ 90%</span>
+<span class="kw">def</span> <span class="fn">test_overall_pass_rate</span>():
+    results = [<span class="fn">evaluate_response</span>(c[<span class="st">"expected"</span>], agent.<span class="fn">invoke</span>(c[<span class="st">"input"</span>]), c[<span class="st">"criteria"</span>]) <span class="kw">for</span> c <span class="kw">in</span> GOLDEN]
+    pass_rate = <span class="fn">sum</span>(<span class="nm">1</span> <span class="kw">for</span> r <span class="kw">in</span> results <span class="kw">if</span> r.passed) / <span class="fn">len</span>(results)
+    <span class="kw">assert</span> pass_rate &gt;= <span class="nm">0.90</span>, <span class="st">f"Overall pass rate {pass_rate:.1%} is below 90% threshold"</span></code></pre>
+        </div>
+
+        <h2 id="ab-testing">A/B testing prompt and model changes <a class="anchor" href="#ab-testing">#</a></h2>
+        <p>Never ship a prompt change "blind" to 100% of users. Route a percentage of production traffic to the new version, collect LLM-judge scores and user feedback for 48–72 hours, then compare. A change that looks better in offline evals sometimes regresses on the long tail of real user inputs.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">ab_router.py — percentage-based traffic split with evaluation</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> hashlib
+<span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
+
+@<span class="fn">dataclass</span>
+<span class="kw">class</span> <span class="tp">Variant</span>:
+    name: <span class="tp">str</span>
+    system_prompt: <span class="tp">str</span>
+    model: <span class="tp">str</span>
+    weight: <span class="tp">float</span>   <span class="cm"># 0.0–1.0, must sum to 1.0</span>
+
+VARIANTS = [
+    <span class="tp">Variant</span>(<span class="st">"control"</span>, CURRENT_SYSTEM_PROMPT, <span class="st">"claude-sonnet-4-6"</span>, <span class="nm">0.9</span>),
+    <span class="tp">Variant</span>(<span class="st">"treatment"</span>, NEW_SYSTEM_PROMPT, <span class="st">"claude-sonnet-4-6"</span>, <span class="nm">0.1</span>),   <span class="cm"># 10% traffic</span>
+]
+
+<span class="kw">def</span> <span class="fn">assign_variant</span>(user_id: <span class="tp">str</span>) -&gt; <span class="tp">Variant</span>:
+    <span class="cm">"""Deterministic assignment — same user always gets the same variant."""</span>
+    bucket = <span class="fn">int</span>(hashlib.<span class="fn">md5</span>(user_id.<span class="fn">encode</span>()).<span class="fn">hexdigest</span>(), <span class="nm">16</span>) % <span class="nm">1000</span> / <span class="nm">1000</span>
+    cumulative = <span class="nm">0.0</span>
+    <span class="kw">for</span> variant <span class="kw">in</span> VARIANTS:
+        cumulative += variant.weight
+        <span class="kw">if</span> bucket &lt; cumulative:
+            <span class="kw">return</span> variant
+    <span class="kw">return</span> VARIANTS[-<span class="nm">1</span>]
+
+<span class="kw">async def</span> <span class="fn">handle_with_ab</span>(user_id: <span class="tp">str</span>, user_message: <span class="tp">str</span>) -&gt; <span class="tp">str</span>:
+    variant = <span class="fn">assign_variant</span>(user_id)
+
+    <span class="cm"># Log variant assignment — needed to compute per-variant metrics</span>
+    langfuse.<span class="fn">trace</span>(metadata={<span class="st">"ab_variant"</span>: variant.name, <span class="st">"ab_experiment"</span>: <span class="st">"prompt-v2"</span>})
+
+    response = <span class="kw">await</span> llm.<span class="fn">ainvoke</span>([
+        {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: variant.system_prompt},
+        {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: user_message},
+    ])
+
+    <span class="cm"># Auto-eval in background — don't block the response</span>
+    asyncio.<span class="fn">create_task</span>(<span class="fn">log_auto_eval</span>(user_message, response.content, variant.name))
+    <span class="kw">return</span> response.content</code></pre>
+        </div>
+
+        <h2 id="feedback-loops">User feedback loops <a class="anchor" href="#feedback-loops">#</a></h2>
+        <p>Thumbs-up/down is the simplest feedback signal you can collect and it compounds over time into a training signal and an early-warning system. The key is tying the feedback rating back to the trace ID so you can inspect the exact conversation that drove the rating.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">feedback_api.py — collecting and surfacing user feedback</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+
+app = <span class="tp">FastAPI</span>()
+
+<span class="kw">class</span> <span class="tp">FeedbackPayload</span>(<span class="tp">BaseModel</span>):
+    trace_id: <span class="tp">str</span>       <span class="cm"># LangFuse/LangSmith trace ID — sent with every response</span>
+    rating: <span class="tp">int</span>         <span class="cm"># 1 = thumbs-up, -1 = thumbs-down</span>
+    comment: <span class="tp">str</span> | <span class="tp">None</span> = <span class="kw">None</span>
+
+@app.<span class="fn">post</span>(<span class="st">"/feedback"</span>)
+<span class="kw">async def</span> <span class="fn">submit_feedback</span>(payload: <span class="tp">FeedbackPayload</span>):
+    <span class="cm"># Post score back to LangFuse — it appears on the trace</span>
+    langfuse.<span class="fn">score</span>(
+        trace_id=payload.trace_id,
+        name=<span class="st">"user_rating"</span>,
+        value=payload.rating,
+        comment=payload.comment,
+        data_type=<span class="st">"NUMERIC"</span>,
+    )
+    <span class="cm"># Route negative ratings to a review queue</span>
+    <span class="kw">if</span> payload.rating == -<span class="nm">1</span>:
+        <span class="kw">await</span> <span class="fn">enqueue_for_review</span>(payload.trace_id, payload.comment)
+    <span class="kw">return</span> {<span class="st">"status"</span>: <span class="st">"ok"</span>}
+
+<span class="cm"># Dashboard query: thumbs-down rate by variant over the last 7 days</span>
+<span class="cm"># SELECT metadata->>'ab_variant' as variant,</span>
+<span class="cm">#        AVG(CASE WHEN score.value = -1 THEN 1.0 ELSE 0.0 END) as thumbs_down_rate</span>
+<span class="cm"># FROM traces t JOIN scores s ON t.id = s.trace_id</span>
+<span class="cm"># WHERE s.name = 'user_rating' AND t.created_at >= NOW() - INTERVAL '7 days'</span>
+<span class="cm"># GROUP BY variant</span></code></pre>
+        </div>
+
+        <h2 id="drift-detection">Drift detection on retrieval quality <a class="anchor" href="#drift-detection">#</a></h2>
+        <p>RAG pipelines degrade silently. The embedding model is the same but the knowledge base grows stale. Or the embedding API updates its model and cosine distances shift. Or your chunking strategy becomes misaligned as document lengths change. None of these fire an error — they just make answers progressively worse.</p>
+        <p>Fix: run a nightly eval on 50 fixed queries with known correct documents and track NDCG@5. Alert when it drops more than 5% from the 30-day rolling baseline.</p>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">Model version changes are silent regressions</strong>
+            When OpenAI or Anthropic updates a model (e.g., gpt-4o to gpt-4o-2024-11-20) your golden dataset and drift monitors may catch regressions that manual testing would miss. Run the full eval suite any time you pin a new model version — before updating the version in production.
+          </div>
+        </div>
+
+        <div class="callout callout--success reveal">
+          <span class="callout__icon">✓</span>
+          <div>
+            <strong class="callout__title">Phase 8 complete — Guardrails &amp; LLMOps</strong>
+            You've built the full production hardening stack: three-layer guardrails, AWS Bedrock managed guardrails, distributed tracing with LangSmith/LangFuse, cost and latency dashboards, and a closed evaluation loop with CI regression tests, A/B testing, user feedback, and drift detection. Phase 9 is the final stretch — cloud infrastructure and deployment.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: Cloud Infrastructure &amp; Deployment</div>
+            <div class="cta-block__sub">Phase 9 covers containerising LLM applications, serverless vs dedicated inference, Kubernetes for agent workloads, CI/CD pipelines, cost optimisation, and production readiness checklists.</div>
+          </div>
+          <a class="cta-block__btn" href="module-9-1.html">Phase 9 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#golden-dataset">Golden dataset in CI</a></li>
+      <li><a class="toc__link" href="#ab-testing">A/B testing</a></li>
+      <li><a class="toc__link" href="#feedback-loops">User feedback loops</a></li>
+      <li><a class="toc__link" href="#drift-detection">Retrieval drift detection</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){const h=document.documentElement;const dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');localStorage.setItem('ae-theme',dark?'light':'dark');document.getElementById('themeIcon').textContent=dark?'☀':'☾';document.getElementById('themeLabel').textContent=dark?'Light':'Dark';}
+(function(){const t=localStorage.getItem('ae-theme');if(t){document.documentElement.setAttribute('data-theme',t);const dark=t==='dark';document.getElementById('themeIcon').textContent=dark?'☾':'☀';document.getElementById('themeLabel').textContent=dark?'Dark':'Light';}})();
+function copyCode(btn){const code=btn.closest('.code-wrap').querySelector('pre code');navigator.clipboard.writeText(code.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{es.forEach(e=>{const id=e.target.id;if(!id)return;const link=document.querySelector(`.toc__link[href="#${id}"]`);if(!link)return;if(e.isIntersecting){document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));link.classList.add('active');}});},{rootMargin:'-20% 0px -70% 0px'});document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

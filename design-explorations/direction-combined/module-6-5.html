@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 6.5 Episodic Memory · by Harish Mondepu</title>
+<meta name="description" content="Store and retrieve facts about past user interactions in a vector database — so agents remember preferences and context from sessions that left the context window weeks ago."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#d97706;--phase-hi:#f59e0b;--phase-soft:rgba(245,158,11,.1);--phase-text:#d97706}
+[data-theme="dark"]{--phase:#f59e0b;--phase-hi:#fbbf24;--phase-soft:rgba(251,191,36,.1);--phase-text:#fde68a}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 6 · <strong>Episodic Memory</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 42 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#f06292"></span>
+        Phase 4 · RAG + Evaluation ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#10b981"></span>
+        Phase 5 · Tools, MCP &amp; Agents ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 6 · Memory &amp; Context
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-6-1.html"><span class="sidebar__mod-num">6.1</span>Context Window ✓</a>
+        <a class="sidebar__mod done" href="module-6-2.html"><span class="sidebar__mod-num">6.2</span>Context Structure ✓</a>
+        <a class="sidebar__mod done" href="module-6-3.html"><span class="sidebar__mod-num">6.3</span>Short-Term Memory ✓</a>
+        <a class="sidebar__mod done" href="module-6-4.html"><span class="sidebar__mod-num">6.4</span>Semantic Caching ✓</a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">6.5</span>Episodic Memory</a>
+        <a class="sidebar__mod" href="module-6-6.html"><span class="sidebar__mod-num">6.6</span>Context Compression</a>
+        <a class="sidebar__mod" href="module-6-7.html"><span class="sidebar__mod-num">6.7</span>Long-Term Memory</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 06</span>
+        <span class="tag tag--level">Advanced</span>
+        <span class="tag tag--week">Week 19</span>
+      </div>
+      <h1 class="mod-head__title">Episodic <em>Memory</em></h1>
+      <p class="mod-head__sub">Short-term memory (Module 6.3) keeps the recent conversation alive. Episodic memory goes further — it stores facts extracted from past conversations in a persistent vector database, so an agent can say "you mentioned last month that you prefer TypeScript" even though that conversation is nowhere in the current context window. This module covers the write path (memory extraction), the read path (query-time retrieval), memory deduplication, and the privacy/consent considerations you cannot skip in production.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~24 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>4 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Episodic memory = facts extracted from past conversations, stored in a vector store, retrieved at query time by semantic similarity</li>
+          <li>The write path is separate from the read path — memory extraction happens at end-of-session (async), not inline during the conversation</li>
+          <li>Memory deduplication is essential — the same fact stated in 10 sessions will create 10 near-duplicate entries; periodically merge or deduplicate by clustering</li>
+          <li>Always namespace memories per user (<code>user_id</code> metadata filter) — never let one user's episodic memory influence another user's responses</li>
+          <li>Memory extraction must comply with privacy regulations — in GDPR contexts, users must be able to view, correct, and delete their stored memories on request</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Module 4.1 — vector stores and embedding retrieval</li>
+            <li><div class="meta-list__dot">!</div>Module 6.3 — short-term memory and session buffers</li>
+            <li><div class="meta-list__dot">!</div><code>pip install openai chromadb</code></li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Design a two-path episodic memory system (write at session end, read at query time)</li>
+            <li><div class="meta-list__dot">2</div>Build an LLM-driven memory extractor that identifies saveable facts</li>
+            <li><div class="meta-list__dot">3</div>Retrieve relevant memories and inject them into context at query time</li>
+            <li><div class="meta-list__dot">4</div>Implement per-user namespacing and a user-facing memory management endpoint</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="two-paths">The write path and the read path <a class="anchor" href="#two-paths">#</a></h2>
+        <p>Episodic memory involves two completely separate operations that run at different times. Understanding this separation prevents the most common implementation mistake — trying to write memories during the live conversation turn (which adds latency the user feels directly).</p>
+
+        <div class="reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+          <div style="padding:.6rem 1rem;background:var(--phase-soft);border-bottom:1px solid var(--border);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--phase-text)">Episodic Memory Architecture</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+            <div style="padding:1.1rem 1rem;border-right:1px solid var(--border)">
+              <div style="font-size:12px;font-weight:700;color:var(--phase-text);margin-bottom:.5rem">WRITE PATH — end of session</div>
+              <div style="font-size:12px;color:var(--fg);display:flex;flex-direction:column;gap:.3rem">
+                <div>1. Session ends (user closes chat)</div>
+                <div>2. Async job: pass full session to LLM extractor</div>
+                <div>3. LLM returns list of extractable facts</div>
+                <div>4. Deduplicate against existing memories</div>
+                <div>5. Embed each fact and upsert to vector store</div>
+              </div>
+            </div>
+            <div style="padding:1.1rem 1rem">
+              <div style="font-size:12px;font-weight:700;color:var(--phase-text);margin-bottom:.5rem">READ PATH — each query</div>
+              <div style="font-size:12px;color:var(--fg);display:flex;flex-direction:column;gap:.3rem">
+                <div>1. New user query arrives</div>
+                <div>2. Embed query → similarity search in vector store</div>
+                <div>3. Filter by user_id metadata</div>
+                <div>4. Top-k memories → inject into context as <code>&lt;memories&gt;</code></div>
+                <div>5. Model answers with cross-session knowledge</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="memory-extractor">Building the memory extractor <a class="anchor" href="#memory-extractor">#</a></h2>
+        <p>The extractor is an LLM call at the end of each session that identifies which facts are worth storing long-term. The prompt matters — it determines what quality of memories you accumulate:</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">memory_extractor.py — LLM-driven fact extraction from session transcript</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> json
+<span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+
+client = <span class="tp">OpenAI</span>()
+
+EXTRACT_PROMPT = <span class="st">"""You extract memorable facts from a conversation transcript.
+Return a JSON array of strings. Each string is ONE discrete fact about the user.
+
+Rules:
+- Only extract facts the user stated about themselves (preferences, expertise, constraints, goals)
+- Do NOT extract general knowledge, questions asked, or assistant responses
+- Do NOT extract transient details ("what I had for breakfast")
+- Use second person: "The user prefers Python over JavaScript"
+- Limit to 5 facts maximum per session
+
+Example output: ["The user prefers Python over JavaScript", "The user is building a SaaS for HR teams", "The user has experience with LangChain"]
+
+If no memorable facts exist, return: []"""</span>
+
+<span class="kw">def</span> <span class="fn">extract_memories</span>(session_messages: <span class="tp">list</span>[<span class="tp">dict</span>]) -> <span class="tp">list</span>[<span class="tp">str</span>]:
+    transcript = <span class="st">"\n"</span>.<span class="fn">join</span>(
+        <span class="st">f"{m['role'].upper()}: {m['content']}"</span>
+        <span class="kw">for</span> m <span class="kw">in</span> session_messages
+        <span class="kw">if</span> m[<span class="st">"role"</span>] <span class="kw">in</span> (<span class="st">"user"</span>, <span class="st">"assistant"</span>)
+    )
+    resp = client.chat.completions.<span class="fn">create</span>(
+        model=<span class="st">"gpt-4o-mini"</span>,
+        messages=[
+            {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: EXTRACT_PROMPT},
+            {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: transcript},
+        ],
+        response_format={<span class="st">"type"</span>: <span class="st">"json_object"</span>},
+        max_tokens=<span class="nm">300</span>,
+    )
+    data = json.<span class="fn">loads</span>(resp.choices[<span class="nm">0</span>].message.content)
+    <span class="kw">return</span> data <span class="kw">if</span> <span class="fn">isinstance</span>(data, <span class="tp">list</span>) <span class="kw">else</span> data.<span class="fn">get</span>(<span class="st">"memories"</span>, [])</code></pre>
+        </div>
+
+        <h2 id="vector-store">Storing and retrieving memories <a class="anchor" href="#vector-store">#</a></h2>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">episodic_store.py — ChromaDB-backed per-user memory store</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> chromadb, uuid
+<span class="kw">from</span> chromadb.utils.embedding_functions <span class="kw">import</span> OpenAIEmbeddingFunction
+
+embed_fn = <span class="tp">OpenAIEmbeddingFunction</span>(
+    api_key=<span class="st">"YOUR_KEY"</span>, model_name=<span class="st">"text-embedding-3-small"</span>
+)
+db = chromadb.<span class="fn">PersistentClient</span>(path=<span class="st">"./episodic_memory_db"</span>)
+collection = db.<span class="fn">get_or_create_collection</span>(
+    name=<span class="st">"user_memories"</span>, embedding_function=embed_fn
+)
+
+
+<span class="kw">def</span> <span class="fn">save_memories</span>(user_id: <span class="tp">str</span>, memories: <span class="tp">list</span>[<span class="tp">str</span>]) -> <span class="kw">None</span>:
+    <span class="kw">if</span> <span class="kw">not</span> memories:
+        <span class="kw">return</span>
+    collection.<span class="fn">upsert</span>(
+        documents=memories,
+        ids=[<span class="tp">str</span>(uuid.<span class="fn">uuid4</span>()) <span class="kw">for</span> _ <span class="kw">in</span> memories],
+        metadatas=[{<span class="st">"user_id"</span>: user_id} <span class="kw">for</span> _ <span class="kw">in</span> memories],
+    )
+
+
+<span class="kw">def</span> <span class="fn">retrieve_memories</span>(user_id: <span class="tp">str</span>, query: <span class="tp">str</span>, k: <span class="tp">int</span> = <span class="nm">5</span>) -> <span class="tp">list</span>[<span class="tp">str</span>]:
+    results = collection.<span class="fn">query</span>(
+        query_texts=[query],
+        n_results=k,
+        where={<span class="st">"user_id"</span>: user_id},   <span class="cm"># critical: scope to this user only</span>
+    )
+    <span class="kw">return</span> results[<span class="st">"documents"</span>][<span class="nm">0</span>] <span class="kw">if</span> results[<span class="st">"documents"</span>] <span class="kw">else</span> []
+
+
+<span class="kw">def</span> <span class="fn">list_memories</span>(user_id: <span class="tp">str</span>) -> <span class="tp">list</span>[<span class="tp">dict</span>]:
+    <span class="cm">"""Return all memories for a user — for the user-facing memory management UI."""</span>
+    results = collection.<span class="fn">get</span>(where={<span class="st">"user_id"</span>: user_id})
+    <span class="kw">return</span> [
+        {<span class="st">"id"</span>: id_, <span class="st">"memory"</span>: doc}
+        <span class="kw">for</span> id_, doc <span class="kw">in</span> <span class="fn">zip</span>(results[<span class="st">"ids"</span>], results[<span class="st">"documents"</span>])
+    ]
+
+
+<span class="kw">def</span> <span class="fn">delete_memory</span>(memory_id: <span class="tp">str</span>) -> <span class="kw">None</span>:
+    <span class="cm">"""User-initiated deletion — GDPR right to be forgotten."""</span>
+    collection.<span class="fn">delete</span>(ids=[memory_id])</code></pre>
+        </div>
+
+        <h2 id="injecting">Injecting memories into context <a class="anchor" href="#injecting">#</a></h2>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">agent_with_episodic.py — full query-time memory injection</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">async def</span> <span class="fn">chat</span>(user_id: <span class="tp">str</span>, user_query: <span class="tp">str</span>, history: <span class="tp">list</span>[<span class="tp">dict</span>]) -> <span class="tp">str</span>:
+    <span class="cm"># 1. Retrieve relevant memories for this user</span>
+    memories = <span class="fn">retrieve_memories</span>(user_id=user_id, query=user_query, k=<span class="nm">5</span>)
+
+    <span class="cm"># 2. Build context block with memories injected</span>
+    memories_block = <span class="st">""</span>
+    <span class="kw">if</span> memories:
+        formatted = <span class="st">"\n"</span>.<span class="fn">join</span>(<span class="st">f"- {m}"</span> <span class="kw">for</span> m <span class="kw">in</span> memories)
+        memories_block = <span class="st">f"\n\n&lt;memories&gt;\nKnown facts about this user:\n{formatted}\n&lt;/memories&gt;"</span>
+
+    system = (
+        <span class="st">"You are a helpful assistant."</span>
+        <span class="st">"Use the facts in &lt;memories&gt; to personalise your response where appropriate."</span>
+        <span class="st">"Do not mention that you have memories unless the user asks."</span>
+        + memories_block
+    )
+
+    <span class="cm"># 3. Assemble messages with history + current query</span>
+    messages = [
+        {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: system},
+        *history,
+        {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: user_query},
+    ]
+    resp = <span class="kw">await</span> client.chat.completions.<span class="fn">acreate</span>(model=<span class="st">"gpt-4o"</span>, messages=messages)
+    <span class="kw">return</span> resp.choices[<span class="nm">0</span>].message.content
+
+
+<span class="cm"># After the session ends, extract and save new memories asynchronously</span>
+<span class="kw">async def</span> <span class="fn">on_session_end</span>(user_id: <span class="tp">str</span>, session_messages: <span class="tp">list</span>[<span class="tp">dict</span>]) -> <span class="kw">None</span>:
+    new_memories = <span class="fn">extract_memories</span>(session_messages)
+    <span class="fn">save_memories</span>(user_id=user_id, memories=new_memories)</code></pre>
+        </div>
+
+        <h2 id="deduplication">Memory deduplication <a class="anchor" href="#deduplication">#</a></h2>
+        <p>Without deduplication, a user who says "I prefer Python" in every session will accumulate hundreds of near-identical entries. This wastes storage, clutters the retrieved context, and can confuse the model with redundant facts. Run a deduplication pass periodically or at session end:</p>
+
+        <div class="callout callout--info">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">Deduplication strategy</strong>
+            Before inserting a new memory, retrieve the top-1 existing memory for that user with the same query as the candidate fact. If similarity ≥ 0.95, skip the insert — the fact is already represented. This is a single vector query per extracted fact, so the overhead is small. Alternatively, run a nightly batch job that clusters all memories per user and keeps only the cluster centroid.
+          </div>
+        </div>
+
+        <h2 id="privacy">Privacy and consent <a class="anchor" href="#privacy">#</a></h2>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">Episodic memory has real regulatory implications</strong>
+            <ul style="margin:.4rem 0 0 1rem;padding:0">
+              <li><strong>GDPR (EU) / CCPA (CA):</strong> users have the right to see, correct, and delete their stored data. Ship a <code>/memories</code> endpoint before going to production.</li>
+              <li><strong>Data minimisation:</strong> only extract facts the user consciously shared. Never infer or store inferences (e.g., "user seems anxious" from tone analysis).</li>
+              <li><strong>Consent:</strong> disclose to users that you are storing facts about them. "I remembered you prefer Python from last time" surprises users who didn't know this was happening.</li>
+              <li><strong>Retention policy:</strong> define how long memories persist. Auto-expire memories older than 12 months unless refreshed.</li>
+            </ul>
+          </div>
+        </div>
+
+        <h2 id="mem0">Using Mem0 for managed episodic memory <a class="anchor" href="#mem0">#</a></h2>
+        <p><a href="https://mem0.ai">Mem0</a> is an open-source managed memory layer designed specifically for LLM agents. It handles extraction, storage, deduplication, and retrieval out of the box, with both a self-hosted option and a cloud API:</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">mem0_example.py — drop-in episodic memory with Mem0</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="cm"># pip install mem0ai</span>
+<span class="kw">from</span> mem0 <span class="kw">import</span> Memory
+
+mem = <span class="tp">Memory</span>()  <span class="cm"># self-hosted by default (SQLite + FAISS locally)</span>
+
+user_id = <span class="st">"user-harish"</span>
+
+<span class="cm"># Add a memory after a session</span>
+mem.<span class="fn">add</span>(
+    messages=[
+        {<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: <span class="st">"I always write TypeScript, not JavaScript"</span>},
+        {<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: <span class="st">"Got it, I'll use TypeScript in future examples."</span>},
+    ],
+    user_id=user_id,
+)
+
+<span class="cm"># Query relevant memories for the next session</span>
+results = mem.<span class="fn">search</span>(query=<span class="st">"what language should I use?"</span>, user_id=user_id, limit=<span class="nm">5</span>)
+<span class="cm"># → [{"memory": "User prefers TypeScript over JavaScript", "score": 0.94}]</span>
+
+<span class="cm"># List all memories for a user (for the /memories management endpoint)</span>
+all_memories = mem.<span class="fn">get_all</span>(user_id=user_id)
+
+<span class="cm"># Delete a specific memory (GDPR right to erasure)</span>
+mem.<span class="fn">delete</span>(memory_id=<span class="st">"mem-id-here"</span>)</code></pre>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: Context Compression</div>
+            <div class="cta-block__sub">Module 6.6 covers advanced context compression — hierarchical summarisation, selective fact extraction, and compressing multi-step agent traces so long agentic workflows stay within the context budget.</div>
+          </div>
+          <a class="cta-block__btn" href="module-6-6.html">Module 6.6 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#two-paths">Write path &amp; read path</a></li>
+      <li><a class="toc__link" href="#memory-extractor">Memory extractor</a></li>
+      <li><a class="toc__link" href="#vector-store">Storing &amp; retrieving</a></li>
+      <li><a class="toc__link" href="#injecting">Injecting into context</a></li>
+      <li><a class="toc__link" href="#deduplication">Deduplication</a></li>
+      <li><a class="toc__link" href="#privacy">Privacy &amp; consent</a></li>
+      <li><a class="toc__link" href="#mem0">Mem0 managed memory</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){
+  const h=document.documentElement;
+  const dark=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',dark?'light':'dark');
+  localStorage.setItem('ae-theme',dark?'light':'dark');
+  document.getElementById('themeIcon').textContent=dark?'☀':'☾';
+  document.getElementById('themeLabel').textContent=dark?'Light':'Dark';
+}
+(function(){
+  const t=localStorage.getItem('ae-theme');
+  if(t){
+    document.documentElement.setAttribute('data-theme',t);
+    const dark=t==='dark';
+    document.getElementById('themeIcon').textContent=dark?'☾':'☀';
+    document.getElementById('themeLabel').textContent=dark?'Dark':'Light';
+  }
+})();
+function copyCode(btn){
+  const code=btn.closest('.code-wrap').querySelector('pre code');
+  navigator.clipboard.writeText(code.innerText).then(()=>{
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent='Copy',2000);
+  });
+}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    const id=e.target.id;
+    if(!id)return;
+    const link=document.querySelector(`.toc__link[href="#${id}"]`);
+    if(!link)return;
+    if(e.isIntersecting){
+      document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));
+      link.classList.add('active');
+    }
+  });
+},{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

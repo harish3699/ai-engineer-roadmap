@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 1.7 FastAPI · by Harish Mondepu</title>
+<meta name="description" content="Build your first /chat endpoint with FastAPI — Pydantic models, dependency injection, and automatic OpenAPI docs that every AI engineer needs."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 1 · <strong>FastAPI</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 7 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 1 · Python Foundations
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="index.html"><span class="sidebar__mod-num">1.1</span>Core Python<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-1-2.html"><span class="sidebar__mod-num">1.2</span>Object-Oriented Python<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-1-3.html"><span class="sidebar__mod-num">1.3</span>Data Structures<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-1-4.html"><span class="sidebar__mod-num">1.4</span>Error &amp; File Handling<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-1-5.html"><span class="sidebar__mod-num">1.5</span>HTTP APIs<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-1-6.html"><span class="sidebar__mod-num">1.6</span>Database Connectivity<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">1.7</span>FastAPI<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod" href="module-1-8.html"><span class="sidebar__mod-num">1.8</span>Async Programming<span class="sidebar__check"></span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#8865a3"></span>Phase 2 · LLM Mental Model</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#e85a7a"></span>Phase 3 · Prompt Engineering</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#e85a7a;opacity:.5"></span>Phase 4 · RAG + Evaluation</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 01</span>
+        <span class="tag tag--level">Intermediate</span>
+        <span class="tag tag--week">Week 1–3</span>
+      </div>
+      <h1 class="mod-head__title">Fast<em>API</em></h1>
+      <p class="mod-head__sub">Every agent you build will eventually expose an HTTP endpoint — for a chat UI, a webhook, or a scheduled trigger. FastAPI is the de-facto framework for this in the Python AI world: Pydantic built in, automatic OpenAPI docs, async-native, and fast enough for production. This module builds the /chat endpoint you'll reuse throughout the course.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~25 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>4 code examples</span>
+        <span>Last updated 2026-05-06</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>FastAPI auto-generates interactive Swagger UI at <code>/docs</code> — your teammates can test your agent endpoint without Postman</li>
+          <li>Pydantic models as request/response types give you free validation, serialisation, and schema documentation in one declaration</li>
+          <li>Dependency injection keeps authentication, DB sessions, and config out of route handlers — injected, not imported</li>
+          <li>All route handlers are <code>async def</code> by default — critical for not blocking the event loop on LLM calls (covered in Module 1.8)</li>
+          <li><code>uvicorn main:app --reload</code> is your dev loop; <code>--workers 4</code> is production</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Modules 1.1–1.6 complete</li>
+            <li><div class="meta-list__dot">!</div><code>pip install fastapi "uvicorn[standard]" python-dotenv</code></li>
+            <li><div class="meta-list__dot">!</div>Comfort with Pydantic models (Module 1.2)</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Build a <code>/chat</code> endpoint with request/response validation</li>
+            <li><div class="meta-list__dot">2</div>Use dependency injection for auth and DB sessions</li>
+            <li><div class="meta-list__dot">3</div>Explore the auto-generated OpenAPI docs at <code>/docs</code></li>
+            <li><div class="meta-list__dot">4</div>Run the app with uvicorn in dev and production modes</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">FastAPI Crash Course — Traversy Media</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· FastAPI Tutorial — Traversy Media or ArjanCodes</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/SORiTsvnU28" title="FastAPI Crash Course" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ FastAPI fundamentals · timestamps in script below</div>
+      </div>
+
+      <div class="prose">
+        <h2 id="first-endpoint">Your first /chat endpoint <a class="anchor" href="#first-endpoint">#</a></h2>
+        <p>A FastAPI app is a Python object. Route handlers are functions decorated with HTTP methods. Request bodies are Pydantic models — that's essentially the entire mental model. Declare a <code>BaseModel</code> subclass, annotate the handler parameter, and FastAPI handles parsing, validation, and serialisation automatically.</p>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">Visit /docs after starting</strong>
+            Run <code>uvicorn main:app --reload</code>, then open <code>http://localhost:8000/docs</code>. FastAPI generates a fully interactive Swagger UI from your Pydantic models and docstrings — no configuration required. Use Try It Out to POST real requests without Postman.
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">main.py — /chat endpoint skeleton</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI, HTTPException
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field
+<span class="kw">from</span> typing <span class="kw">import</span> Optional
+<span class="kw">import</span> uuid
+
+app = <span class="fn">FastAPI</span>(title=<span class="st">"Agent Chat API"</span>, version=<span class="st">"1.0.0"</span>)
+
+<span class="cm"># ── Request / Response models ─────────────────────────────────────────</span>
+<span class="kw">class</span> <span class="tp">ChatRequest</span>(<span class="tp">BaseModel</span>):
+    message:    <span class="tp">str</span>            = <span class="fn">Field</span>(..., min_length=<span class="nm">1</span>, max_length=<span class="nm">4000</span>)
+    session_id: <span class="tp">Optional</span>[<span class="tp">str</span>] = <span class="fn">Field</span>(<span class="kw">None</span>, description=<span class="st">"Omit to start a new session"</span>)
+    model:      <span class="tp">str</span>            = <span class="st">"claude-sonnet-4-6"</span>
+
+<span class="kw">class</span> <span class="tp">ChatResponse</span>(<span class="tp">BaseModel</span>):
+    session_id:    <span class="tp">str</span>
+    reply:         <span class="tp">str</span>
+    input_tokens:  <span class="tp">int</span>
+    output_tokens: <span class="tp">int</span>
+
+<span class="cm"># ── Route ─────────────────────────────────────────────────────────────</span>
+@app.<span class="fn">post</span>(<span class="st">"/chat"</span>, response_model=<span class="tp">ChatResponse</span>)
+<span class="kw">async def</span> <span class="fn">chat</span>(req: <span class="tp">ChatRequest</span>) -> <span class="tp">ChatResponse</span>:
+    <span class="st">"""Send a message and get an agent reply."""</span>
+    session_id = req.session_id <span class="kw">or</span> <span class="fn">str</span>(uuid.<span class="fn">uuid4</span>())
+
+    <span class="cm"># LLM call goes here — Phase 2+ wires the real provider</span>
+    reply = <span class="st">f"[stub] Echo: {req.message}"</span>
+
+    <span class="kw">return</span> <span class="tp">ChatResponse</span>(
+        session_id=session_id,
+        reply=reply,
+        input_tokens=<span class="fn">len</span>(req.message.<span class="fn">split</span>()),
+        output_tokens=<span class="nm">0</span>,
+    )
+
+<span class="cm"># ── Health check — required by every production load balancer ─────────</span>
+@app.<span class="fn">get</span>(<span class="st">"/health"</span>)
+<span class="kw">async def</span> <span class="fn">health</span>():
+    <span class="kw">return</span> {<span class="st">"status"</span>: <span class="st">"ok"</span>}</code></pre>
+        </div>
+
+        <h2 id="pydantic-models">Pydantic request &amp; response models <a class="anchor" href="#pydantic-models">#</a></h2>
+        <p>The Pydantic models from Module 1.2 plug directly into FastAPI. Annotate a route parameter with a <code>BaseModel</code> subclass and FastAPI automatically parses the JSON body, validates all fields, and returns a <code>422 Unprocessable Entity</code> with detailed errors if validation fails — no boilerplate needed in the handler.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">models.py — validation, defaults, and nested models</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field, field_validator
+<span class="kw">from</span> typing <span class="kw">import</span> Literal
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+
+<span class="kw">class</span> <span class="tp">Message</span>(<span class="tp">BaseModel</span>):
+    role:    <span class="tp">Literal</span>[<span class="st">"user"</span>, <span class="st">"assistant"</span>, <span class="st">"system"</span>]
+    content: <span class="tp">str</span>
+
+<span class="kw">class</span> <span class="tp">ChatRequest</span>(<span class="tp">BaseModel</span>):
+    messages:   <span class="tp">list</span>[<span class="tp">Message</span>]  <span class="cm"># nested model — FastAPI handles JSON nesting</span>
+    model:      <span class="tp">str</span> = <span class="st">"claude-sonnet-4-6"</span>
+    max_tokens: <span class="tp">int</span> = <span class="fn">Field</span>(<span class="nm">1024</span>, ge=<span class="nm">1</span>, le=<span class="nm">8192</span>)   <span class="cm"># ge / le = min / max</span>
+    stream:     <span class="tp">bool</span> = <span class="kw">False</span>
+
+    @field_validator(<span class="st">"messages"</span>)
+    @classmethod
+    <span class="kw">def</span> <span class="fn">at_least_one</span>(cls, v):
+        <span class="kw">if not</span> v:
+            <span class="kw">raise</span> <span class="fn">ValueError</span>(<span class="st">"messages list cannot be empty"</span>)
+        <span class="kw">return</span> v
+
+<span class="kw">class</span> <span class="tp">Usage</span>(<span class="tp">BaseModel</span>):
+    input_tokens:  <span class="tp">int</span>
+    output_tokens: <span class="tp">int</span>
+    total_tokens:  <span class="tp">int</span>
+
+<span class="kw">class</span> <span class="tp">ChatResponse</span>(<span class="tp">BaseModel</span>):
+    id:         <span class="tp">str</span>
+    reply:      <span class="tp">str</span>
+    model:      <span class="tp">str</span>
+    usage:      <span class="tp">Usage</span>
+    created_at: <span class="tp">datetime</span> = <span class="fn">Field</span>(default_factory=datetime.utcnow)</code></pre>
+        </div>
+
+        <h2 id="dependency-injection">Dependency injection <a class="anchor" href="#dependency-injection">#</a></h2>
+        <p>Dependencies are callables that FastAPI resolves and injects into route handlers. They're the right place for authentication, database sessions, feature flags, and configuration — anything that every handler needs but shouldn't import globally. FastAPI calls dependencies automatically before the handler and cleans up after.</p>
+
+        <div class="callout callout--note">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">yield vs return in dependencies</strong>
+            Use <code>yield</code> when you need cleanup (DB sessions, file handles). FastAPI runs the code <em>after</em> the <code>yield</code> once the response is sent — even if the handler raised an exception. With <code>return</code>, an exception skips your cleanup entirely.
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">dependencies.py — auth token + DB session injection</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> fastapi <span class="kw">import</span> Depends, HTTPException, status, Header
+<span class="kw">from</span> sqlalchemy.orm <span class="kw">import</span> Session
+<span class="kw">from</span> .database <span class="kw">import</span> engine
+<span class="kw">import</span> os
+
+<span class="cm"># ── Auth dependency ───────────────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">verify_api_key</span>(x_api_key: <span class="tp">str</span> = <span class="fn">Header</span>(...)) -> <span class="tp">str</span>:
+    <span class="kw">if</span> x_api_key != os.environ[<span class="st">"INTERNAL_API_KEY"</span>]:
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=<span class="st">"Invalid API key"</span>,
+        )
+    <span class="kw">return</span> x_api_key
+
+<span class="cm"># ── DB session dependency — yield so cleanup always runs ──────────────</span>
+<span class="kw">def</span> <span class="fn">get_db</span>():
+    db = <span class="fn">Session</span>(engine)
+    <span class="kw">try</span>:
+        <span class="kw">yield</span> db
+    <span class="kw">finally</span>:
+        db.<span class="fn">close</span>()   <span class="cm"># returns connection to pool even if handler raises</span>
+
+<span class="cm"># ── Route using both dependencies ─────────────────────────────────────</span>
+@app.<span class="fn">post</span>(<span class="st">"/chat"</span>, response_model=<span class="tp">ChatResponse</span>)
+<span class="kw">async def</span> <span class="fn">chat</span>(
+    req: <span class="tp">ChatRequest</span>,
+    db:  <span class="tp">Session</span> = <span class="fn">Depends</span>(get_db),
+    _:   <span class="tp">str</span>     = <span class="fn">Depends</span>(verify_api_key),   <span class="cm"># _ = only care about side-effect (401 on fail)</span>
+) -> <span class="tp">ChatResponse</span>:
+    history = db.<span class="fn">query</span>(<span class="tp">ChatHistory</span>).<span class="fn">filter_by</span>(session_id=req.session_id).<span class="fn">all</span>()
+    <span class="cm"># ... LLM call with history injected ...</span></code></pre>
+        </div>
+
+        <h2 id="running">Running with uvicorn <a class="anchor" href="#running">#</a></h2>
+        <p>uvicorn is the ASGI server FastAPI runs on. The <code>--reload</code> flag watches for file changes and restarts automatically — essential for development. In production, use multiple workers to utilise all CPU cores.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">bash</span><span class="code-file">terminal — dev and production startup commands</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="cm"># Development — hot reload, single worker</span>
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+<span class="cm"># Production — 4 workers (match CPU count), no reload</span>
+uvicorn main:app --workers 4 --host 0.0.0.0 --port 8000
+
+<span class="cm"># Run from Python (clean for Docker ENTRYPOINT)</span>
+<span class="kw">if</span> __name__ == <span class="st">"__main__"</span>:
+    <span class="kw">import</span> uvicorn
+    uvicorn.<span class="fn">run</span>(<span class="st">"main:app"</span>, host=<span class="st">"0.0.0.0"</span>, port=<span class="nm">8000</span>, workers=<span class="nm">4</span>)
+
+<span class="cm"># After startup — check these URLs:</span>
+<span class="cm">#   http://localhost:8000/docs         → Swagger UI (interactive Try It Out)</span>
+<span class="cm">#   http://localhost:8000/redoc        → ReDoc (cleaner read-only docs)</span>
+<span class="cm">#   http://localhost:8000/openapi.json → raw OpenAPI schema (for client code-gen)</span></code></pre>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 1.7: FastAPI</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~25 min · screen + narration cues</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 1:00</span><span class="script-action">TITLE CARD</span><span class="script-narration">"Module 1.7 — FastAPI. This is the second-to-last Python module. By the end, you'll have a /chat endpoint with auth, database access, and auto-generated docs. This skeleton gets copy-pasted into every AI project."</span></div>
+          <div class="script-line"><span class="script-ts">1:00 – 8:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Start with just the app object and /health. Run uvicorn. Open /docs in browser. "Zero config. FastAPI read the function signature and generated this." Add /chat with ChatRequest and ChatResponse. Show Swagger Try It Out. POST a message. Demonstrate the automatic 422 when message is empty — no code required.</span></div>
+          <div class="script-line"><span class="script-ts">8:00 – 16:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Open models.py. Add the nested Message model. Add field_validator. "This runs before the route handler — if validation fails, FastAPI returns 422 with the exact field and error. Your LLM never even gets called." Demonstrate the 422 in Swagger for an invalid role value.</span></div>
+          <div class="script-line"><span class="script-ts">16:00 – 22:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Add verify_api_key dependency. Show the 401 without the header. Add get_db with yield. "Notice the yield — FastAPI runs code before yield before the handler, code after yield as cleanup. The DB session is always closed, even if the handler throws a 500."</span></div>
+          <div class="script-line"><span class="script-ts">22:00 – 25:00</span><span class="script-action">WRAP</span><span class="script-narration">"Module 1.8 is async Python — the event loop, asyncio.gather for parallel LLM calls, and timeouts. After that, Phase 1 is complete. Phase 2 is where we get into actual LLMs. See you in the next one."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>What happens when a request body fails Pydantic validation in FastAPI?</summary>
+          <div class="selfcheck__a">FastAPI returns a <code>422 Unprocessable Entity</code> response automatically, before the route handler is called. The response body includes a JSON array of validation errors with the field name, the failing value, and a human-readable message. No try/except needed in your handler — Pydantic and FastAPI handle it completely.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Why use <code>yield</code> in a dependency instead of <code>return</code>?</summary>
+          <div class="selfcheck__a">A <code>yield</code> dependency splits into setup (before yield) and teardown (after yield). FastAPI guarantees the teardown runs even if the route handler raises an exception. This is the correct pattern for DB sessions, file handles, and any resource that must be closed — with <code>return</code>, an exception in the handler would skip the cleanup entirely.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What does <code>response_model=ChatResponse</code> do on a route decorator?</summary>
+          <div class="selfcheck__a">It tells FastAPI to validate the handler's return value against the <code>ChatResponse</code> Pydantic model before serialising it to JSON. Extra fields are stripped, missing required fields raise an error, and the model's schema appears in <code>/docs</code>. It's the output equivalent of the input validation that happens automatically on the request body.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What is the difference between <code>--reload</code> and <code>--workers 4</code> in uvicorn?</summary>
+          <div class="selfcheck__a"><code>--reload</code> enables hot-reloading — uvicorn watches the filesystem and restarts on file changes. It runs a single worker and is only for development. <code>--workers 4</code> runs four independent worker processes, each with its own event loop — for production use to utilise multi-core CPUs. They are mutually exclusive: reload mode cannot run with multiple workers.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Up next</div>
+          <div class="next-mod__title">1.8 · Async Programming</div>
+          <p class="next-mod__desc">Master the Python event loop — <code>async/await</code>, <code>asyncio.gather</code> for parallel LLM calls, <code>asyncio.wait_for</code> for timeouts, and fire-and-forget logging with <code>asyncio.create_task</code>.</p>
+        </div>
+        <a class="next-btn" href="module-1-8.html">Continue →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#first-endpoint">First endpoint</a>
+    <a href="#pydantic-models">Pydantic models</a>
+    <a href="#dependency-injection">Dependency injection</a>
+    <a href="#running">Running uvicorn</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 1.7 / 62<br/>Phase 1 · Week 1–3<br/>Author: Harish Mondepu<br/>Updated: 2026-05-06</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

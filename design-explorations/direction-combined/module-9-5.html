@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 9.5 Deployment &amp; Realtime Delivery · by Harish Mondepu</title>
+<meta name="description" content="Dockerising FastAPI agents, ECS Fargate task definitions, API Gateway routing, Secrets Manager, environment promotion, and streaming tokens to chat UIs with SSE and WebSockets."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#3730a3;--phase-hi:#4338ca;--phase-soft:rgba(67,56,202,.1);--phase-text:#3730a3}
+[data-theme="dark"]{--phase:#818cf8;--phase-hi:#a5b4fc;--phase-soft:rgba(129,140,248,.1);--phase-text:#c7d2fe}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 9 · <strong>Deployment &amp; Realtime Delivery</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 61 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#1aada0"></span>Phase 1 · Python Foundations ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#06b6d4"></span>Phase 2 · LLM Mental Model ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#a78bfa"></span>Phase 3 · Prompt Engineering ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f06292"></span>Phase 4 · RAG + Evaluation ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#10b981"></span>Phase 5 · Tools, MCP &amp; Agents ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f59e0b"></span>Phase 6 · Memory &amp; Context ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f97316"></span>Phase 7 · Multi-Agent Orchestration ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#eab308"></span>Phase 8 · Guardrails &amp; LLMOps ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 9 · Cloud Infrastructure
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-9-1.html"><span class="sidebar__mod-num">9.1</span>Storage &amp; Data ✓</a>
+        <a class="sidebar__mod done" href="module-9-2.html"><span class="sidebar__mod-num">9.2</span>Compute ✓</a>
+        <a class="sidebar__mod done" href="module-9-3.html"><span class="sidebar__mod-num">9.3</span>Networking &amp; Access ✓</a>
+        <a class="sidebar__mod done" href="module-9-4.html"><span class="sidebar__mod-num">9.4</span>AI-Specific Services ✓</a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">9.5</span>Deployment &amp; Realtime</a>
+        <a class="sidebar__mod" href="module-9-6.html"><span class="sidebar__mod-num">9.6</span>Cost &amp; Capacity</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 09</span>
+        <span class="tag tag--level">Advanced</span>
+        <span class="tag tag--week">Week 26</span>
+      </div>
+      <h1 class="mod-head__title">Deployment <em>&amp; Realtime Delivery</em></h1>
+      <p class="mod-head__sub">This is the module that turns a locally-running LangGraph agent into a production API that streams token-by-token to a chat UI. It covers Dockerising a FastAPI agent app, writing an ECS Fargate task definition, managing secrets with AWS Secrets Manager, environment promotion from dev through staging to production, and the two streaming protocols you'll use depending on whether the communication is one-way (SSE) or bidirectional (WebSockets).</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~22 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>5 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li><strong>Docker:</strong> use a multi-stage build (builder stage installs deps, final stage copies only what's needed) — reduces image size by 60–80% and speeds up ECR pushes</li>
+          <li><strong>Secrets Manager:</strong> never put API keys in environment variables in your task definition — fetch from Secrets Manager at container startup via the ECS secrets injection mechanism</li>
+          <li><strong>Environment promotion:</strong> dev → staging → prod, with staging using production-equivalent infra (same task size, same guardrails) — staging is where you catch "works locally, breaks in prod" issues</li>
+          <li><strong>SSE for token streaming:</strong> use Server-Sent Events when the server pushes tokens to the client and the client doesn't send mid-stream messages — simpler, works over HTTP/2, no upgrade required</li>
+          <li><strong>WebSockets for bidirectional:</strong> use WebSockets when the user can interrupt the agent, send a tool approval, or provide mid-stream corrections — SSE is one-way and can't handle that</li>
+        </ul>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="dockerfile">Dockerising a FastAPI agent <a class="anchor" href="#dockerfile">#</a></h2>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">dockerfile</span><span class="code-file">Dockerfile — multi-stage build for a FastAPI agent</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code># ── Stage 1: install dependencies ────────────────────────────────────
+FROM python:3.12-slim AS builder
+WORKDIR /build
+COPY requirements.txt .
+RUN pip install --no-cache-dir --target=/build/packages -r requirements.txt
+
+# ── Stage 2: minimal runtime image ───────────────────────────────────
+FROM python:3.12-slim AS runtime
+WORKDIR /app
+COPY --from=builder /build/packages /app/packages
+ENV PYTHONPATH=/app/packages
+COPY src/ .
+
+# Non-root user — never run as root in production
+RUN addgroup --system appuser && adduser --system --ingroup appuser appuser
+USER appuser
+
+EXPOSE 8000
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000",
+     "--workers", "2", "--timeout-keep-alive", "120"]</code></pre>
+        </div>
+
+        <h2 id="secrets">Secrets Manager integration <a class="anchor" href="#secrets">#</a></h2>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">secrets_loader.py — fetch secrets at startup, not at each request</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> boto3, json
+<span class="kw">from</span> functools <span class="kw">import</span> cache
+
+@<span class="fn">cache</span>
+<span class="kw">def</span> <span class="fn">get_secret</span>(secret_name: <span class="tp">str</span>) -&gt; <span class="tp">dict</span>:
+    <span class="cm">"""Cached — fetches once per process, not per request."""</span>
+    client = boto3.<span class="fn">client</span>(<span class="st">"secretsmanager"</span>, region_name=<span class="st">"us-east-1"</span>)
+    response = client.<span class="fn">get_secret_value</span>(SecretId=secret_name)
+    <span class="kw">return</span> json.<span class="fn">loads</span>(response[<span class="st">"SecretString"</span>])
+
+<span class="cm"># Called once at FastAPI startup</span>
+<span class="kw">from</span> contextlib <span class="kw">import</span> asynccontextmanager
+<span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI
+
+@<span class="fn">asynccontextmanager</span>
+<span class="kw">async def</span> <span class="fn">lifespan</span>(app: <span class="tp">FastAPI</span>):
+    secrets = <span class="fn">get_secret</span>(<span class="st">"agent/prod-secrets"</span>)
+    app.state.openai_key  = secrets[<span class="st">"OPENAI_API_KEY"</span>]
+    app.state.db_password = secrets[<span class="st">"DB_PASSWORD"</span>]
+    app.state.db_pool     = <span class="kw">await</span> <span class="fn">create_db_pool</span>(password=app.state.db_password)
+    <span class="kw">yield</span>
+    <span class="kw">await</span> app.state.db_pool.<span class="fn">close</span>()
+
+app = <span class="tp">FastAPI</span>(lifespan=lifespan)</code></pre>
+        </div>
+
+        <h2 id="sse">Server-Sent Events for token streaming <a class="anchor" href="#sse">#</a></h2>
+        <p>SSE is the standard protocol for streaming LLM tokens to a chat UI. It's HTTP-based (no WebSocket upgrade), works through proxies and load balancers, and reconnects automatically on disconnect. The ALB timeout is the only constraint — set it to 120 s to handle long agent runs.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">sse_endpoint.py — streaming agent response via SSE</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI
+<span class="kw">from</span> fastapi.responses <span class="kw">import</span> StreamingResponse
+<span class="kw">import</span> asyncio, json
+
+@app.<span class="fn">post</span>(<span class="st">"/chat/stream"</span>)
+<span class="kw">async def</span> <span class="fn">chat_stream</span>(request: <span class="tp">ChatRequest</span>):
+    <span class="kw">async def</span> <span class="fn">event_generator</span>():
+        <span class="kw">async for</span> chunk <span class="kw">in</span> graph.<span class="fn">astream</span>(
+            {<span class="st">"messages"</span>: [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: request.message}]},
+            stream_mode=<span class="st">"messages"</span>,                    <span class="cm"># stream individual tokens</span>
+        ):
+            message_chunk, metadata = chunk
+            <span class="kw">if</span> <span class="fn">hasattr</span>(message_chunk, <span class="st">"content"</span>) <span class="kw">and</span> message_chunk.content:
+                <span class="cm"># SSE format: "data: {json}\n\n"</span>
+                data = json.<span class="fn">dumps</span>({<span class="st">"type"</span>: <span class="st">"token"</span>, <span class="st">"content"</span>: message_chunk.content})
+                <span class="kw">yield</span> <span class="st">f"data: {data}\n\n"</span>
+
+        <span class="kw">yield</span> <span class="st">'data: {"type": "done"}\n\n'</span>         <span class="cm"># sentinel so client knows stream ended</span>
+
+    <span class="kw">return</span> <span class="tp">StreamingResponse</span>(
+        <span class="fn">event_generator</span>(),
+        media_type=<span class="st">"text/event-stream"</span>,
+        headers={
+            <span class="st">"Cache-Control"</span>: <span class="st">"no-cache"</span>,
+            <span class="st">"X-Accel-Buffering"</span>: <span class="st">"no"</span>,             <span class="cm"># disable nginx/ALB buffering</span>
+            <span class="st">"Connection"</span>: <span class="st">"keep-alive"</span>,
+        },
+    )</code></pre>
+        </div>
+
+        <h2 id="websockets">WebSockets for bidirectional communication <a class="anchor" href="#websockets">#</a></h2>
+        <p>Use WebSockets when the user needs to interact mid-stream — approving a tool call, redirecting the agent, or providing additional context while the agent is running. SSE can't handle messages from client to server after the stream starts.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">ws_endpoint.py — bidirectional agent interaction via WebSocket</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> fastapi <span class="kw">import</span> WebSocket, WebSocketDisconnect
+
+@app.<span class="fn">websocket</span>(<span class="st">"/ws/agent/{session_id}"</span>)
+<span class="kw">async def</span> <span class="fn">agent_ws</span>(ws: <span class="tp">WebSocket</span>, session_id: <span class="tp">str</span>):
+    <span class="kw">await</span> ws.<span class="fn">accept</span>()
+    config = {<span class="st">"configurable"</span>: {<span class="st">"thread_id"</span>: session_id}}
+    <span class="kw">try</span>:
+        <span class="kw">while</span> <span class="kw">True</span>:
+            <span class="cm"># Receive a message from the client</span>
+            data = <span class="kw">await</span> ws.<span class="fn">receive_json</span>()
+
+            <span class="cm"># Resume or start the graph, stream tokens back</span>
+            <span class="kw">async for</span> chunk <span class="kw">in</span> graph.<span class="fn">astream</span>(
+                {<span class="st">"messages"</span>: [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: data[<span class="st">"message"</span>]}]},
+                config=config,
+                stream_mode=<span class="st">"messages"</span>,
+            ):
+                message_chunk, metadata = chunk
+                <span class="kw">if</span> <span class="fn">hasattr</span>(message_chunk, <span class="st">"content"</span>) <span class="kw">and</span> message_chunk.content:
+                    <span class="kw">await</span> ws.<span class="fn">send_json</span>({<span class="st">"type"</span>: <span class="st">"token"</span>, <span class="st">"content"</span>: message_chunk.content})
+
+            <span class="kw">await</span> ws.<span class="fn">send_json</span>({<span class="st">"type"</span>: <span class="st">"done"</span>})
+
+    <span class="kw">except</span> <span class="tp">WebSocketDisconnect</span>:
+        <span class="kw">pass</span>   <span class="cm"># client disconnected — checkpoint saves state, so session resumes later</span></code></pre>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">✦</span>
+          <div>
+            <strong class="callout__title">SSE vs WebSocket — the one-line rule</strong>
+            If the user only reads tokens and occasionally submits a new message: SSE. If the user can interact with the agent while it's running (approve/deny tool calls, inject context): WebSocket. Start with SSE — it's simpler, more widely supported, and upgrades to WebSocket only if you have a concrete reason.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: Cost &amp; Capacity Control</div>
+            <div class="cta-block__sub">Module 9.6 — the course finale — covers semantic cache hit rate as a KPI, model routing strategies, prompt compression, max-token caps, and load testing with Locust to find where your system breaks before users do.</div>
+          </div>
+          <a class="cta-block__btn" href="module-9-6.html">Module 9.6 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#dockerfile">Dockerfile</a></li>
+      <li><a class="toc__link" href="#secrets">Secrets Manager</a></li>
+      <li><a class="toc__link" href="#sse">SSE token streaming</a></li>
+      <li><a class="toc__link" href="#websockets">WebSockets</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){const h=document.documentElement;const dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');localStorage.setItem('ae-theme',dark?'light':'dark');document.getElementById('themeIcon').textContent=dark?'☀':'☾';document.getElementById('themeLabel').textContent=dark?'Light':'Dark';}
+(function(){const t=localStorage.getItem('ae-theme');if(t){document.documentElement.setAttribute('data-theme',t);const dark=t==='dark';document.getElementById('themeIcon').textContent=dark?'☾':'☀';document.getElementById('themeLabel').textContent=dark?'Dark':'Light';}})();
+function copyCode(btn){const code=btn.closest('.code-wrap').querySelector('pre code');navigator.clipboard.writeText(code.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{es.forEach(e=>{const id=e.target.id;if(!id)return;const link=document.querySelector(`.toc__link[href="#${id}"]`);if(!link)return;if(e.isIntersecting){document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));link.classList.add('active');}});},{rootMargin:'-20% 0px -70% 0px'});document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

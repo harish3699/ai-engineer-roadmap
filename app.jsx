@@ -1,5 +1,10 @@
 const { useState, useEffect, useRef } = React;
 
+function moduleUrl(n) {
+  if (n === '1.1') return 'design-explorations/direction-combined/index.html';
+  return `design-explorations/direction-combined/module-${n.replace('.', '-')}.html`;
+}
+
 function PhaseTabBox({ phase }) {
   const [activeTab, setActiveTab] = useState(0);
   const section = phase.sections[activeTab];
@@ -27,6 +32,10 @@ function PhaseTabBox({ phase }) {
               </li>
             ))}
           </ul>
+          <a className="tabbox__open-btn" data-color={phase.color} href={moduleUrl(section.n)}>
+            Open module {section.n}
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
         </div>
       </div>
     </div>

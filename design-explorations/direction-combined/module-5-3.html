@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 5.3 MCP — Model Context Protocol · by Harish Mondepu</title>
+<meta name="description" content="The universal adapter for LLM tools — what MCP is, servers vs clients, consuming existing MCP servers, building your own, stdio vs HTTP transports."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#059669;--phase-hi:#10b981;--phase-soft:rgba(16,185,129,.1);--phase-text:#059669}
+[data-theme="dark"]{--phase:#10b981;--phase-hi:#34d399;--phase-soft:rgba(16,185,129,.1);--phase-text:#a7f3d0}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 5 · <strong>MCP — Model Context Protocol</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 32 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#f06292"></span>
+        Phase 4 · RAG + Evaluation ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 5 · Tools, MCP &amp; Agents
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-5-1.html"><span class="sidebar__mod-num">5.1</span>Function Calling<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-5-2.html"><span class="sidebar__mod-num">5.2</span>Tool Design Principles<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">5.3</span>MCP Protocol</a>
+        <a class="sidebar__mod" href="module-5-4.html"><span class="sidebar__mod-num">5.4</span>The ReAct Pattern</a>
+        <a class="sidebar__mod" href="module-5-5.html"><span class="sidebar__mod-num">5.5</span>LangChain Agents</a>
+        <a class="sidebar__mod" href="module-5-6.html"><span class="sidebar__mod-num">5.6</span>Human in the Loop</a>
+        <a class="sidebar__mod" href="module-5-7.html"><span class="sidebar__mod-num">5.7</span>Tool Security</a>
+        <a class="sidebar__mod" href="module-5-8.html"><span class="sidebar__mod-num">5.8</span>Computer Use &amp; App SDKs</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 05</span>
+        <span class="tag tag--level">Intermediate</span>
+        <span class="tag tag--week">Week 14</span>
+      </div>
+      <h1 class="mod-head__title">MCP — <em>Model Context Protocol</em></h1>
+      <p class="mod-head__sub">Before MCP, connecting an LLM to a tool meant writing custom integration code for every LLM-tool pair. With 10 LLMs and 20 tools, that's 200 integrations. MCP is Anthropic's open standard that decouples LLMs from tools entirely — a tool exposes itself as an MCP server once, and any MCP-compatible LLM client can use it. This module covers what MCP is, the server/client architecture, consuming existing community servers, and building your own.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~24 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>3 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>MCP is an open standard (like HTTP, not a framework) — it defines a JSON-RPC 2.0 message protocol for tools (actions), resources (data), and prompts (templates)</li>
+          <li>MCP servers expose capabilities; MCP clients (Claude Desktop, Cursor, your custom agent) consume them — the LLM itself is behind the client</li>
+          <li>stdio transport: server is a subprocess you spawn, communicates via stdin/stdout — simple for local dev. HTTP+SSE transport: server is a network service — required for remote/multi-user deployments</li>
+          <li>Hundreds of community MCP servers already exist (filesystem, GitHub, Slack, Postgres, Brave Search) — before building, check if one already exists</li>
+          <li>MCP is moving fast — spec, registry, auth model and resource semantics are still evolving; bookmark modelcontextprotocol.io and re-read the spec when upgrading</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Modules 5.1–5.2 — tool calling and design</li>
+            <li><div class="meta-list__dot">!</div><code>pip install mcp anthropic</code> (Python MCP SDK)</li>
+            <li><div class="meta-list__dot">!</div>Node.js installed (for running community MCP servers)</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Explain the MCP architecture and why it exists</li>
+            <li><div class="meta-list__dot">2</div>Configure and use an existing MCP server (filesystem)</li>
+            <li><div class="meta-list__dot">3</div>Build a minimal MCP server with stdio transport</li>
+            <li><div class="meta-list__dot">4</div>Distinguish between tools, resources, and prompts in MCP</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">Model Context Protocol (MCP) Explained — What It Is and How to Build With It</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· search "Model Context Protocol MCP tutorial build server 2024"</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/7j_NE6Pjv-E" title="MCP Tutorial" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ MCP architecture, building a server, and connecting it to Claude Desktop</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="why-mcp">Why MCP exists <a class="anchor" href="#why-mcp">#</a></h2>
+        <p>Before MCP, every LLM integration was bespoke: OpenAI function calling has its own schema, Anthropic tool use has a slightly different schema, LangChain has its own abstraction, LlamaIndex has another. A company building a GitHub integration had to write it four different ways for four different LLM stacks. MCP solves this with a single protocol — one GitHub MCP server works with every MCP-compatible client.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">MCP architecture</div>
+          <div style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:.5rem;align-items:center;font-size:13px;text-align:center">
+            <div style="background:var(--surface-0);border:1px solid var(--border);border-radius:8px;padding:.8rem">
+              <div style="font-weight:700;color:var(--fg);margin-bottom:.25rem">LLM (Claude/GPT)</div>
+              <div style="font-size:11px;color:var(--fg-dim)">Generates text + tool call requests</div>
+            </div>
+            <div style="color:var(--fg-dim);font-size:11px">←→</div>
+            <div style="background:var(--phase-soft);border:1.5px solid var(--phase-hi);border-radius:8px;padding:.8rem">
+              <div style="font-weight:700;color:var(--phase-text);margin-bottom:.25rem">MCP Client</div>
+              <div style="font-size:11px;color:var(--fg-dim)">Claude Desktop, Cursor, your agent — manages server connections, translates LLM calls to MCP protocol</div>
+            </div>
+            <div style="color:var(--fg-dim);font-size:11px">←→<br/><span style="font-size:10px">stdio / HTTP</span></div>
+            <div style="background:var(--surface-0);border:1px solid var(--border);border-radius:8px;padding:.8rem">
+              <div style="font-weight:700;color:var(--fg);margin-bottom:.25rem">MCP Server(s)</div>
+              <div style="font-size:11px;color:var(--fg-dim)">Filesystem, GitHub, Slack, Postgres, your custom server — exposes tools, resources, prompts</div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="primitives">MCP primitives: tools, resources, prompts <a class="anchor" href="#primitives">#</a></h2>
+        <p>MCP servers expose three types of capabilities:</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem">MCP primitives</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem;font-size:13px">
+            <div style="display:grid;grid-template-columns:100px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:start">
+              <div style="font-weight:700;color:var(--phase-text)">Tools</div>
+              <div>Functions the LLM can call — equivalent to the function calling tools in module 5.1. Side-effectful actions (write file, send message, query DB). Model-controlled.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:100px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:start">
+              <div style="font-weight:700;color:var(--phase-text)">Resources</div>
+              <div>Read-only data endpoints the client can fetch and inject into context — files, database rows, API responses. Application-controlled (not LLM-controlled). URI-addressed.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:100px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:start">
+              <div style="font-weight:700;color:var(--phase-text)">Prompts</div>
+              <div>Parameterised prompt templates the user/client can invoke — like slash commands. "Summarise this file as a bug report." User-controlled.</div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="building-server">Building a minimal MCP server <a class="anchor" href="#building-server">#</a></h2>
+        <p>The Python MCP SDK (<code>mcp</code> package) makes building a server straightforward. The FastMCP class handles the JSON-RPC protocol, tool registration, and transport automatically.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">weather_mcp_server.py — minimal MCP server with stdio transport</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="cm"># pip install mcp</span>
+<span class="kw">from</span> mcp.server.fastmcp <span class="kw">import</span> FastMCP
+
+mcp = <span class="fn">FastMCP</span>(<span class="st">"weather-server"</span>)
+
+<span class="cm"># ── Register a tool ───────────────────────────────────────────────────</span>
+<span class="op">@</span>mcp.<span class="fn">tool</span>()
+<span class="kw">def</span> <span class="fn">get_weather</span>(city: <span class="tp">str</span>, unit: <span class="tp">str</span> = <span class="st">"celsius"</span>) -> <span class="tp">dict</span>:
+    <span class="st">"""
+    Get current weather for a city.
+
+    Args:
+        city: City name in English, e.g. 'Berlin' or 'Tokyo'
+        unit: Temperature unit - 'celsius' or 'fahrenheit'
+
+    Returns weather conditions and temperature.
+    """</span>
+    <span class="cm"># In production: call a real weather API</span>
+    <span class="kw">return</span> {<span class="st">"city"</span>: city, <span class="st">"temperature"</span>: <span class="nm">18</span>, <span class="st">"condition"</span>: <span class="st">"Partly cloudy"</span>, <span class="st">"unit"</span>: unit}
+
+<span class="cm"># ── Register a resource ───────────────────────────────────────────────</span>
+<span class="op">@</span>mcp.<span class="fn">resource</span>(<span class="st">"weather://cities/supported"</span>)
+<span class="kw">def</span> <span class="fn">supported_cities</span>() -> <span class="tp">str</span>:
+    <span class="st">"""List of cities with full weather data coverage."""</span>
+    <span class="kw">return</span> <span class="st">"Berlin, Tokyo, New York, London, Sydney, Toronto"</span>
+
+<span class="cm"># ── Entry point: stdio transport (default for local MCP) ──────────────</span>
+<span class="kw">if</span> __name__ == <span class="st">"__main__"</span>:
+    mcp.<span class="fn">run</span>(transport=<span class="st">"stdio"</span>)</code></pre>
+        </div>
+
+        <div class="callout callout--note">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">Docstrings become tool descriptions in MCP</strong>
+            In the FastMCP SDK, a tool's docstring becomes its MCP description — the text the model reads to decide when to call it. Write detailed docstrings including the Args section, because those parameter descriptions surface in the MCP tool schema. Same principle as module 5.2: description quality = selection accuracy.
+          </div>
+        </div>
+
+        <h2 id="transports">stdio vs HTTP+SSE transport <a class="anchor" href="#transports">#</a></h2>
+        <p>MCP supports two transports. Choose based on your deployment model:</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem">Transport comparison</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;font-size:13px">
+            <div style="background:var(--surface-0);border-radius:8px;padding:.9rem">
+              <div style="font-weight:700;color:var(--phase-text);margin-bottom:.4rem">stdio (subprocess)</div>
+              <ul style="margin:0;padding-left:1rem;color:var(--fg-dim);line-height:1.7">
+                <li>Client spawns server as a subprocess</li>
+                <li>Communicates via stdin/stdout JSON-RPC</li>
+                <li>Simple — no networking, no auth</li>
+                <li>Process lifecycle tied to client</li>
+                <li>Best for: local tools, Claude Desktop config, single-user dev</li>
+              </ul>
+            </div>
+            <div style="background:var(--surface-0);border-radius:8px;padding:.9rem">
+              <div style="font-weight:700;color:var(--phase-text);margin-bottom:.4rem">HTTP + SSE</div>
+              <ul style="margin:0;padding-left:1rem;color:var(--fg-dim);line-height:1.7">
+                <li>Server runs as a persistent HTTP service</li>
+                <li>Client connects via HTTP + Server-Sent Events</li>
+                <li>Supports multiple concurrent clients</li>
+                <li>Can run remotely (cloud, container)</li>
+                <li>Best for: production, shared team tools, remote servers</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">mcp_client.py — connecting to an MCP server programmatically</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> asyncio
+<span class="kw">from</span> mcp <span class="kw">import</span> ClientSession, StdioServerParameters
+<span class="kw">from</span> mcp.client.stdio <span class="kw">import</span> stdio_client
+
+<span class="kw">async def</span> <span class="fn">main</span>():
+    server_params = <span class="fn">StdioServerParameters</span>(
+        command=<span class="st">"python"</span>,
+        args=[<span class="st">"weather_mcp_server.py"</span>],
+    )
+
+    <span class="kw">async with</span> <span class="fn">stdio_client</span>(server_params) <span class="kw">as</span> (read, write):
+        <span class="kw">async with</span> <span class="fn">ClientSession</span>(read, write) <span class="kw">as</span> session:
+            <span class="kw">await</span> session.<span class="fn">initialize</span>()
+
+            <span class="cm"># List available tools</span>
+            tools = <span class="kw">await</span> session.<span class="fn">list_tools</span>()
+            <span class="fn">print</span>(<span class="st">"Available tools:"</span>, [t.name <span class="kw">for</span> t <span class="kw">in</span> tools.tools])
+
+            <span class="cm"># Call a tool directly</span>
+            result = <span class="kw">await</span> session.<span class="fn">call_tool</span>(<span class="st">"get_weather"</span>, {<span class="st">"city"</span>: <span class="st">"Berlin"</span>})
+            <span class="fn">print</span>(<span class="st">"Weather result:"</span>, result.content)
+
+            <span class="cm"># Read a resource</span>
+            resource = <span class="kw">await</span> session.<span class="fn">read_resource</span>(<span class="st">"weather://cities/supported"</span>)
+            <span class="fn">print</span>(<span class="st">"Supported cities:"</span>, resource.contents[<span class="nm">0</span>].text)
+
+asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</code></pre>
+        </div>
+
+        <h2 id="claude-desktop">Configuring Claude Desktop with MCP servers <a class="anchor" href="#claude-desktop">#</a></h2>
+        <p>Claude Desktop reads MCP server configuration from <code>~/Library/Application Support/Claude/claude_desktop_config.json</code> (macOS) or <code>%APPDATA%\Claude\claude_desktop_config.json</code> (Windows). Add any stdio server here and it will be available in Claude Desktop sessions.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">json</span><span class="code-file">claude_desktop_config.json — adding MCP servers to Claude Desktop</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>{
+  <span class="st">"mcpServers"</span>: {
+    <span class="st">"filesystem"</span>: {
+      <span class="st">"command"</span>: <span class="st">"npx"</span>,
+      <span class="st">"args"</span>: [<span class="st">"-y"</span>, <span class="st">"@modelcontextprotocol/server-filesystem"</span>, <span class="st">"/Users/harish/projects"</span>]
+    },
+    <span class="st">"github"</span>: {
+      <span class="st">"command"</span>: <span class="st">"npx"</span>,
+      <span class="st">"args"</span>: [<span class="st">"-y"</span>, <span class="st">"@modelcontextprotocol/server-github"</span>],
+      <span class="st">"env"</span>: {
+        <span class="st">"GITHUB_PERSONAL_ACCESS_TOKEN"</span>: <span class="st">"your-token-here"</span>
+      }
+    },
+    <span class="st">"weather"</span>: {
+      <span class="st">"command"</span>: <span class="st">"python"</span>,
+      <span class="st">"args"</span>: [<span class="st">"/path/to/weather_mcp_server.py"</span>]
+    }
+  }
+}</code></pre>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">MCP is moving fast — re-read the spec before major upgrades</strong>
+            As of 2026, MCP's auth model (OAuth for remote servers), resource subscriptions, and the official server registry are still actively evolving. Community servers may use slightly different SDK versions. Before upgrading the <code>mcp</code> package in a production project, check the release notes — breaking changes to message schemas have occurred between minor versions. Bookmark modelcontextprotocol.io for the canonical spec.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 5.3: MCP — Model Context Protocol</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~24 min · 3 live code demos</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 5:00</span><span class="script-action">INTRO + DIAGRAM</span><span class="script-narration">"Before MCP, every LLM-tool integration was bespoke. OpenAI function calling, Anthropic tool use, LangChain tools — all different formats. If you built a GitHub integration, you wrote it three or four times. MCP is the USB-C of AI tools: one standard, plugs into everything. The architecture diagram shows it clearly — the LLM talks to an MCP client, which talks to servers over a standard protocol."</span></div>
+          <div class="script-line"><span class="script-ts">5:00 – 13:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Build weather_mcp_server.py from scratch. "Three lines to register a tool with @mcp.tool(). The docstring becomes the description — same principle as 5.2. The FastMCP class handles all the JSON-RPC protocol, tool listing, and transport. mcp.run(transport='stdio') — that's the complete server." Show it running as a subprocess.</span></div>
+          <div class="script-line"><span class="script-ts">13:00 – 19:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run mcp_client.py. "session.list_tools() — the client asks the server 'what tools do you have?' and gets back the schema automatically. session.call_tool() — call it directly. This is the building block of agents — in Claude Desktop, this all happens behind the scenes. Let me show you how to wire it to Claude Desktop."</span></div>
+          <div class="script-line"><span class="script-ts">19:00 – 24:00</span><span class="script-action">LIVE DEMO</span><span class="script-narration">Show claude_desktop_config.json with the filesystem server. Open Claude Desktop, ask it to "list the files in my projects folder". "Claude reads the filesystem MCP server, calls list_directory, gets back the files. Zero function-calling code written by me — the MCP server handled it. This is what makes MCP powerful: the community builds the servers, you just configure and use them."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>Explain the problem MCP solves. Without MCP, what would a company need to do to make a custom database tool available to three different LLM clients?</summary>
+          <div class="selfcheck__a">Without MCP, a company with a custom database query tool would need to implement it three separate times: once using OpenAI's function calling JSON Schema format (for GPT-4 clients), once using Anthropic's tool_use format (for Claude clients), and once for any other LLM's SDK format. If any of those clients change their schemas — which they do between API versions — all implementations need updating. Additionally, if they want to use the tool with LangChain or LlamaIndex, they need two more adapters. With MCP, they implement the database tool as a single MCP server once. Any MCP-compatible client (Claude Desktop, Cursor, a custom agent using the Python MCP SDK) can use it without changes. The protocol handles schema translation — the MCP client converts the server's tool list into whatever format the target LLM requires.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What is the difference between an MCP tool, an MCP resource, and an MCP prompt? Give a concrete example of each for a project management use case.</summary>
+          <div class="selfcheck__a">Tools are model-controlled side-effectful actions — the LLM decides when to call them and they can read or write data. Example: <code>create_task(title, assignee, due_date)</code> — the model calls this when the user says "create a task for Alice due Friday". Resources are application-controlled read-only data sources, addressed by URI, that the client fetches and injects into context. Example: <code>projects://current-sprint/tasks</code> — the client pre-loads this list of tasks into the model's context window at session start, so the model knows what's in the sprint without needing to call a tool. Prompts are user-controlled parameterised templates, like slash commands. Example: a prompt template "Summarise all blocked tasks as a standup update for {team_name}" — the user invokes this, supplies the team name, and gets back a formatted standup. The key distinction: tools are for the LLM to invoke on demand; resources are for the client to pre-load; prompts are for the user to trigger.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>When would you choose HTTP+SSE transport over stdio for your MCP server, and what additional concerns does HTTP transport introduce?</summary>
+          <div class="selfcheck__a">Choose HTTP+SSE when: your server needs to support multiple concurrent users (stdio ties the server lifecycle to one client process), your server runs on a remote machine or in a container, you need the server to persist independently of any client session, or you're deploying to a team where multiple developers run the same tools. HTTP+SSE introduces concerns that stdio avoids: authentication — anyone who can reach the HTTP port can list and call your tools, so you need API keys or OAuth (MCP's auth model for remote servers is still evolving); TLS — traffic must be encrypted in transit for production deployments; CORS — if a web client is consuming the server; connection reliability — you need to handle reconnection when SSE streams drop; and rate limiting — without request throttling, a misbehaving client can overwhelm the server. For local development, stdio is the right default — simpler, no networking stack to debug, and the process is automatically cleaned up when Claude Desktop or your agent exits.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Next in Phase 5</div>
+          <div class="next-mod__title">5.4 · The ReAct Pattern</div>
+          <p class="next-mod__desc">Reasoning + Acting — how the thought→action→observation→thought loop enables complex multi-step agent behaviour, when to force ReAct vs let the model decide, and why thinking models exist.</p>
+        </div>
+        <a class="next-btn" href="module-5-4.html">Next Module →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#why-mcp">Why MCP exists</a>
+    <a href="#primitives">Tools, resources, prompts</a>
+    <a href="#building-server">Building a minimal server</a>
+    <a href="#transports">stdio vs HTTP+SSE</a>
+    <a href="#claude-desktop">Claude Desktop config</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 5.3 / 62<br/>Phase 5 · Week 14<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 2.1 What an LLM Actually Is · by Harish Mondepu</title>
+<meta name="description" content="Fixed training snapshots, probabilistic generation, knowledge cutoffs — the mental model every AI engineer needs before writing a single prompt."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#0e7490;--phase-hi:#06b6d4;--phase-soft:rgba(6,182,212,.12);--phase-text:#0e7490}
+[data-theme="dark"]{--phase:#06b6d4;--phase-hi:#22d3ee;--phase-soft:rgba(34,211,238,.1);--phase-text:#22d3ee}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 2 · <strong>What an LLM Actually Is</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 9 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 2 · LLM Mental Model
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">2.1</span>What an LLM Actually Is<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod" href="module-2-2.html"><span class="sidebar__mod-num">2.2</span>How an LLM Thinks<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-2-3.html"><span class="sidebar__mod-num">2.3</span>Reasoning vs Base Models<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-2-4.html"><span class="sidebar__mod-num">2.4</span>Reading Evals &amp; Benchmarks<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-2-5.html"><span class="sidebar__mod-num">2.5</span>Comparing Major Models<span class="sidebar__check"></span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#8865a3"></span>Phase 3 · Prompt Engineering</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#e85a7a"></span>Phase 4 · RAG + Evaluation</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#10b981;opacity:.6"></span>Phase 5–9 · Agents &amp; Deployment</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 02</span>
+        <span class="tag tag--level">Conceptual</span>
+        <span class="tag tag--week">Week 4</span>
+      </div>
+      <h1 class="mod-head__title">What an LLM <em>Actually Is</em></h1>
+      <p class="mod-head__sub">Before you write a single prompt, you need the right mental model. Most engineers treat LLMs like a smarter Google — they don't. This module fixes that. It covers what the model was trained on, why it generates rather than retrieves, what a knowledge cutoff actually implies, and why the same prompt can produce different outputs every time.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~20 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>1 code example</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>An LLM is a statistical model of language trained on a fixed text snapshot — it predicts probable next tokens, it doesn't retrieve facts from a live database</li>
+          <li>Every output is sampled from a probability distribution — the same input can produce different outputs, and that's by design</li>
+          <li>Knowledge cutoff means the model has no concept of events after its training data ended — it won't say "I don't know," it will confabulate confidently</li>
+          <li>Hallucinations are not bugs — they are the expected output of a system that generates plausible continuations rather than retrieves verified facts</li>
+          <li>The correct mental model: a brain in a windowless room with a huge library of books, writing answers from memory, with no internet connection and no way to check if things changed</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Phase 1 complete (Python foundations)</li>
+            <li><div class="meta-list__dot">!</div>No code prerequisites — this module is almost entirely conceptual</li>
+            <li><div class="meta-list__dot">!</div>Optional: an Anthropic or OpenAI API key to run the one code example</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Explain to a non-technical PM why an LLM invented a fact</li>
+            <li><div class="meta-list__dot">2</div>Describe what "training cutoff" means and its practical implications</li>
+            <li><div class="meta-list__dot">3</div>Explain why temperature changes output consistency</li>
+            <li><div class="meta-list__dot">4</div>Know when to add retrieval (RAG) to compensate for LLM limitations</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">But what is a GPT? — 3Blue1Brown</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· Visual intro to Transformers — 3Blue1Brown</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/wjZofJX0v4M" title="But what is a GPT? Visual intro to transformers | Deep learning chapter 5" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ Best visual explanation of what a transformer actually does · 27 min · no math required</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="snapshot">Trained on a fixed snapshot <a class="anchor" href="#snapshot">#</a></h2>
+
+        <p>An LLM is trained by showing it billions of sentences and teaching it to predict the next word in each one. It reads Wikipedia, books, code repositories, news articles, forums — a snapshot of written human language — and builds internal statistics about what words follow other words, in what contexts, with what probability.</p>
+
+        <p>That training process ended on a specific date. After that date, the model is frozen. It has never seen your internal documents. It has never read this week's news. It cannot look anything up. It only knows what was in the training data.</p>
+
+        <div class="callout callout--note">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">The windowless room analogy</strong>
+            Imagine a person locked in a room with a complete library of books — every book published before a fixed date. They can read and remember everything in the library. They can write answers to any question by drawing on that memory. But they have no windows, no internet, no way to know what has happened since the day they were locked in, and no way to check if anything they remember has since turned out to be wrong.
+          </div>
+        </div>
+
+        <p>This analogy explains almost every frustrating LLM behaviour:</p>
+        <ul>
+          <li><strong>Why it doesn't know about recent events</strong> — the library doesn't contain those books yet</li>
+          <li><strong>Why it can't access your company's internal docs</strong> — those books were never in the library</li>
+          <li><strong>Why it answers confidently about things that changed</strong> — it remembers what was true when the library was built</li>
+          <li><strong>Why RAG exists</strong> — you slide new documents under the door; now it can answer about those too</li>
+        </ul>
+
+        <h2 id="probabilistic">Probabilistic generation, not retrieval <a class="anchor" href="#probabilistic">#</a></h2>
+
+        <p>When you type a prompt, the model doesn't search for a matching answer in a database. It generates the response one token at a time, each token sampled from a probability distribution over the entire vocabulary. At each step, some tokens are more likely than others — but there's always a distribution, not a single certain answer.</p>
+
+        <!-- Diagram: Retrieval vs Generation -->
+        <div class="diagram-block reveal" style="margin:1.5rem 0">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div style="background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.2rem">
+              <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem">Traditional Search / Database</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:2;color:var(--fg)">
+                Query<br>
+                <span style="color:var(--fg-dim)">↓ index lookup</span><br>
+                Matching records<br>
+                <span style="color:var(--fg-dim)">↓ rank + return</span><br>
+                <span style="color:#10b981;font-weight:600">Exact facts retrieved</span>
+              </div>
+            </div>
+            <div style="background:var(--surface-1);border:1px solid var(--phase);border-radius:10px;padding:1.2rem">
+              <div style="font-size:11px;font-weight:700;color:var(--phase-text);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem">LLM Generation</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:2;color:var(--fg)">
+                Prompt<br>
+                <span style="color:var(--fg-dim)">↓ probability over vocabulary</span><br>
+                Sample token 1, 2, 3…<br>
+                <span style="color:var(--fg-dim)">↓ until stop token</span><br>
+                <span style="color:var(--phase-text);font-weight:600">Plausible continuation</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p>This is why LLMs hallucinate. The model isn't lying — it's generating the most statistically plausible continuation of your prompt, based on patterns in training data. If no training data clearly addresses your question, the model will still produce something plausible-sounding. It has no mechanism to say "I don't have enough information to answer this confidently."</p>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">Hallucinations are architectural, not a bug to patch</strong>
+            You cannot instruct a model to "never make things up." You can reduce hallucinations with grounding techniques (RAG, tool use, structured output, citations) — but the underlying generation mechanism always samples from probabilities. Build systems that verify and cite; don't rely on model self-reporting of uncertainty.
+          </div>
+        </div>
+
+        <h2 id="temperature">Temperature — controlling randomness <a class="anchor" href="#temperature">#</a></h2>
+
+        <p>The <code>temperature</code> parameter scales the probability distribution before sampling. At <code>temperature=0</code>, the model always picks the highest-probability token — deterministic, but sometimes flat or repetitive. At <code>temperature=1</code>, sampling is unscaled. Higher values flatten the distribution, making lower-probability tokens more likely — more creative, but also more likely to go off-track.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">temperature_demo.py — same prompt, different temperatures</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic
+
+client = anthropic.<span class="fn">Anthropic</span>()
+
+prompt = <span class="st">"Complete this sentence in one sentence: The best way to learn programming is"</span>
+
+<span class="kw">for</span> temp <span class="kw">in</span> [<span class="nm">0.0</span>, <span class="nm">0.7</span>, <span class="nm">1.5</span>]:
+    msg = client.messages.<span class="fn">create</span>(
+        model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+        max_tokens=<span class="nm">60</span>,
+        temperature=temp,
+        messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: prompt}],
+    )
+    <span class="fn">print</span>(<span class="st">f"temp={temp}: {msg.content[0].text}"</span>)
+
+<span class="cm"># temp=0.0: …to write code every day and build real projects. (same every run)</span>
+<span class="cm"># temp=0.7: …through hands-on projects solving problems you actually care about.</span>
+<span class="cm"># temp=1.5: …to embrace frustration as a compass pointing toward growth. (creative, risky)</span></code></pre>
+        </div>
+
+        <p>Rule of thumb: use <code>temperature=0</code> or <code>0.1</code> for extraction, classification, and structured output — tasks where consistency matters. Use <code>0.5–0.9</code> for chat and general Q&A. Only go above <code>1.0</code> for intentionally creative tasks where quality variance is acceptable.</p>
+
+        <h2 id="cutoffs">Knowledge cutoffs in practice <a class="anchor" href="#cutoffs">#</a></h2>
+
+        <p>Every major model has a training cutoff — the date after which no new data was added. GPT-4o's cutoff is April 2024. Claude's is early 2025. But the cutoff isn't a clean line — data from the months immediately before the cutoff is underrepresented (the internet hadn't fully indexed and discussed those events yet). Treat the last 2–3 months before the stated cutoff as unreliable.</p>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">What to do about knowledge cutoffs</strong>
+            <strong>For current events/data:</strong> Use web search tools or RAG with live data sources.<br/>
+            <strong>For your company's internal data:</strong> RAG is mandatory — the model has never seen it regardless of cutoff.<br/>
+            <strong>For reasoning tasks with timeless knowledge:</strong> (math, code logic, writing) — cutoffs don't matter.<br/>
+            <strong>For questions about recent software/APIs:</strong> Pass the relevant docs as context; the model may know v1 but not v3.
+          </div>
+        </div>
+
+        <div class="callout callout--err">
+          <span class="callout__icon">🚫</span>
+          <div>
+            <strong class="callout__title">Don't ask the model if it knows about X</strong>
+            Models often confidently claim to know about things they don't, and claim not to know about things they do. The model has no reliable self-knowledge of what is or isn't in its training data. If recency matters, assume the model doesn't know and provide the information explicitly.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 2.1: What an LLM Actually Is</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~20 min · whiteboard + narration cues</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 1:30</span><span class="script-action">TITLE CARD</span><span class="script-narration">"Welcome to Phase 2 — The Mental Model of an LLM. Phase 1 was all code. Phase 2 is almost entirely conceptual. But it's the phase that explains every confusing thing you'll ever see an LLM do. Module 2.1: What an LLM actually is."</span></div>
+          <div class="script-line"><span class="script-ts">1:30 – 6:00</span><span class="script-action">WHITEBOARD</span><span class="script-narration">Draw the windowless room. Library on one side. Door on the other. No windows. "Before this model was released, someone locked a very well-read person in a room full of books. The books go up to a specific date. After that, no new books come in. When you ask a question, this person writes an answer from memory." Draw examples: 2024 events in, 2025 events not in.</span></div>
+          <div class="script-line"><span class="script-ts">6:00 – 12:00</span><span class="script-action">WHITEBOARD</span><span class="script-narration">Draw retrieval vs generation side by side. "A search engine finds the matching document. An LLM generates a plausible continuation. One of these can say 'no results found.' The other always produces something. That difference explains hallucinations entirely." Ask: if someone has read a thousand medical articles and you ask them about a specific patient, what happens? They'll produce a plausible-sounding answer. That's the LLM.</span></div>
+          <div class="script-line"><span class="script-ts">12:00 – 17:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run temperature_demo.py three times with different temperatures. "At zero, it picks the most probable token every time — deterministic. At 1.5, it's sampling from a much flatter distribution. Great for creative writing. Terrible for a medical coding tool. You'll set temperature in every API call you make in this course — now you know what it actually does."</span></div>
+          <div class="script-line"><span class="script-ts">17:00 – 20:00</span><span class="script-action">WRAP</span><span class="script-narration">"Module 2.2 goes one level deeper — tokenisation, context windows, sampling parameters, and why long context degrades. The stuff you need to understand before you write complex prompts."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>A user asks your agent "What is the current stock price of Apple?" and it gives a confident but wrong answer. What is happening architecturally?</summary>
+          <div class="selfcheck__a">The model is generating a plausible-sounding stock price based on patterns in its training data — it may have seen many examples of stock prices in its training set and is producing something that looks like one. It has no mechanism to distinguish "I know this" from "this seems plausible based on patterns." The fix is to give the agent a stock price tool so it can retrieve real data, not generate it.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Why does asking the model "Do you know about [recent event]?" give unreliable answers?</summary>
+          <div class="selfcheck__a">The model has no reliable introspective access to what is or isn't in its training data. It will often claim to know things it doesn't (generating a plausible-sounding answer) and sometimes claim not to know things it does. The model's self-reported knowledge boundaries are themselves generated text, not a verified database lookup. If recency matters, assume the model doesn't know and provide the information in the prompt.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What is the difference between temperature=0 and temperature=1.5, and when would you use each?</summary>
+          <div class="selfcheck__a"><code>temperature=0</code> makes the model deterministic — it always picks the highest-probability token. Use this for structured output, classification, extraction, and any task where consistency across runs matters more than variety. <code>temperature=1.5</code> flattens the probability distribution so lower-probability (more unusual) tokens get sampled more often — produces more creative and varied output but also more likely to go off-track. Use only for intentionally creative tasks where variance is acceptable.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Your agent needs to answer questions about documents your company created after the model's training cutoff. What is the correct architectural solution?</summary>
+          <div class="selfcheck__a">Retrieval-Augmented Generation (RAG) — store the documents in a vector database, retrieve the relevant chunks at query time, and inject them into the model's context window. The model was never trained on these documents and cannot generate accurate answers about them from memory alone, regardless of how it's prompted. RAG is Phase 4 of this roadmap.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Up next</div>
+          <div class="next-mod__title">2.2 · How an LLM Thinks</div>
+          <p class="next-mod__desc">Tokenisation (why some words cost more tokens than others), context windows and what gets silently truncated, sampling parameters in depth, and why long contexts degrade in the middle.</p>
+        </div>
+        <a class="next-btn" href="module-2-2.html">Continue →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#snapshot">Fixed snapshot</a>
+    <a href="#probabilistic">Probabilistic generation</a>
+    <a href="#temperature">Temperature</a>
+    <a href="#cutoffs">Knowledge cutoffs</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 2.1 / 62<br/>Phase 2 · Week 4<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 8.1 Three-Layer Guardrail Architecture · by Harish Mondepu</title>
+<meta name="description" content="Build production-grade guardrails with three independent layers: input gateway, output validator, and action limiter — each with different latency and trust requirements."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#854d0e;--phase-hi:#a16207;--phase-soft:rgba(161,98,7,.1);--phase-text:#854d0e}
+[data-theme="dark"]{--phase:#eab308;--phase-hi:#facc15;--phase-soft:rgba(234,179,8,.1);--phase-text:#fef08a}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 8 · <strong>Three-Layer Guardrail Architecture</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 53 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#1aada0"></span>Phase 1 · Python Foundations ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#06b6d4"></span>Phase 2 · LLM Mental Model ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#a78bfa"></span>Phase 3 · Prompt Engineering ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f06292"></span>Phase 4 · RAG + Evaluation ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#10b981"></span>Phase 5 · Tools, MCP &amp; Agents ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f59e0b"></span>Phase 6 · Memory &amp; Context ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f97316"></span>Phase 7 · Multi-Agent Orchestration ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 8 · Guardrails &amp; LLMOps
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">8.1</span>Three-Layer Guardrails</a>
+        <a class="sidebar__mod" href="module-8-2.html"><span class="sidebar__mod-num">8.2</span>AWS Bedrock Guardrails</a>
+        <a class="sidebar__mod" href="module-8-3.html"><span class="sidebar__mod-num">8.3</span>LLMOps — Observability</a>
+        <a class="sidebar__mod" href="module-8-4.html"><span class="sidebar__mod-num">8.4</span>LLMOps — Evaluation</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 08</span>
+        <span class="tag tag--level">Advanced</span>
+        <span class="tag tag--week">Week 23</span>
+      </div>
+      <h1 class="mod-head__title">Three-Layer <em>Guardrail Architecture</em></h1>
+      <p class="mod-head__sub">A single guardrail layer is never enough — not because any one layer is weak, but because each failure mode requires a different response time and trust level. Input guardrails must be deterministic and sub-millisecond. Output guardrails can afford an LLM call. Action guardrails must be pure functions that can't be bypassed by a compromised agent. This module builds all three layers from scratch and explains why each constraint exists.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~20 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>4 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li><strong>Layer 1 — Input Guardrails:</strong> gateway position, sub-1ms, always deterministic code — regex/blocklist/ML classifier. Never an LLM call. Blocks prompt injection, PII, out-of-domain, toxic input</li>
+          <li><strong>Layer 2 — Output Guardrails:</strong> post-generation position, can use an LLM judge. Checks faithfulness to source, contradiction with policy, required disclaimers, hallucinated citations</li>
+          <li><strong>Layer 3 — Action Guardrails:</strong> inside tool functions, pure and side-effect-limited. Caps retries, caps tool call count, validates query params, enforces read-only DB access, limits top_k</li>
+          <li><strong>Each layer is independent:</strong> a bypassed Layer 1 is caught by Layer 2. A jailbroken LLM output is stopped by Layer 3 before it touches a real resource</li>
+          <li><strong>Hard-fail to a safe fallback:</strong> when a guardrail fires, the user gets a canned safe response — not an error stack trace, not silence</li>
+        </ul>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="layer1">Layer 1: Input Guardrails <a class="anchor" href="#layer1">#</a></h2>
+        <p>Input guardrails run before the LLM sees anything. Their job is to reject or sanitise inputs that would cause harm regardless of how the LLM processes them. Because they run on every request they must be fast — budget under 1 ms for regex/blocklist checks, under 20 ms for a lightweight ML classifier. Never call an LLM here.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">input_guardrail.py — deterministic gateway layer</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> re
+<span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
+<span class="kw">from</span> enum <span class="kw">import</span> Enum
+
+<span class="kw">class</span> <span class="tp">GuardResult</span>(<span class="tp">Enum</span>):
+    PASS = <span class="st">"pass"</span>
+    BLOCK = <span class="st">"block"</span>
+    REDACT = <span class="st">"redact"</span>
+
+@<span class="fn">dataclass</span>
+<span class="kw">class</span> <span class="tp">InputCheckResult</span>:
+    result: <span class="tp">GuardResult</span>
+    reason: <span class="tp">str</span>
+    sanitised_input: <span class="tp">str</span> | <span class="tp">None</span> = <span class="kw">None</span>
+
+<span class="cm"># ── Prompt injection detection ─────────────────────────────────────────</span>
+INJECTION_PATTERNS = [
+    <span class="st">r"ignore previous instructions"</span>,
+    <span class="st">r"disregard (your|all|the above)"</span>,
+    <span class="st">r"you are now (a|an|my)"</span>,
+    <span class="st">r"act as (a|an|if)"</span>,
+    <span class="st">r"forget (everything|your instructions|what)"</span>,
+    <span class="st">r"new instruction:"</span>,
+    <span class="st">r"system prompt:"</span>,
+    <span class="st">r"&lt;/?(system|instructions?)&gt;"</span>,   <span class="cm"># XML injection attempt</span>
+]
+_INJECTION_RE = re.<span class="fn">compile</span>(
+    <span class="st">"|"</span>.<span class="fn">join</span>(INJECTION_PATTERNS), re.IGNORECASE
+)
+
+<span class="cm"># ── PII patterns — redact, don't block ────────────────────────────────</span>
+PII_PATTERNS = {
+    <span class="st">"email"</span>:   (re.<span class="fn">compile</span>(<span class="st">r"\b[\w.+-]+@[\w-]+\.[a-z]{2,}\b"</span>, re.I), <span class="st">"[EMAIL]"</span>),
+    <span class="st">"ssn"</span>:     (re.<span class="fn">compile</span>(<span class="st">r"\b\d{3}-\d{2}-\d{4}\b"</span>),              <span class="st">"[SSN]"</span>),
+    <span class="st">"credit"</span>:  (re.<span class="fn">compile</span>(<span class="st">r"\b(?:\d[ -]?){13,16}\b"</span>),            <span class="st">"[CARD]"</span>),
+    <span class="st">"phone"</span>:   (re.<span class="fn">compile</span>(<span class="st">r"\b\+?1?\s?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}\b"</span>), <span class="st">"[PHONE]"</span>),
+}
+
+<span class="cm"># ── Out-of-domain blocklist ────────────────────────────────────────────</span>
+OUT_OF_DOMAIN_KEYWORDS = frozenset([
+    <span class="st">"bomb"</span>, <span class="st">"weapon"</span>, <span class="st">"synthesise drugs"</span>, <span class="st">"hack into"</span>, <span class="st">"malware"</span>,
+])
+
+<span class="kw">def</span> <span class="fn">check_input</span>(user_input: <span class="tp">str</span>) -&gt; <span class="tp">InputCheckResult</span>:
+    lower = user_input.<span class="fn">lower</span>()
+
+    <span class="cm"># 1. Prompt injection — hard block</span>
+    <span class="kw">if</span> _INJECTION_RE.<span class="fn">search</span>(user_input):
+        <span class="kw">return</span> <span class="tp">InputCheckResult</span>(<span class="tp">GuardResult</span>.BLOCK, <span class="st">"prompt_injection"</span>)
+
+    <span class="cm"># 2. Out-of-domain — hard block</span>
+    <span class="kw">if</span> <span class="fn">any</span>(kw <span class="kw">in</span> lower <span class="kw">for</span> kw <span class="kw">in</span> OUT_OF_DOMAIN_KEYWORDS):
+        <span class="kw">return</span> <span class="tp">InputCheckResult</span>(<span class="tp">GuardResult</span>.BLOCK, <span class="st">"out_of_domain"</span>)
+
+    <span class="cm"># 3. PII — redact and continue</span>
+    sanitised = user_input
+    pii_found = []
+    <span class="kw">for</span> pii_type, (pattern, replacement) <span class="kw">in</span> PII_PATTERNS.<span class="fn">items</span>():
+        new, n = pattern.<span class="fn">subn</span>(replacement, sanitised)
+        <span class="kw">if</span> n &gt; <span class="nm">0</span>:
+            sanitised = new
+            pii_found.<span class="fn">append</span>(pii_type)
+
+    <span class="kw">if</span> pii_found:
+        <span class="kw">return</span> <span class="tp">InputCheckResult</span>(<span class="tp">GuardResult</span>.REDACT, <span class="st">f"pii:{','.join(pii_found)}"</span>, sanitised)
+
+    <span class="kw">return</span> <span class="tp">InputCheckResult</span>(<span class="tp">GuardResult</span>.PASS, <span class="st">"ok"</span>, user_input)</code></pre>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">Never use an LLM for Layer 1</strong>
+            An LLM-based input classifier adds 300–800 ms of latency, costs tokens, and — crucially — can itself be prompt-injected. The attacker controls the input you're sending to the classifier. Layer 1 must be deterministic code only.
+          </div>
+        </div>
+
+        <h2 id="layer2">Layer 2: Output Guardrails <a class="anchor" href="#layer2">#</a></h2>
+        <p>Output guardrails run after the LLM generates a response but before it's returned to the user. Because the LLM has already paid the latency cost, an extra LLM call here (used as a judge) is often acceptable — but keep it small, and use structured output so you get a boolean back, not prose.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">output_guardrail.py — LLM judge + hard-fail fallback</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+
+SAFE_FALLBACK = (
+    <span class="st">"I'm sorry, I wasn't able to generate a safe response for that request. "</span>
+    <span class="st">"Please rephrase your question or contact support."</span>
+)
+
+<span class="kw">class</span> <span class="tp">OutputCheck</span>(<span class="tp">BaseModel</span>):
+    safe: <span class="tp">bool</span>
+    reason: <span class="tp">str</span>     <span class="cm"># short label for logging: "faithfulness", "disclaimer", etc.</span>
+    confidence: <span class="tp">float</span>
+
+JUDGE_SYSTEM = <span class="st">"""You are a safety classifier for an AI assistant.
+Given a [SOURCE] (retrieved context or policy) and an [OUTPUT] (assistant reply):
+- safe=false if the output contradicts the source
+- safe=false if the output makes medical/legal/financial claims without appropriate disclaimers
+- safe=false if the output includes harmful, offensive, or dangerous content
+- safe=true otherwise
+Be strict. Return JSON matching the OutputCheck schema."""</span>
+
+judge_llm = llm.<span class="fn">with_structured_output</span>(<span class="tp">OutputCheck</span>)
+
+<span class="kw">def</span> <span class="fn">check_output</span>(source: <span class="tp">str</span>, assistant_output: <span class="tp">str</span>) -&gt; <span class="tp">str</span>:
+    <span class="cm">"""Return the output if safe, or SAFE_FALLBACK if not."""</span>
+    result: <span class="tp">OutputCheck</span> = judge_llm.<span class="fn">invoke</span>([
+        {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: JUDGE_SYSTEM},
+        {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: <span class="st">f"[SOURCE]\n{source}\n\n[OUTPUT]\n{assistant_output}"</span>},
+    ])
+    <span class="kw">if</span> result.safe <span class="kw">and</span> result.confidence &gt; <span class="nm">0.7</span>:
+        <span class="kw">return</span> assistant_output
+
+    <span class="cm"># Log the failure before replacing</span>
+    <span class="fn">log_warning</span>(<span class="st">"OutputGuardrail"</span>, <span class="st">"check_output"</span>,
+                <span class="st">f"blocked: reason={result.reason} confidence={result.confidence:.2f}"</span>)
+    <span class="kw">return</span> SAFE_FALLBACK
+
+<span class="cm"># ── Disclaimer injection (deterministic, no LLM needed) ───────────────</span>
+DISCLAIMER_TRIGGERS = {
+    <span class="kw">lambda</span> t: <span class="fn">any</span>(w <span class="kw">in</span> t <span class="kw">for</span> w <span class="kw">in</span> [<span class="st">"diagnose"</span>, <span class="st">"treat"</span>, <span class="st">"medication"</span>, <span class="st">"symptom"</span>]):
+        <span class="st">"\n\n*This is not medical advice. Consult a qualified healthcare professional.*"</span>,
+    <span class="kw">lambda</span> t: <span class="fn">any</span>(w <span class="kw">in</span> t <span class="kw">for</span> w <span class="kw">in</span> [<span class="st">"invest"</span>, <span class="st">"stock"</span>, <span class="st">"portfolio"</span>, <span class="st">"financial"</span>]):
+        <span class="st">"\n\n*This is not financial advice. Consult a licensed financial advisor.*"</span>,
+}
+
+<span class="kw">def</span> <span class="fn">append_disclaimers</span>(text: <span class="tp">str</span>) -&gt; <span class="tp">str</span>:
+    lower = text.<span class="fn">lower</span>()
+    <span class="kw">for</span> trigger, disclaimer <span class="kw">in</span> DISCLAIMER_TRIGGERS.<span class="fn">items</span>():
+        <span class="kw">if</span> <span class="fn">trigger</span>(lower) <span class="kw">and</span> disclaimer.<span class="fn">strip</span>() <span class="kw">not in</span> text:
+            text += disclaimer
+    <span class="kw">return</span> text</code></pre>
+        </div>
+
+        <h2 id="layer3">Layer 3: Action Guardrails <a class="anchor" href="#layer3">#</a></h2>
+        <p>Action guardrails live inside tool functions — they cap what the agent can actually do in the world, regardless of what the LLM asked it to do. They're pure functions with no LLM involvement. They're the last line of defence against a jailbroken model or a logic bug that generates a destructive tool call.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">action_guardrail.py — caps, validators, read-only enforcement</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> functools <span class="kw">import</span> wraps
+
+<span class="cm"># ── Decorator: cap total tool calls per request ────────────────────────</span>
+_call_counts: <span class="tp">dict</span>[<span class="tp">str</span>, <span class="tp">int</span>] = {}   <span class="cm"># keyed by request_id</span>
+MAX_TOOL_CALLS = <span class="nm">20</span>
+
+<span class="kw">def</span> <span class="fn">tool_call_limit</span>(fn):
+    @<span class="fn">wraps</span>(fn)
+    <span class="kw">def</span> <span class="fn">wrapper</span>(*args, request_id: <span class="tp">str</span> = <span class="st">"default"</span>, **kwargs):
+        _call_counts[request_id] = _call_counts.<span class="fn">get</span>(request_id, <span class="nm">0</span>) + <span class="nm">1</span>
+        <span class="kw">if</span> _call_counts[request_id] &gt; MAX_TOOL_CALLS:
+            <span class="kw">raise</span> <span class="tp">RuntimeError</span>(<span class="st">f"Tool call budget exceeded ({MAX_TOOL_CALLS}) for request {request_id}"</span>)
+        <span class="kw">return</span> <span class="fn">fn</span>(*args, **kwargs)
+    <span class="kw">return</span> wrapper
+
+<span class="cm"># ── SQL query validator — block destructive statements ────────────────</span>
+DANGEROUS_SQL = re.<span class="fn">compile</span>(
+    <span class="st">r"\b(DROP|DELETE|TRUNCATE|UPDATE|INSERT|ALTER|CREATE|GRANT|REVOKE)\b"</span>,
+    re.IGNORECASE
+)
+
+<span class="kw">def</span> <span class="fn">validate_read_only_sql</span>(query: <span class="tp">str</span>) -&gt; <span class="tp">str</span>:
+    <span class="kw">if</span> DANGEROUS_SQL.<span class="fn">search</span>(query):
+        <span class="kw">raise</span> <span class="tp">ValueError</span>(<span class="st">f"Non-SELECT SQL blocked by action guardrail: {query[:80]}"</span>)
+    <span class="kw">return</span> query
+
+<span class="cm"># ── top_k cap for vector search ───────────────────────────────────────</span>
+MAX_RETRIEVAL_K = <span class="nm">20</span>
+
+@<span class="fn">tool</span>
+<span class="kw">def</span> <span class="fn">search_knowledge_base</span>(query: <span class="tp">str</span>, top_k: <span class="tp">int</span> = <span class="nm">5</span>) -&gt; <span class="tp">list</span>[<span class="tp">str</span>]:
+    <span class="st">"""Search the knowledge base."""</span>
+    top_k = <span class="fn">min</span>(top_k, MAX_RETRIEVAL_K)      <span class="cm"># cap silently — don't error</span>
+    <span class="kw">return</span> vectorstore.<span class="fn">similarity_search</span>(query, k=top_k)
+
+<span class="cm"># ── Retry cap — prevent runaway tool retries ──────────────────────────</span>
+<span class="kw">def</span> <span class="fn">with_retry_cap</span>(fn, max_retries: <span class="tp">int</span> = <span class="nm">3</span>):
+    <span class="kw">def</span> <span class="fn">wrapper</span>(*args, **kwargs):
+        <span class="kw">for</span> attempt <span class="kw">in</span> <span class="fn">range</span>(max_retries):
+            <span class="kw">try</span>:
+                <span class="kw">return</span> <span class="fn">fn</span>(*args, **kwargs)
+            <span class="kw">except</span> <span class="tp">Exception</span> <span class="kw">as</span> e:
+                <span class="kw">if</span> attempt == max_retries - <span class="nm">1</span>:
+                    <span class="kw">raise</span>   <span class="cm"># re-raise on final attempt</span>
+    <span class="kw">return</span> wrapper</code></pre>
+        </div>
+
+        <h2 id="composing">Composing all three layers <a class="anchor" href="#composing">#</a></h2>
+        <p>In a LangGraph agent the three layers plug in at different points in the graph. Input guardrails run at the entry node. Output guardrails run at the output node before returning to the user. Action guardrails are baked into each tool function.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">guarded_agent.py — three layers in a LangGraph</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">def</span> <span class="fn">input_guard_node</span>(state: <span class="tp">AgentState</span>) -&gt; <span class="tp">AgentState</span>:
+    last_user = [m <span class="kw">for</span> m <span class="kw">in</span> state[<span class="st">"messages"</span>] <span class="kw">if</span> m[<span class="st">"role"</span>] == <span class="st">"user"</span>][-<span class="nm">1</span>]
+    result = <span class="fn">check_input</span>(last_user[<span class="st">"content"</span>])
+
+    <span class="kw">if</span> result.result == <span class="tp">GuardResult</span>.BLOCK:
+        <span class="kw">return</span> {<span class="st">"blocked"</span>: <span class="kw">True</span>, <span class="st">"block_reason"</span>: result.reason}
+    <span class="kw">if</span> result.result == <span class="tp">GuardResult</span>.REDACT:
+        <span class="cm"># Replace last user message with sanitised version</span>
+        new_messages = state[<span class="st">"messages"</span>][:-<span class="nm">1</span>] + [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: result.sanitised_input}]
+        <span class="kw">return</span> {<span class="st">"messages"</span>: new_messages, <span class="st">"blocked"</span>: <span class="kw">False</span>}
+    <span class="kw">return</span> {<span class="st">"blocked"</span>: <span class="kw">False</span>}
+
+<span class="kw">def</span> <span class="fn">output_guard_node</span>(state: <span class="tp">AgentState</span>) -&gt; <span class="tp">AgentState</span>:
+    last_ai = state[<span class="st">"messages"</span>][-<span class="nm">1</span>].content
+    source  = state.<span class="fn">get</span>(<span class="st">"retrieved_context"</span>, <span class="st">""</span>)
+    safe_output = <span class="fn">check_output</span>(source, last_ai)
+    safe_output = <span class="fn">append_disclaimers</span>(safe_output)
+    <span class="kw">if</span> safe_output != last_ai:
+        <span class="kw">return</span> {<span class="st">"messages"</span>: [{<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: safe_output}]}
+    <span class="kw">return</span> {}
+
+<span class="kw">def</span> <span class="fn">route_after_input_guard</span>(state: <span class="tp">AgentState</span>) -&gt; <span class="tp">str</span>:
+    <span class="kw">return</span> <span class="st">"blocked"</span> <span class="kw">if</span> state.<span class="fn">get</span>(<span class="st">"blocked"</span>) <span class="kw">else</span> <span class="st">"agent"</span>
+
+builder = <span class="tp">StateGraph</span>(<span class="tp">AgentState</span>)
+builder.<span class="fn">add_node</span>(<span class="st">"input_guard"</span>, input_guard_node)
+builder.<span class="fn">add_node</span>(<span class="st">"agent"</span>, agent_node)          <span class="cm"># tools are already Layer 3 guarded</span>
+builder.<span class="fn">add_node</span>(<span class="st">"output_guard"</span>, output_guard_node)
+builder.<span class="fn">add_node</span>(<span class="st">"blocked_response"</span>, <span class="kw">lambda</span> s: {<span class="st">"final"</span>: SAFE_FALLBACK})
+builder.<span class="fn">add_edge</span>(<span class="tp">START</span>, <span class="st">"input_guard"</span>)
+builder.<span class="fn">add_conditional_edges</span>(<span class="st">"input_guard"</span>, route_after_input_guard)
+builder.<span class="fn">add_edge</span>(<span class="st">"agent"</span>, <span class="st">"output_guard"</span>)
+builder.<span class="fn">add_edge</span>(<span class="st">"output_guard"</span>, <span class="tp">END</span>)
+builder.<span class="fn">add_edge</span>(<span class="st">"blocked_response"</span>, <span class="tp">END</span>)</code></pre>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">✦</span>
+          <div>
+            <strong class="callout__title">Defence in depth — not defence by a single layer</strong>
+            The goal is that no single layer failure causes a user-visible harm. Layer 1 stops 95% of threats cheaply. Layer 2 catches what Layer 1 misses. Layer 3 limits blast radius even if Layers 1 and 2 both fail. Each layer is simple and testable in isolation.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: AWS Bedrock Guardrails</div>
+            <div class="cta-block__sub">Module 8.2 covers the managed guardrail service — contextual grounding checks, automated reasoning, content filters, and topic blockers — so you know when to build vs buy.</div>
+          </div>
+          <a class="cta-block__btn" href="module-8-2.html">Module 8.2 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#layer1">Layer 1 — Input Guardrails</a></li>
+      <li><a class="toc__link" href="#layer2">Layer 2 — Output Guardrails</a></li>
+      <li><a class="toc__link" href="#layer3">Layer 3 — Action Guardrails</a></li>
+      <li><a class="toc__link" href="#composing">Composing all three layers</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){const h=document.documentElement;const dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');localStorage.setItem('ae-theme',dark?'light':'dark');document.getElementById('themeIcon').textContent=dark?'☀':'☾';document.getElementById('themeLabel').textContent=dark?'Light':'Dark';}
+(function(){const t=localStorage.getItem('ae-theme');if(t){document.documentElement.setAttribute('data-theme',t);const dark=t==='dark';document.getElementById('themeIcon').textContent=dark?'☾':'☀';document.getElementById('themeLabel').textContent=dark?'Dark':'Light';}})();
+function copyCode(btn){const code=btn.closest('.code-wrap').querySelector('pre code');navigator.clipboard.writeText(code.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{es.forEach(e=>{const id=e.target.id;if(!id)return;const link=document.querySelector(`.toc__link[href="#${id}"]`);if(!link)return;if(e.isIntersecting){document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));link.classList.add('active');}});},{rootMargin:'-20% 0px -70% 0px'});document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

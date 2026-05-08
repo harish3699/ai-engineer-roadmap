@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 4.2 Chunking Strategies · by Harish Mondepu</title>
+<meta name="description" content="Fixed-size, sentence-aware, recursive, and semantic chunking — how chunk size and overlap control the precision/recall tradeoff of your RAG retrieval system."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#c2185b;--phase-hi:#e85a7a;--phase-soft:rgba(232,90,122,.1);--phase-text:#c2185b}
+[data-theme="dark"]{--phase:#f06292;--phase-hi:#f48fb1;--phase-soft:rgba(240,98,146,.1);--phase-text:#f9a8d4}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 4 · <strong>Chunking Strategies</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 22 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 4 · RAG + Evaluation
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-4-1.html"><span class="sidebar__mod-num">4.1</span>What is RAG<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">4.2</span>Chunking Strategies<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod" href="module-4-3.html"><span class="sidebar__mod-num">4.3</span>Embedding Models<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-4.html"><span class="sidebar__mod-num">4.4</span>Vector Databases<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-5.html"><span class="sidebar__mod-num">4.5</span>Retrieval Techniques<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-6.html"><span class="sidebar__mod-num">4.6</span>Reranking<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-7.html"><span class="sidebar__mod-num">4.7</span>RAG Pipeline Assembly<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-8.html"><span class="sidebar__mod-num">4.8</span>Evaluating RAG<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-4-9.html"><span class="sidebar__mod-num">4.9</span>Advanced RAG Patterns<span class="sidebar__check"></span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#10b981;opacity:.6"></span>Phase 5–9 · Agents &amp; Deployment</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 04</span>
+        <span class="tag tag--level">Practical</span>
+        <span class="tag tag--week">Week 9</span>
+      </div>
+      <h1 class="mod-head__title">Chunking <em>Strategies</em></h1>
+      <p class="mod-head__sub">Before a document can be retrieved, it must be split into chunks and embedded. How you split it — where you cut, how large each piece is, and how much you overlap — determines whether the right information will score high enough in retrieval to make it into the LLM's context. A perfect embedding model and a perfect vector database cannot rescue a bad chunking strategy. This module covers the four main approaches and the heuristics for choosing between them.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~25 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>3 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Chunk size controls a fundamental tradeoff: small chunks retrieve precisely but may miss surrounding context; large chunks carry more context but dilute the relevant signal with noise</li>
+          <li>Fixed-size chunking is the fastest to implement and works well enough for homogeneous, well-structured text — start here before reaching for more complex strategies</li>
+          <li>Overlap (typically 10–20% of chunk size) prevents answers from being split across chunk boundaries; without it you will get retrieval misses on information that spans the cut point</li>
+          <li>Semantic chunking splits on topic shifts detected by embedding similarity — it produces the most coherent chunks but is the most expensive to compute at index time</li>
+          <li>Different document types need different strategies: Markdown → split on headers; code → split on function/class boundaries; conversations → split on speaker turns; PDFs → handle page breaks explicitly</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Module 4.1 complete — understand the five-step RAG pipeline</li>
+            <li><div class="meta-list__dot">!</div><code>pip install sentence-transformers nltk numpy</code></li>
+            <li><div class="meta-list__dot">!</div><code>python -m nltk.downloader punkt</code></li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Implement all four chunking strategies from scratch</li>
+            <li><div class="meta-list__dot">2</div>Explain the precision/recall tradeoff controlled by chunk size</li>
+            <li><div class="meta-list__dot">3</div>Choose the right strategy for a given document type</li>
+            <li><div class="meta-list__dot">4</div>Set overlap correctly and explain why it matters</div>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">Chunking Strategies for LLM Applications</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· search "RAG chunking strategies fixed size semantic LangChain"</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/8OJC21T2SL4" title="Chunking Strategies for RAG" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ How different chunking strategies affect retrieval quality</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="the-chunking-tradeoff">The chunking tradeoff <a class="anchor" href="#the-chunking-tradeoff">#</a></h2>
+        <p>Every chunking decision is a tradeoff between two retrieval properties. <strong>Precision</strong>: when a chunk is retrieved, how much of it is actually relevant to the query? <strong>Recall</strong>: does the relevant information exist somewhere in the retrieved set at all?</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">Chunk size vs precision/recall</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;font-size:13px">
+            <div style="background:var(--surface-0);border-radius:8px;padding:1rem">
+              <div style="font-weight:700;color:var(--phase-text);margin-bottom:.5rem">Small chunks (100–200 tokens)</div>
+              <ul style="margin:0;padding-left:1.1rem;line-height:2;color:var(--fg)">
+                <li style="color:#10b981">✓ High precision — dense signal</li>
+                <li style="color:#10b981">✓ Many candidate chunks to retrieve</li>
+                <li style="color:#e85a7a">✗ Low recall — answer may span chunks</li>
+                <li style="color:#e85a7a">✗ Loses surrounding context</li>
+                <li style="color:#e85a7a">✗ More chunks = more index storage</li>
+              </ul>
+            </div>
+            <div style="background:var(--surface-0);border-radius:8px;padding:1rem">
+              <div style="font-weight:700;color:var(--phase-text);margin-bottom:.5rem">Large chunks (800–1500 tokens)</div>
+              <ul style="margin:0;padding-left:1.1rem;line-height:2;color:var(--fg)">
+                <li style="color:#10b981">✓ High recall — answer likely inside</li>
+                <li style="color:#10b981">✓ Preserves local context well</li>
+                <li style="color:#e85a7a">✗ Low precision — noisy signal</li>
+                <li style="color:#e85a7a">✗ Fewer chunks retrieved (top-K)</li>
+                <li style="color:#e85a7a">✗ More context tokens per call → cost</li>
+              </ul>
+            </div>
+          </div>
+          <div style="margin-top:.8rem;font-size:12px;color:var(--fg-dim)"><strong style="color:var(--fg)">Starting point:</strong> 256–512 tokens with 10–15% overlap. Measure with RAGAS (module 4.8), then tune.</div>
+        </div>
+
+        <h2 id="fixed-size">Strategy 1: Fixed-size chunking <a class="anchor" href="#fixed-size">#</a></h2>
+        <p>Split the document every N characters (or tokens), with an overlap of M characters between consecutive chunks. It is the simplest strategy, the fastest to implement, and surprisingly effective on homogeneous, well-structured text like knowledge base articles or FAQ pages.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">fixed_chunking.py — character splitter with overlap</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">def</span> <span class="fn">fixed_chunk</span>(text: <span class="tp">str</span>, chunk_size: <span class="tp">int</span> = <span class="nm">500</span>, overlap: <span class="tp">int</span> = <span class="nm">50</span>) -> <span class="tp">list</span>[<span class="tp">str</span>]:
+    <span class="st">"""Split text into chunks of ~chunk_size chars with overlap."""</span>
+    chunks = []
+    start = <span class="nm">0</span>
+    <span class="kw">while</span> start < <span class="fn">len</span>(text):
+        end = start + chunk_size
+        chunk = text[start:end]
+        <span class="kw">if</span> chunk.<span class="fn">strip</span>():           <span class="cm"># skip empty chunks</span>
+            chunks.<span class="fn">append</span>(chunk)
+        start += chunk_size - overlap  <span class="cm"># slide forward by (size - overlap)</span>
+    <span class="kw">return</span> chunks
+
+<span class="cm"># ── Problem: cuts mid-sentence ────────────────────────────────────────</span>
+sample = <span class="st">"""The remote work policy allows employees to claim up to $150 per month
+for home internet. Additionally, a one-time $600 allowance is available for
+ergonomic equipment. Claims must be submitted via Workday by the 5th of the
+following month. All claims over $200 require manager approval."""</span>
+
+chunks = <span class="fn">fixed_chunk</span>(sample, chunk_size=<span class="nm">120</span>, overlap=<span class="nm">20</span>)
+<span class="kw">for</span> i, c <span class="kw">in</span> <span class="fn">enumerate</span>(chunks):
+    <span class="fn">print</span>(<span class="st">f"[{i}] {c!r}\n"</span>)
+<span class="cm"># → You'll see cuts like "…$150 per month\nfor home" split from "internet."</span>
+<span class="cm">#   Overlap prevents total loss but mid-sentence cuts hurt embedding quality.</span>
+
+<span class="cm"># ── Token-aware variant (avoids sub-word cuts) ────────────────────────</span>
+<span class="kw">import</span> tiktoken
+enc = tiktoken.<span class="fn">get_encoding</span>(<span class="st">"cl100k_base"</span>)
+
+<span class="kw">def</span> <span class="fn">token_chunk</span>(text: <span class="tp">str</span>, chunk_tokens: <span class="tp">int</span> = <span class="nm">256</span>, overlap_tokens: <span class="tp">int</span> = <span class="nm">32</span>) -> <span class="tp">list</span>[<span class="tp">str</span>]:
+    ids = enc.<span class="fn">encode</span>(text)
+    chunks, start = [], <span class="nm">0</span>
+    <span class="kw">while</span> start < <span class="fn">len</span>(ids):
+        end = start + chunk_tokens
+        chunks.<span class="fn">append</span>(enc.<span class="fn">decode</span>(ids[start:end]))
+        start += chunk_tokens - overlap_tokens
+    <span class="kw">return</span> chunks</code></pre>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">Always chunk by tokens, not characters, when embedding</strong>
+            Embedding models have token limits (typically 512 tokens). A 2,000-character chunk might be 400 tokens for English prose but 700+ tokens for dense technical text. Chunking by characters risks silently truncating chunks at the embedding model's limit. Use tiktoken or your embedding model's tokenizer to size chunks accurately.
+          </div>
+        </div>
+
+        <h2 id="sentence-chunking">Strategy 2: Sentence-aware chunking <a class="anchor" href="#sentence-chunking">#</a></h2>
+        <p>Split at sentence boundaries instead of arbitrary character positions. Each chunk contains complete sentences, so embedding quality improves — the model never sees a half-sentence. Group sentences into target-size chunks and overlap by one or two sentences.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">sentence_chunking.py — NLTK sentence splitter with sentence overlap</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> nltk
+nltk.<span class="fn">download</span>(<span class="st">"punkt"</span>, quiet=<span class="tp">True</span>)
+<span class="kw">from</span> nltk.tokenize <span class="kw">import</span> sent_tokenize
+<span class="kw">import</span> tiktoken
+enc = tiktoken.<span class="fn">get_encoding</span>(<span class="st">"cl100k_base"</span>)
+
+<span class="kw">def</span> <span class="fn">sentence_chunk</span>(text: <span class="tp">str</span>, max_tokens: <span class="tp">int</span> = <span class="nm">256</span>, overlap_sentences: <span class="tp">int</span> = <span class="nm">1</span>) -> <span class="tp">list</span>[<span class="tp">str</span>]:
+    sentences = <span class="fn">sent_tokenize</span>(text)
+    chunks, current, current_tokens = [], [], <span class="nm">0</span>
+
+    <span class="kw">for</span> sent <span class="kw">in</span> sentences:
+        sent_tokens = <span class="fn">len</span>(enc.<span class="fn">encode</span>(sent))
+        <span class="kw">if</span> current_tokens + sent_tokens > max_tokens <span class="kw">and</span> current:
+            chunks.<span class="fn">append</span>(<span class="st">" "</span>.<span class="fn">join</span>(current))
+            <span class="cm"># carry over overlap_sentences sentences into the next chunk</span>
+            current = current[-overlap_sentences:] <span class="kw">if</span> overlap_sentences <span class="kw">else</span> []
+            current_tokens = <span class="fn">sum</span>(<span class="fn">len</span>(enc.<span class="fn">encode</span>(s)) <span class="kw">for</span> s <span class="kw">in</span> current)
+        current.<span class="fn">append</span>(sent)
+        current_tokens += sent_tokens
+
+    <span class="kw">if</span> current:
+        chunks.<span class="fn">append</span>(<span class="st">" "</span>.<span class="fn">join</span>(current))
+    <span class="kw">return</span> chunks
+
+sample_long = <span class="st">"""AcmeCorp's remote work policy covers three categories of expense.
+First, employees may claim up to $150 per month for home internet connectivity.
+This allowance applies to primary residence only. Second, a one-time $600 equipment
+allowance is available for ergonomic furniture. Approved items include standing desks
+and ergonomic chairs. Third, software subscriptions directly related to work may be
+expensed up to $50 per month with manager pre-approval. All claims are submitted
+through Workday. The deadline is the 5th of the following month."""</span>
+
+<span class="kw">for</span> i, chunk <span class="kw">in</span> <span class="fn">enumerate</span>(<span class="fn">sentence_chunk</span>(sample_long, max_tokens=<span class="nm">80</span>, overlap_sentences=<span class="nm">1</span>)):
+    <span class="fn">print</span>(<span class="st">f"[{i}] {chunk}\n"</span>)</code></pre>
+        </div>
+
+        <h2 id="recursive-chunking">Strategy 3: Recursive character splitting <a class="anchor" href="#recursive-chunking">#</a></h2>
+        <p>The recursive splitter tries a hierarchy of separators in order: double newlines (<code>\n\n</code>), single newlines (<code>\n</code>), sentences, words, characters. It only falls back to the next separator when the current chunk still exceeds the token limit. This produces chunks that respect natural document structure — paragraphs stay together when they fit, sections stay together when paragraphs don't.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">recursive_chunking.py — hierarchical separator splitting</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> tiktoken
+enc = tiktoken.<span class="fn">get_encoding</span>(<span class="st">"cl100k_base"</span>)
+
+<span class="kw">def</span> <span class="fn">token_len</span>(text: <span class="tp">str</span>) -> <span class="tp">int</span>:
+    <span class="kw">return</span> <span class="fn">len</span>(enc.<span class="fn">encode</span>(text))
+
+<span class="kw">def</span> <span class="fn">recursive_chunk</span>(
+    text: <span class="tp">str</span>,
+    max_tokens: <span class="tp">int</span> = <span class="nm">256</span>,
+    overlap: <span class="tp">int</span> = <span class="nm">30</span>,
+    separators: <span class="tp">list</span>[<span class="tp">str</span>] = [<span class="st">"\n\n"</span>, <span class="st">"\n"</span>, <span class="st">". "</span>, <span class="st">" "</span>, <span class="st">""</span>],
+) -> <span class="tp">list</span>[<span class="tp">str</span>]:
+    <span class="st">"""Split using the first separator that produces chunks under max_tokens."""</span>
+    <span class="kw">if</span> <span class="fn">token_len</span>(text) <= max_tokens:
+        <span class="kw">return</span> [text]  <span class="cm"># already small enough</span>
+
+    <span class="kw">for</span> sep <span class="kw">in</span> separators:
+        parts = text.<span class="fn">split</span>(sep) <span class="kw">if</span> sep <span class="kw">else</span> <span class="fn">list</span>(text)
+        <span class="kw">if</span> <span class="fn">len</span>(parts) == <span class="nm">1</span>:
+            <span class="kw">continue</span>   <span class="cm"># separator not found — try next</span>
+
+        chunks, current = [], <span class="st">""</span>
+        <span class="kw">for</span> part <span class="kw">in</span> parts:
+            candidate = (current + sep + part).<span class="fn">strip</span>() <span class="kw">if</span> current <span class="kw">else</span> part
+            <span class="kw">if</span> <span class="fn">token_len</span>(candidate) > max_tokens <span class="kw">and</span> current:
+                chunks.<span class="fn">extend</span>(<span class="fn">recursive_chunk</span>(current.<span class="fn">strip</span>(), max_tokens, overlap, separators))
+                <span class="cm"># overlap: carry tail of current into next chunk</span>
+                tail = current[-overlap:] <span class="kw">if</span> overlap <span class="kw">else</span> <span class="st">""</span>
+                current = tail + sep + part
+            <span class="kw">else</span>:
+                current = candidate
+        <span class="kw">if</span> current.<span class="fn">strip</span>():
+            chunks.<span class="fn">extend</span>(<span class="fn">recursive_chunk</span>(current.<span class="fn">strip</span>(), max_tokens, overlap, separators))
+        <span class="kw">return</span> chunks
+
+    <span class="kw">return</span> [text]   <span class="cm"># fallback — can't split further</span>
+
+<span class="cm"># ── Markdown-aware variant — split on headers first ───────────────────</span>
+MARKDOWN_SEPARATORS = [<span class="st">"\n## "</span>, <span class="st">"\n### "</span>, <span class="st">"\n\n"</span>, <span class="st">"\n"</span>, <span class="st">". "</span>, <span class="st">" "</span>]</code></pre>
+        </div>
+
+        <h2 id="semantic-chunking">Strategy 4: Semantic chunking <a class="anchor" href="#semantic-chunking">#</a></h2>
+        <p>Semantic chunking embeds every sentence, then finds points where consecutive sentences drop sharply in cosine similarity — topic boundaries. The algorithm splits at those drops, producing chunks that each cover one coherent topic. It produces the highest-quality chunks but costs one embedding call per sentence at index time.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">semantic_chunking.py — split on embedding similarity drops</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> nltk
+<span class="kw">from</span> sentence_transformers <span class="kw">import</span> SentenceTransformer
+
+nltk.<span class="fn">download</span>(<span class="st">"punkt"</span>, quiet=<span class="tp">True</span>)
+<span class="kw">from</span> nltk.tokenize <span class="kw">import</span> sent_tokenize
+
+embedder = <span class="fn">SentenceTransformer</span>(<span class="st">"all-MiniLM-L6-v2"</span>)
+
+<span class="kw">def</span> <span class="fn">semantic_chunk</span>(text: <span class="tp">str</span>, threshold: <span class="tp">float</span> = <span class="nm">0.3</span>) -> <span class="tp">list</span>[<span class="tp">str</span>]:
+    <span class="st">"""Split text where consecutive sentence similarity drops below threshold."""</span>
+    sentences = <span class="fn">sent_tokenize</span>(text)
+    <span class="kw">if</span> <span class="fn">len</span>(sentences) <= <span class="nm">1</span>:
+        <span class="kw">return</span> sentences
+
+    <span class="cm"># embed all sentences in one batched call</span>
+    embeddings = embedder.<span class="fn">encode</span>(sentences, normalize_embeddings=<span class="tp">True</span>)
+
+    <span class="cm"># cosine similarity between consecutive sentences</span>
+    similarities = [
+        float(embeddings[i] @ embeddings[i + <span class="nm">1</span>])
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(embeddings) - <span class="nm">1</span>)
+    ]
+
+    <span class="cm"># split where similarity drops below threshold — topic boundary</span>
+    chunks, current_chunk = [], [sentences[<span class="nm">0</span>]]
+    <span class="kw">for</span> i, sim <span class="kw">in</span> <span class="fn">enumerate</span>(similarities):
+        <span class="kw">if</span> sim < threshold:
+            chunks.<span class="fn">append</span>(<span class="st">" "</span>.<span class="fn">join</span>(current_chunk))
+            current_chunk = []
+        current_chunk.<span class="fn">append</span>(sentences[i + <span class="nm">1</span>])
+    chunks.<span class="fn">append</span>(<span class="st">" "</span>.<span class="fn">join</span>(current_chunk))
+    <span class="kw">return</span> chunks
+
+multi_topic = <span class="st">"""AcmeCorp was founded in 2018 and is headquartered in Austin, Texas.
+The company employs 400 people across 12 countries. Revenue in 2024 was $42M.
+
+Employees may claim up to $150 per month for home internet expenses.
+Equipment allowances cover one-time purchases up to $600 for ergonomic furniture.
+All claims must be submitted via Workday by the 5th of each month.
+
+The engineering team uses two-week sprint cycles with Friday retrospectives.
+Code reviews are mandatory for all pull requests before merging to main.
+The staging environment is refreshed from production data every Sunday night."""</span>
+
+<span class="kw">for</span> i, chunk <span class="kw">in</span> <span class="fn">enumerate</span>(<span class="fn">semantic_chunk</span>(multi_topic, threshold=<span class="nm">0.4</span>)):
+    <span class="fn">print</span>(<span class="st">f"[{i}] {chunk[:80]}…\n"</span>)
+<span class="cm"># → [0] Company background (3 sentences)</span>
+<span class="cm"># → [1] Expense policy (3 sentences)</span>
+<span class="cm"># → [2] Engineering practices (3 sentences)</span></code></pre>
+        </div>
+
+        <h2 id="strategy-selection">Choosing a strategy <a class="anchor" href="#strategy-selection">#</a></h2>
+        <p>The strategies are not mutually exclusive — production systems often chain them: recursive splitting for structure, then sentence-level overlap for boundary handling. The decision should be driven by document type and how you'll measure quality.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem">Strategy selection by document type</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem;font-size:13px">
+            <div style="display:grid;grid-template-columns:160px 120px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:600;color:var(--fg)">Markdown / docs site</div>
+              <div style="font-weight:700;color:var(--phase-text)">Recursive</div>
+              <div style="color:var(--fg-dim)">Use header separators (<code>\n## </code>, <code>\n### </code>) first — each section becomes one or more chunks.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:160px 120px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:600;color:var(--fg)">FAQ / knowledge base</div>
+              <div style="font-weight:700;color:var(--phase-text)">Fixed-size</div>
+              <div style="color:var(--fg-dim)">Homogeneous short articles — fixed chunks at 256–512 tokens work well. Fast to compute.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:160px 120px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:600;color:var(--fg)">Legal / contracts</div>
+              <div style="font-weight:700;color:var(--phase-text)">Sentence</div>
+              <div style="color:var(--fg-dim)">Clause-level precision needed. Sentence chunking preserves full clauses. Larger overlap (2–3 sentences).</div>
+            </div>
+            <div style="display:grid;grid-template-columns:160px 120px 1fr;gap:1rem;padding:.6em;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:600;color:var(--fg)">Research papers / books</div>
+              <div style="font-weight:700;color:var(--phase-text)">Semantic</div>
+              <div style="color:var(--fg-dim)">Long documents with topic shifts. Semantic chunking aligns chunk boundaries with concept changes.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:160px 120px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:600;color:var(--fg)">Source code</div>
+              <div style="font-weight:700;color:var(--phase-text)">AST-based</div>
+              <div style="color:var(--fg-dim)">Split on function and class boundaries using the AST module. Never cut mid-function.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:160px 120px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:600;color:var(--fg)">Chat / transcripts</div>
+              <div style="font-weight:700;color:var(--phase-text)">Speaker turns</div>
+              <div style="color:var(--fg-dim)">Split on speaker changes. Group N consecutive turns per chunk. Keep timestamps as metadata.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">Store metadata alongside every chunk</strong>
+            The text of a chunk is not enough. Store at minimum: the source document filename, page number or section header, chunk index, and the original character offset. This enables source attribution in your answers ("From: HR Policy v3.2, Section 2") and lets you filter retrieval by document type, date, or department — critical for multi-tenant RAG systems.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 4.2: Chunking Strategies</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~25 min · 4 live code demos</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 3:00</span><span class="script-action">INTRO</span><span class="script-narration">"The minimal RAG pipeline we built in 4.1 works. But the chunks were already the right size — I hand-wrote them. In the real world your documents are PDFs, markdown files, code repositories, chat transcripts. You need to split them automatically. That splitting decision determines the quality ceiling of your entire RAG system."</span></div>
+          <div class="script-line"><span class="script-ts">3:00 – 9:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run fixed_chunking.py with a small chunk_size. Show the mid-sentence cuts. "See that? 'up to $150 per month\nfor home' is one chunk, 'internet.' is the start of the next. The embedding for the first chunk now represents a half-sentence. The embedding for 'internet.' in the second chunk is similarly decontextualised. This is why overlap exists." Increase overlap, show how it bridges the cut.</span></div>
+          <div class="script-line"><span class="script-ts">9:00 – 15:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run sentence_chunking.py. "Every chunk starts and ends at a full stop. The embedding model gets clean, complete sentences. Overlap is measured in sentences, not characters. One overlapping sentence means the last sentence of chunk N is the first sentence of chunk N+1 — so nothing is ever lost at a boundary."</span></div>
+          <div class="script-line"><span class="script-ts">15:00 – 20:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run semantic_chunking.py on the multi-topic sample. "Three topics: company background, expense policy, engineering practices. Semantic chunking finds the topic boundaries automatically from similarity drops. Print the similarities array — you can see where the drops occur. That's where we split." Tune the threshold — too high splits too aggressively; too low merges different topics.</span></div>
+          <div class="script-line"><span class="script-ts">20:00 – 25:00</span><span class="script-action">DIAGRAM</span><span class="script-narration">Walk through the strategy selection table. "Markdown: recursive with header separators — each section becomes a chunk. Source code: never cut mid-function, use the AST. Legal: sentence-level, large overlap. The metadata tip: always store source filename and section. When your bot says 'according to the expense policy', you want to be able to show the user the exact document it came from."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>You have a 50-page PDF legal contract with many multi-sentence clauses. A user asks about the liability cap clause. Why might fixed-size chunking at 200 tokens fail to retrieve the relevant clause?</summary>
+          <div class="selfcheck__a">Legal clauses are semantically cohesive units — they may span 3–8 sentences and 100–400 tokens. A fixed-size splitter at 200 tokens with no regard for clause boundaries will cut through the middle of the liability cap clause, splitting the condition from the cap amount into separate chunks. The embedding of the first half-clause won't score as highly against the query "liability cap" because it lacks the defining term. The second half-chunk will have the cap amount but not the clause label. Solution: use sentence-aware chunking with a larger target size (400–500 tokens) and 2–3 sentence overlap to ensure clause boundaries are respected and clause text stays together.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Explain why overlap is necessary and what would happen in a RAG system without any overlap.</summary>
+          <div class="selfcheck__a">Without overlap, the answer to a question may straddle two chunk boundaries — part of the relevant information is at the end of chunk N and part is at the start of chunk N+1. The embedding of chunk N doesn't capture the concept well because it's cut mid-thought; the embedding of chunk N+1 is similarly decontextualised. When the user asks about that concept, neither chunk scores high enough to be retrieved, and the model has to answer without the information. Overlap ensures that content near a boundary appears in both the preceding and following chunk, so it has multiple chances to be retrieved. A 15–20% overlap (e.g. 40–50 tokens of overlap on a 256-token chunk) typically captures this without excessive duplication.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>In semantic chunking, what does the <code>threshold</code> parameter control and what happens if you set it too high vs too low?</summary>
+          <div class="selfcheck__a">The threshold is the cosine similarity value below which consecutive sentences are considered to have changed topic. <strong>Too high (e.g. 0.8)</strong>: splits too aggressively — even minor style variation between sentences in the same paragraph triggers a split. You get very small, decontextualised chunks that lack the surrounding information needed to answer questions. <strong>Too low (e.g. 0.1)</strong>: almost never splits — genuinely different topics are merged into one large chunk. The embedding averages over multiple topics and retrieval precision drops. <strong>Practical starting point</strong>: 0.3–0.5. Run your eval set (module 4.8) with a few threshold values and pick the one that maximises context precision and recall together.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What metadata should you store alongside each chunk, and why does it matter for production RAG?</summary>
+          <div class="selfcheck__a">At minimum: (1) <strong>source filename / document ID</strong> — enables source attribution in answers and lets users verify claims; (2) <strong>section or page number</strong> — lets users navigate to the exact location; (3) <strong>chunk index within document</strong> — enables parent-chunk retrieval (fetch surrounding chunks when this one is retrieved); (4) <strong>document metadata</strong> (date, author, department, access level) — enables pre-retrieval filtering so a finance team query doesn't retrieve HR-confidential documents. In multi-tenant or enterprise deployments, metadata filtering is how you enforce data access controls — the vector similarity search alone cannot distinguish "documents this user is allowed to see" from "all documents". Metadata fields are the mechanism.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Up next</div>
+          <div class="next-mod__title">4.3 · Embedding Models</div>
+          <p class="next-mod__desc">Choosing the right embedding model — general vs domain-specific, vector dimensions and their tradeoffs, OpenAI ada-002 vs open-source alternatives, and how to benchmark embedding quality for your specific corpus.</p>
+        </div>
+        <a class="next-btn" href="module-4-3.html">Continue →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#the-chunking-tradeoff">The chunking tradeoff</a>
+    <a href="#fixed-size">Fixed-size chunking</a>
+    <a href="#sentence-chunking">Sentence-aware chunking</a>
+    <a href="#recursive-chunking">Recursive splitting</a>
+    <a href="#semantic-chunking">Semantic chunking</a>
+    <a href="#strategy-selection">Choosing a strategy</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 4.2 / 62<br/>Phase 4 · Week 9<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 8.3 LLMOps — Observability · by Harish Mondepu</title>
+<meta name="description" content="LangSmith and LangFuse for distributed traces, token cost dashboards, latency percentiles, and failure rate analysis by tool, route, and model."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#854d0e;--phase-hi:#a16207;--phase-soft:rgba(161,98,7,.1);--phase-text:#854d0e}
+[data-theme="dark"]{--phase:#eab308;--phase-hi:#facc15;--phase-soft:rgba(234,179,8,.1);--phase-text:#fef08a}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 8 · <strong>LLMOps — Observability</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 55 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#1aada0"></span>Phase 1 · Python Foundations ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#06b6d4"></span>Phase 2 · LLM Mental Model ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#a78bfa"></span>Phase 3 · Prompt Engineering ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f06292"></span>Phase 4 · RAG + Evaluation ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#10b981"></span>Phase 5 · Tools, MCP &amp; Agents ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f59e0b"></span>Phase 6 · Memory &amp; Context ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f97316"></span>Phase 7 · Multi-Agent Orchestration ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 8 · Guardrails &amp; LLMOps
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-8-1.html"><span class="sidebar__mod-num">8.1</span>Three-Layer Guardrails ✓</a>
+        <a class="sidebar__mod done" href="module-8-2.html"><span class="sidebar__mod-num">8.2</span>AWS Bedrock Guardrails ✓</a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">8.3</span>LLMOps — Observability</a>
+        <a class="sidebar__mod" href="module-8-4.html"><span class="sidebar__mod-num">8.4</span>LLMOps — Evaluation</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 08</span>
+        <span class="tag tag--level">Advanced</span>
+        <span class="tag tag--week">Week 24</span>
+      </div>
+      <h1 class="mod-head__title">LLMOps — <em>Observability</em></h1>
+      <p class="mod-head__sub">You can't debug what you can't see. LLM applications fail in ways that don't surface in conventional application monitoring: a model that starts returning shorter answers, a retrieval pipeline that silently degrades, a tool that costs three times more than last week. This module builds the observability stack that makes these problems visible — distributed traces with LangSmith and LangFuse, token cost dashboards, latency percentile tracking, and failure rate breakdowns by tool, route, and model.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~22 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>4 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li><strong>LangSmith vs LangFuse:</strong> LangSmith is tightly integrated with LangChain/LangGraph and the default for those stacks; LangFuse is open-source, self-hostable, provider-agnostic — better for non-LangChain stacks or when you need data sovereignty</li>
+          <li><strong>The four metrics that matter:</strong> total cost/request, p95 latency per node, tool error rate, and retrieval relevance score — everything else is derived from these</li>
+          <li><strong>Latency percentiles:</strong> p50 tells you what normal looks like; p95 and p99 tell you what your worst users experience — alert on p95, capacity-plan on p99</li>
+          <li><strong>Failure rate by dimension:</strong> a global 2% error rate hides a 40% error rate on one tool — always break down by tool name, route, and model before investigating</li>
+          <li><strong>Cost attribution:</strong> tag every LLM call with the workflow name and node name so you know which part of a multi-agent pipeline is the cost driver</li>
+        </ul>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="langsmith-vs-langfuse">LangSmith vs LangFuse <a class="anchor" href="#langsmith-vs-langfuse">#</a></h2>
+        <p>Both platforms capture the same core data: a hierarchy of spans representing each LLM call, tool invocation, and chain step, with input/output text, latency, and token counts at each level. The practical difference is ecosystem and hosting.</p>
+
+        <div class="reveal" style="margin:1.5rem 0;overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border)">
+                <th style="text-align:left;padding:.5rem .7rem;color:var(--fg-dim);font-weight:600">Feature</th>
+                <th style="text-align:left;padding:.5rem .7rem;color:var(--fg-dim);font-weight:600">LangSmith</th>
+                <th style="text-align:left;padding:.5rem .7rem;color:var(--fg-dim);font-weight:600">LangFuse</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.5rem .7rem">Hosting</td>
+                <td style="padding:.5rem .7rem">Cloud SaaS (Langchain)</td>
+                <td style="padding:.5rem .7rem">Cloud SaaS or self-hosted (Docker/K8s)</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.5rem .7rem">LangChain/Graph integration</td>
+                <td style="padding:.5rem .7rem;color:var(--phase-text)">Native — 3 env vars, zero code</td>
+                <td style="padding:.5rem .7rem">Via LangFuse callback handler</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.5rem .7rem">Provider-agnostic</td>
+                <td style="padding:.5rem .7rem">Partial — works with any, best with Langchain</td>
+                <td style="padding:.5rem .7rem;color:var(--phase-text)">Yes — OpenAI, Anthropic, raw HTTP</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.5rem .7rem">Data sovereignty</td>
+                <td style="padding:.5rem .7rem">Data sent to Langchain servers</td>
+                <td style="padding:.5rem .7rem;color:var(--phase-text)">Self-host keeps data on-prem</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td style="padding:.5rem .7rem">Pricing</td>
+                <td style="padding:.5rem .7rem">Free tier, then per-seat + usage</td>
+                <td style="padding:.5rem .7rem">Free tier + open-source self-host</td>
+              </tr>
+              <tr>
+                <td style="padding:.5rem .7rem">Best for</td>
+                <td style="padding:.5rem .7rem">LangGraph-native teams</td>
+                <td style="padding:.5rem .7rem">Non-LangChain stacks, compliance-heavy orgs</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="langfuse-sdk">LangFuse SDK instrumentation <a class="anchor" href="#langfuse-sdk">#</a></h2>
+        <p>LangFuse's Python SDK lets you instrument any LLM code — not just LangChain — with a clean context-manager API. Each <code>trace</code> represents one user request; spans are nested operations inside it.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">langfuse_instrumentation.py — provider-agnostic tracing</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="cm"># pip install langfuse</span>
+<span class="kw">from</span> langfuse <span class="kw">import</span> Langfuse
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+<span class="kw">import</span> anthropic
+
+langfuse = <span class="tp">Langfuse</span>(
+    public_key=<span class="st">"pk-lf-..."</span>,
+    secret_key=<span class="st">"sk-lf-..."</span>,
+    host=<span class="st">"https://cloud.langfuse.com"</span>,   <span class="cm"># or your self-hosted URL</span>
+)
+
+client = anthropic.<span class="tp">Anthropic</span>()
+
+<span class="kw">async def</span> <span class="fn">handle_request</span>(user_id: <span class="tp">str</span>, user_message: <span class="tp">str</span>, request_id: <span class="tp">str</span>):
+    trace = langfuse.<span class="fn">trace</span>(
+        name=<span class="st">"customer-support-agent"</span>,
+        user_id=user_id,
+        session_id=request_id,
+        metadata={<span class="st">"channel"</span>: <span class="st">"web"</span>},
+    )
+
+    <span class="cm"># ── Retrieval span ──────────────────────────────────────────────────</span>
+    retrieval_span = trace.<span class="fn">span</span>(name=<span class="st">"retrieval"</span>, input={<span class="st">"query"</span>: user_message})
+    passages = <span class="kw">await</span> <span class="fn">retrieve_context</span>(user_message)
+    retrieval_span.<span class="fn">end</span>(output={<span class="st">"passages_count"</span>: <span class="fn">len</span>(passages), <span class="st">"passages"</span>: passages[:<span class="nm">2</span>]})
+
+    <span class="cm"># ── LLM generation span ────────────────────────────────────────────</span>
+    generation = trace.<span class="fn">generation</span>(
+        name=<span class="st">"claude-response"</span>,
+        model=<span class="st">"claude-sonnet-4-6"</span>,
+        input=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: user_message}],
+    )
+    t0 = datetime.<span class="fn">utcnow</span>()
+    response = client.messages.<span class="fn">create</span>(
+        model=<span class="st">"claude-sonnet-4-6-20250219"</span>,
+        max_tokens=<span class="nm">1024</span>,
+        messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: user_message}],
+    )
+    generation.<span class="fn">end</span>(
+        output=response.content[<span class="nm">0</span>].text,
+        usage={
+            <span class="st">"input"</span>:   response.usage.input_tokens,
+            <span class="st">"output"</span>:  response.usage.output_tokens,
+        },
+        metadata={<span class="st">"latency_ms"</span>: (<span class="fn">datetime</span>.<span class="fn">utcnow</span>() - t0).<span class="fn">microseconds</span> // <span class="nm">1000</span>},
+    )
+
+    <span class="cm"># Scores can be added later (e.g., from user feedback or evaluation runs)</span>
+    trace.<span class="fn">score</span>(name=<span class="st">"user_rating"</span>, value=<span class="nm">1</span>)    <span class="cm"># 1 = thumbs-up, 0 = thumbs-down</span>
+    <span class="kw">return</span> response.content[<span class="nm">0</span>].text</code></pre>
+        </div>
+
+        <h2 id="cost-dashboard">Token cost dashboards <a class="anchor" href="#cost-dashboard">#</a></h2>
+        <p>LLM costs compound in multi-agent systems. The dashboard metric that matters most is <em>cost per successful request</em> — not total cost, which rises naturally with volume, but the unit cost. A rising unit cost signals prompt bloat, missing caching, or a workflow regression.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">cost_tracking.py — per-request cost attribution</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="cm"># Model pricing (update when providers change rates)</span>
+PRICE_PER_MTok = {
+    <span class="st">"claude-sonnet-4-6"</span>:     {<span class="st">"input"</span>: <span class="nm">3.00</span>,  <span class="st">"output"</span>: <span class="nm">15.00</span>},
+    <span class="st">"claude-haiku-4-5"</span>:      {<span class="st">"input"</span>: <span class="nm">0.80</span>,  <span class="st">"output"</span>: <span class="nm">4.00</span>},
+    <span class="st">"gpt-4o"</span>:                {<span class="st">"input"</span>: <span class="nm">2.50</span>,  <span class="st">"output"</span>: <span class="nm">10.00</span>},
+    <span class="st">"gpt-4o-mini"</span>:           {<span class="st">"input"</span>: <span class="nm">0.15</span>,  <span class="st">"output"</span>: <span class="nm">0.60</span>},
+}
+
+<span class="kw">def</span> <span class="fn">calculate_cost</span>(model: <span class="tp">str</span>, input_tokens: <span class="tp">int</span>, output_tokens: <span class="tp">int</span>) -&gt; <span class="tp">float</span>:
+    prices = PRICE_PER_MTok.<span class="fn">get</span>(model, {<span class="st">"input"</span>: <span class="nm">0</span>, <span class="st">"output"</span>: <span class="nm">0</span>})
+    <span class="kw">return</span> (input_tokens * prices[<span class="st">"input"</span>] + output_tokens * prices[<span class="st">"output"</span>]) / <span class="nm">1_000_000</span>
+
+<span class="cm"># ── Prometheus metrics for Grafana dashboards ─────────────────────────</span>
+<span class="kw">from</span> prometheus_client <span class="kw">import</span> Counter, Histogram, Gauge
+
+llm_tokens_total = <span class="tp">Counter</span>(
+    <span class="st">"llm_tokens_total"</span>, <span class="st">"Total tokens used"</span>,
+    [<span class="st">"model"</span>, <span class="st">"workflow"</span>, <span class="st">"node"</span>, <span class="st">"token_type"</span>]   <span class="cm"># label dimensions for slicing</span>
+)
+llm_cost_dollars = <span class="tp">Counter</span>(
+    <span class="st">"llm_cost_dollars_total"</span>, <span class="st">"Estimated LLM cost in USD"</span>,
+    [<span class="st">"model"</span>, <span class="st">"workflow"</span>]
+)
+llm_latency_ms = <span class="tp">Histogram</span>(
+    <span class="st">"llm_latency_milliseconds"</span>, <span class="st">"LLM call latency"</span>,
+    [<span class="st">"model"</span>, <span class="st">"workflow"</span>, <span class="st">"node"</span>],
+    buckets=[<span class="nm">100</span>, <span class="nm">250</span>, <span class="nm">500</span>, <span class="nm">1000</span>, <span class="nm">2000</span>, <span class="nm">5000</span>, <span class="nm">10000</span>, <span class="nm">30000</span>]
+)
+tool_errors_total = <span class="tp">Counter</span>(
+    <span class="st">"tool_errors_total"</span>, <span class="st">"Tool invocation errors"</span>,
+    [<span class="st">"tool_name"</span>, <span class="st">"error_type"</span>, <span class="st">"workflow"</span>]
+)
+
+<span class="kw">def</span> <span class="fn">record_llm_call</span>(model: <span class="tp">str</span>, workflow: <span class="tp">str</span>, node: <span class="tp">str</span>,
+                    input_tok: <span class="tp">int</span>, output_tok: <span class="tp">int</span>, latency_ms: <span class="tp">float</span>):
+    llm_tokens_total.<span class="fn">labels</span>(model, workflow, node, <span class="st">"input"</span>).<span class="fn">inc</span>(input_tok)
+    llm_tokens_total.<span class="fn">labels</span>(model, workflow, node, <span class="st">"output"</span>).<span class="fn">inc</span>(output_tok)
+    llm_cost_dollars.<span class="fn">labels</span>(model, workflow).<span class="fn">inc</span>(<span class="fn">calculate_cost</span>(model, input_tok, output_tok))
+    llm_latency_ms.<span class="fn">labels</span>(model, workflow, node).<span class="fn">observe</span>(latency_ms)</code></pre>
+        </div>
+
+        <h2 id="latency-percentiles">Latency percentiles <a class="anchor" href="#latency-percentiles">#</a></h2>
+        <p>p50 is the median — half of requests are faster, half are slower. p95 is what 1 in 20 users experiences. p99 is what 1 in 100 experiences. In LLM applications p99 is often 10–50× higher than p50 because of occasional model timeouts, cold-start penalties, and retrieval outliers.</p>
+        <p>Alert when p95 crosses 2× the rolling 7-day baseline. Alert when p99 crosses 5 s for interactive endpoints. Use p99 for capacity planning — if your SLA is "99% of requests under 10 s" you need to know p99, not p50.</p>
+
+        <h2 id="failure-rates">Failure rate by dimension <a class="anchor" href="#failure-rates">#</a></h2>
+        <p>A global error rate of 2% often hides a 40% error rate on one specific tool, model, or workflow route. Always slice failure rates by at least three dimensions before investigating.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">failure_analysis.py — SQL to surface failure hot-spots</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="cm">-- LangFuse SQL (works in Metabase, Superset, or direct Postgres)</span>
+<span class="cm">-- Failure rate by tool name over the last 7 days</span>
+<span class="kw">SELECT</span>
+    observations.name                                               <span class="kw">AS</span> tool_name,
+    <span class="fn">COUNT</span>(*)                                                       <span class="kw">AS</span> total_calls,
+    <span class="fn">COUNT</span>(*) FILTER (<span class="kw">WHERE</span> observations.level = <span class="st">'ERROR'</span>)           <span class="kw">AS</span> errors,
+    <span class="fn">ROUND</span>(
+        <span class="nm">100.0</span> * <span class="fn">COUNT</span>(*) FILTER (<span class="kw">WHERE</span> observations.level = <span class="st">'ERROR'</span>) / <span class="fn">COUNT</span>(*), <span class="nm">1</span>
+    )                                                              <span class="kw">AS</span> error_pct,
+    <span class="fn">PERCENTILE_CONT</span>(<span class="nm">0.95</span>) <span class="kw">WITHIN GROUP</span> (<span class="kw">ORDER BY</span> observations.latency) <span class="kw">AS</span> p95_ms
+<span class="kw">FROM</span> observations
+<span class="kw">WHERE</span>
+    observations.type = <span class="st">'TOOL'</span>
+    <span class="kw">AND</span> observations.start_time &gt;= <span class="fn">NOW</span>() - <span class="kw">INTERVAL</span> <span class="st">'7 days'</span>
+<span class="kw">GROUP BY</span> tool_name
+<span class="kw">ORDER BY</span> error_pct <span class="kw">DESC</span>
+<span class="kw">LIMIT</span> <span class="nm">20</span>;</code></pre>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">✦</span>
+          <div>
+            <strong class="callout__title">The four alerts that cover 80% of production incidents</strong>
+            Set up exactly these four alerts and you'll catch most problems before users report them: (1) p95 latency &gt; 2× 7-day rolling average, (2) tool error rate &gt; 5% on any single tool over a 15-min window, (3) cost/request &gt; 2× 7-day rolling average, (4) guardrail intervention rate &gt; 10% over a 1-hour window (signals a new attack pattern or prompt regression).
+          </div>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: LLMOps — Evaluation in Production</div>
+            <div class="cta-block__sub">Module 8.4 — the Phase 8 finale — covers golden dataset regression tests in CI, A/B testing prompt and model changes, user feedback loops, and drift detection on retrieval quality.</div>
+          </div>
+          <a class="cta-block__btn" href="module-8-4.html">Module 8.4 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#langsmith-vs-langfuse">LangSmith vs LangFuse</a></li>
+      <li><a class="toc__link" href="#langfuse-sdk">LangFuse instrumentation</a></li>
+      <li><a class="toc__link" href="#cost-dashboard">Token cost dashboards</a></li>
+      <li><a class="toc__link" href="#latency-percentiles">Latency percentiles</a></li>
+      <li><a class="toc__link" href="#failure-rates">Failure rate analysis</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){const h=document.documentElement;const dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');localStorage.setItem('ae-theme',dark?'light':'dark');document.getElementById('themeIcon').textContent=dark?'☀':'☾';document.getElementById('themeLabel').textContent=dark?'Light':'Dark';}
+(function(){const t=localStorage.getItem('ae-theme');if(t){document.documentElement.setAttribute('data-theme',t);const dark=t==='dark';document.getElementById('themeIcon').textContent=dark?'☾':'☀';document.getElementById('themeLabel').textContent=dark?'Dark':'Light';}})();
+function copyCode(btn){const code=btn.closest('.code-wrap').querySelector('pre code');navigator.clipboard.writeText(code.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{es.forEach(e=>{const id=e.target.id;if(!id)return;const link=document.querySelector(`.toc__link[href="#${id}"]`);if(!link)return;if(e.isIntersecting){document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));link.classList.add('active');}});},{rootMargin:'-20% 0px -70% 0px'});document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

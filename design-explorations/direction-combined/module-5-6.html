@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 5.6 Human in the Loop · by Harish Mondepu</title>
+<meta name="description" content="When to pause an agent and ask a human — interrupt patterns, LangGraph checkpointers for resumable pauses, and the decision framework for which operations need approval."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#059669;--phase-hi:#10b981;--phase-soft:rgba(16,185,129,.1);--phase-text:#059669}
+[data-theme="dark"]{--phase:#10b981;--phase-hi:#34d399;--phase-soft:rgba(16,185,129,.1);--phase-text:#a7f3d0}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 5 · <strong>Human in the Loop</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 35 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#a78bfa"></span>
+        Phase 3 · Prompt Engineering ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#f06292"></span>
+        Phase 4 · RAG + Evaluation ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 5 · Tools, MCP &amp; Agents
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-5-1.html"><span class="sidebar__mod-num">5.1</span>Function Calling<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-5-2.html"><span class="sidebar__mod-num">5.2</span>Tool Design Principles<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-5-3.html"><span class="sidebar__mod-num">5.3</span>MCP Protocol<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-5-4.html"><span class="sidebar__mod-num">5.4</span>The ReAct Pattern<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-5-5.html"><span class="sidebar__mod-num">5.5</span>LangChain Agents<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">5.6</span>Human in the Loop</a>
+        <a class="sidebar__mod" href="module-5-7.html"><span class="sidebar__mod-num">5.7</span>Tool Security</a>
+        <a class="sidebar__mod" href="module-5-8.html"><span class="sidebar__mod-num">5.8</span>Computer Use &amp; App SDKs</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 05</span>
+        <span class="tag tag--level">Intermediate</span>
+        <span class="tag tag--week">Week 15</span>
+      </div>
+      <h1 class="mod-head__title">Human <em>in the Loop</em></h1>
+      <p class="mod-head__sub">Fully autonomous agents are appropriate for low-stakes, reversible tasks. For irreversible actions — sending emails, writing to databases, making payments, deleting records — you need the ability to pause, show the human what the agent is about to do, and resume only after approval. This module covers the interrupt pattern in LangGraph, persistent checkpointing for resumable pauses, and the decision framework for identifying which operations require human oversight.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~20 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>3 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>The interrupt pattern pauses the agent graph before a specific node executes — the state is checkpointed, the human reviews and approves or rejects, then the graph resumes from the saved state</li>
+          <li>LangGraph's <code>interrupt_before</code> parameter specifies which nodes to pause before — the graph halts, your UI shows the pending action, and <code>agent.invoke(None, config)</code> resumes it</li>
+          <li>Persistent checkpointers (SqliteSaver, PostgresSaver) let pauses survive server restarts — essential for long-running workflows where approval may take hours</li>
+          <li>The human-in-the-loop decision should be driven by reversibility and blast radius — reads are always safe, DML writes above a size threshold need approval, irreversible actions (emails, payments, deletes) always need approval</li>
+          <li>Design your interrupts to show the human exactly what is about to happen in plain language — agent tool call JSON is not a suitable approval UI</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Module 5.5 — LangGraph agents and checkpointers</li>
+            <li><div class="meta-list__dot">!</div><code>pip install langgraph langchain-openai</code></li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Implement a LangGraph interrupt_before pause and resume</li>
+            <li><div class="meta-list__dot">2</div>Use SqliteSaver for persistent pauses across server restarts</li>
+            <li><div class="meta-list__dot">3</div>Apply the reversibility decision framework to classify tools</li>
+            <li><div class="meta-list__dot">4</div>Design an approval UI that shows intent in plain language</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">Human-in-the-Loop with LangGraph — Interrupts and Approvals</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· search "LangGraph human in the loop interrupt approval 2024"</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/9BPCV5TYPmg" title="Human in the Loop" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ Building pausing and resumable agent workflows with LangGraph interrupts</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="when-to-pause">When to pause — the reversibility framework <a class="anchor" href="#when-to-pause">#</a></h2>
+        <p>Not every tool call needs human approval — that would defeat the purpose of automation. Use reversibility and blast radius to classify tools:</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem">Tool classification by reversibility</div>
+          <div style="display:flex;flex-direction:column;gap:.4rem;font-size:13px">
+            <div style="display:grid;grid-template-columns:40px 180px 1fr;gap:.75rem;padding:.6rem;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.3);border-radius:6px;align-items:start">
+              <div style="font-size:18px">✅</div>
+              <div style="font-weight:600;color:var(--fg)">Safe — no approval needed</div>
+              <div style="color:var(--fg-dim)">Read operations (search, fetch, query SELECT), calculations, status checks. Reversible by default because nothing is changed.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:40px 180px 1fr;gap:.75rem;padding:.6rem;background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.3);border-radius:6px;align-items:start">
+              <div style="font-size:18px">⚠</div>
+              <div style="font-weight:600;color:var(--fg)">Review — context-dependent</div>
+              <div style="color:var(--fg-dim)">Creating records, updating single records, posting to internal systems. Reversible with effort — can be undone but requires manual work. Require approval if above a size threshold (e.g. bulk updates >10 records) or if confidence in model intent is low.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:40px 180px 1fr;gap:.75rem;padding:.6rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:6px;align-items:start">
+              <div style="font-size:18px">🔴</div>
+              <div style="font-weight:600;color:var(--fg)">Always approve</div>
+              <div style="color:var(--fg-dim)">Sending emails/messages, processing payments, deleting records, deploying code, modifying permissions. Irreversible or difficult to undo — human eyes before execution, always.</div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="interrupt-pattern">The interrupt pattern in LangGraph <a class="anchor" href="#interrupt-pattern">#</a></h2>
+        <p>LangGraph represents the agent as a state graph. The <code>interrupt_before</code> parameter tells the graph to pause before executing specific nodes — most commonly the <code>"tools"</code> node, which is where tool calls execute. The graph state is checkpointed at the pause point, your code shows the pending action to the user, and <code>agent.invoke(None, config)</code> resumes from the checkpoint.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">hitl_agent.py — human-in-the-loop with LangGraph interrupts</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> langchain_openai <span class="kw">import</span> ChatOpenAI
+<span class="kw">from</span> langchain.tools <span class="kw">import</span> tool
+<span class="kw">from</span> langgraph.prebuilt <span class="kw">import</span> create_react_agent
+<span class="kw">from</span> langgraph.checkpoint.memory <span class="kw">import</span> MemorySaver
+
+<span class="op">@</span><span class="fn">tool</span>
+<span class="kw">def</span> <span class="fn">send_email</span>(to: <span class="tp">str</span>, subject: <span class="tp">str</span>, body: <span class="tp">str</span>) -> <span class="tp">dict</span>:
+    <span class="st">"""Send an email. ALWAYS requires human approval before sending."""</span>
+    <span class="cm"># In production: call email API (SendGrid, SES, etc.)</span>
+    <span class="fn">print</span>(<span class="st">f"[EMAIL SENT] To: {to} | Subject: {subject}"</span>)
+    <span class="kw">return</span> {<span class="st">"status"</span>: <span class="st">"sent"</span>, <span class="st">"to"</span>: to, <span class="st">"subject"</span>: subject}
+
+<span class="op">@</span><span class="fn">tool</span>
+<span class="kw">def</span> <span class="fn">search_contacts</span>(query: <span class="tp">str</span>) -> <span class="tp">list</span>:
+    <span class="st">"""Search contacts by name or email. Safe — read only."""</span>
+    <span class="kw">return</span> [{<span class="st">"name"</span>: <span class="st">"Alice Smith"</span>, <span class="st">"email"</span>: <span class="st">"alice@example.com"</span>}]
+
+model = <span class="fn">ChatOpenAI</span>(model=<span class="st">"gpt-4o-mini"</span>)
+memory = <span class="fn">MemorySaver</span>()
+config = {<span class="st">"configurable"</span>: {<span class="st">"thread_id"</span>: <span class="st">"email-task-1"</span>}}
+
+<span class="cm"># ── interrupt_before="tools" pauses before ANY tool executes ──────────</span>
+agent = <span class="fn">create_react_agent</span>(
+    model=model,
+    tools=[search_contacts, send_email],
+    checkpointer=memory,
+    interrupt_before=[<span class="st">"tools"</span>],
+)
+
+<span class="cm"># ── First invocation: agent plans, then pauses before tool execution ──</span>
+result = agent.<span class="fn">invoke</span>(
+    {<span class="st">"messages"</span>: [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"Email Alice Smith saying the meeting is moved to Thursday"</span>}]},
+    config=config,
+)
+
+<span class="cm"># Check what the agent wants to do</span>
+state = agent.<span class="fn">get_state</span>(config)
+pending = state.next  <span class="cm"># ["tools"] — waiting for approval</span>
+
+last_msg = state.values[<span class="st">"messages"</span>][-<span class="nm">1</span>]
+<span class="kw">if</span> <span class="fn">hasattr</span>(last_msg, <span class="st">"tool_calls"</span>):
+    <span class="kw">for</span> tc <span class="kw">in</span> last_msg.tool_calls:
+        <span class="fn">print</span>(<span class="st">f"\n⏸ PENDING APPROVAL: {tc['name']}"</span>)
+        <span class="fn">print</span>(<span class="st">f"   Arguments: {tc['args']}"</span>)
+
+<span class="cm"># ── Human reviews and approves ────────────────────────────────────────</span>
+approval = <span class="fn">input</span>(<span class="st">"\nApprove? [y/n]: "</span>).<span class="fn">strip</span>().<span class="fn">lower</span>()
+
+<span class="kw">if</span> approval == <span class="st">"y"</span>:
+    <span class="cm"># Resume: invoke with None resumes from checkpoint</span>
+    final = agent.<span class="fn">invoke</span>(<span class="tp">None</span>, config=config)
+    <span class="fn">print</span>(<span class="st">"\n✅"</span>, final[<span class="st">"messages"</span>][-<span class="nm">1</span>].content)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="st">"❌ Cancelled by user."</span>)</code></pre>
+        </div>
+
+        <div class="callout callout--note">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">interrupt_before="tools" pauses before ALL tools</strong>
+            When you use <code>interrupt_before=["tools"]</code>, the agent pauses before executing any tool — including safe read-only tools like <code>search_contacts</code>. In production, you typically want selective interrupts: pause only before the dangerous tools, not the safe ones. The cleanest approach: separate your tools into "safe" and "sensitive" lists, or build a custom tool node that checks a per-tool <code>requires_approval</code> flag before executing.
+          </div>
+        </div>
+
+        <h2 id="persistent-checkpoints">Persistent checkpoints for long pauses <a class="anchor" href="#persistent-checkpoints">#</a></h2>
+        <p>If approval might take minutes or hours (a manager reviewing a large payment), you can't keep the state in RAM. Use a persistent checkpointer that saves to SQLite or Postgres, so the pause survives server restarts.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">persistent_hitl.py — SqliteSaver for durable pauses</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> langgraph.checkpoint.sqlite <span class="kw">import</span> SqliteSaver
+<span class="kw">import</span> sqlite3
+
+<span class="cm"># SQLite-backed checkpointer — survives server restarts</span>
+conn = sqlite3.<span class="fn">connect</span>(<span class="st">"agent_checkpoints.db"</span>, check_same_thread=<span class="tp">False</span>)
+memory = <span class="fn">SqliteSaver</span>(conn)
+
+agent = <span class="fn">create_react_agent</span>(
+    model=model,
+    tools=[search_contacts, send_email],
+    checkpointer=memory,
+    interrupt_before=[<span class="st">"tools"</span>],
+)
+
+<span class="cm"># Pause, shut down server, restart, resume from checkpoint:</span>
+thread_id = <span class="st">"approval-task-42"</span>
+config = {<span class="st">"configurable"</span>: {<span class="st">"thread_id"</span>: thread_id}}
+
+<span class="cm"># On restart — check for pending approvals:</span>
+state = agent.<span class="fn">get_state</span>(config)
+<span class="kw">if</span> state.next == [<span class="st">"tools"</span>]:
+    <span class="fn">print</span>(<span class="st">"Resuming approval for task"</span>, thread_id)
+    <span class="cm"># Show the pending action, get approval, then:</span>
+    final = agent.<span class="fn">invoke</span>(<span class="tp">None</span>, config=config)  <span class="cm"># resume</span>
+
+<span class="cm"># For production: use PostgresSaver for distributed deployments</span>
+<span class="cm"># from langgraph.checkpoint.postgres import PostgresSaver</span></code></pre>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">Show intent in plain language, not tool call JSON</strong>
+            The approval UI should present the pending action in human-readable form: "The agent wants to send an email to alice@example.com with subject 'Meeting rescheduled to Thursday'. Do you approve?" — not the raw <code>{"name": "send_email", "args": {...}}</code> JSON. Add a translation layer between the tool call and the approval screen. If the tool arguments include recipient, subject, and body, render them in a readable preview. Humans approve intent, not JSON objects.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 5.6: Human in the Loop</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~20 min · 3 live code demos</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 5:00</span><span class="script-action">INTRO + DIAGRAM</span><span class="script-narration">"Fully autonomous is great — until the agent sends the wrong email to your entire customer list, or deletes six months of data because it misunderstood 'clean up the records'. Human-in-the-loop is not about distrust — it's about matching the level of automation to the reversibility of the action. Show the classification table: reads are always safe, irreversible actions always need eyes."</span></div>
+          <div class="script-line"><span class="script-ts">5:00 – 13:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run hitl_agent.py. "Ask the agent to email Alice. It plans, calls search_contacts, pauses. Watch the PENDING APPROVAL output: tool name and arguments. The graph is frozen — I can inspect the state, show the pending action to the user, even modify the arguments if needed. Type 'y' — invoke(None, config) resumes from exactly where it paused. Type 'n' — agent cancelled. This is the approval pattern in three lines of application code."</span></div>
+          <div class="script-line"><span class="script-ts">13:00 – 20:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Show persistent_hitl.py with SqliteSaver. "MemorySaver is in-RAM — restart the process, approval gone. SqliteSaver writes to a file. Simulate a server restart: comment out the initial invoke, run just the get_state and resume. It finds the pending approval from the previous run and continues. In production you'd use PostgresSaver for horizontal scaling — any server instance can pick up any approval task."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>Explain the LangGraph interrupt mechanism. What happens to the agent's state when it hits an interrupt_before node, and what is the sequence of calls to resume it?</summary>
+          <div class="selfcheck__a">When a LangGraph agent hits a node listed in <code>interrupt_before</code>, the graph execution pauses at that node without executing it. The graph's current state — including all messages, tool call requests, and any intermediate data — is serialised and saved to the checkpointer (MemorySaver, SqliteSaver, etc.) under the current <code>thread_id</code>. The <code>agent.invoke()</code> call returns with the current state, but the agent has not yet executed the pending tool calls. To inspect the pending action, call <code>agent.get_state(config)</code> — this returns the state object with <code>state.next</code> telling you which node is waiting and <code>state.values["messages"][-1].tool_calls</code> showing the pending tool call details. To resume, call <code>agent.invoke(None, config)</code> — passing <code>None</code> as the input tells LangGraph to resume from the checkpoint rather than starting a new conversation. The graph continues from the paused node, executes the tool calls, and continues the ReAct loop. To cancel, call <code>agent.update_state(config, {"messages": [...]}, as_node="tools")</code> to inject a cancellation message before resuming.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Your agent has 8 tools: 5 read-only lookups and 3 write operations. How would you implement selective interrupts that only pause for the write operations?</summary>
+          <div class="selfcheck__a">LangGraph's <code>interrupt_before=["tools"]</code> pauses before the entire tools node, affecting all tools. To selectively pause only for writes, replace the default tools node with a custom function that inspects each tool call before executing: define a custom <code>call_tools</code> node that iterates over <code>state["messages"][-1].tool_calls</code>, checks whether each tool is in a predefined "requires_approval" set, and raises an <code>NodeInterrupt</code> exception (LangGraph's mechanism for conditional interrupts) only for those tools. Another approach: add a <code>requires_approval: bool</code> attribute to each tool definition and check it in the custom tools node. A third approach: use two separate tool nodes — a "safe_tools" node and a "sensitive_tools" node — with routing logic that sends the model's tool calls to the correct node, and only apply <code>interrupt_before</code> to the "sensitive_tools" node. The custom tools node approach is the most flexible for production.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>Why is MemorySaver insufficient for a production approval workflow where managers might take hours to respond, and what should you use instead?</summary>
+          <div class="selfcheck__a">MemorySaver stores the checkpointed agent state in the Python process's heap memory. This has two critical production problems: (1) Process restarts destroy all state — if the server crashes or restarts during deployment while an approval is pending, the approval workflow is lost and the task must be restarted from scratch; (2) Horizontal scaling is impossible — if you run multiple instances of the agent service behind a load balancer, each instance has its own MemorySaver and instances can't see each other's checkpoints. A manager on Instance A approves a task, but the resume call lands on Instance B which has no knowledge of the pending state. For production approval workflows, use SqliteSaver (single instance, survives restarts) or PostgresSaver/RedisSaver (multi-instance, distributed). The checkpointer interface is the same — only the constructor changes — so switching from MemorySaver to a persistent backend requires changing one line.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Next in Phase 5</div>
+          <div class="next-mod__title">5.7 · Tool Security</div>
+          <p class="next-mod__desc">Prompt injection via tool results, read-only database enforcement, per-tool max retries and timeouts — the security model for production agent tools.</p>
+        </div>
+        <a class="next-btn" href="module-5-7.html">Next Module →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#when-to-pause">When to pause — reversibility</a>
+    <a href="#interrupt-pattern">The interrupt pattern</a>
+    <a href="#persistent-checkpoints">Persistent checkpoints</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 5.6 / 62<br/>Phase 5 · Week 15<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

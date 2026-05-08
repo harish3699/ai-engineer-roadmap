@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 9.6 Cost &amp; Capacity Control · by Harish Mondepu</title>
+<meta name="description" content="Semantic cache hit rate, model routing, prompt compression, max-token caps, and load testing with Locust — the final module of the 26-week AI Engineer Roadmap."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#3730a3;--phase-hi:#4338ca;--phase-soft:rgba(67,56,202,.1);--phase-text:#3730a3}
+[data-theme="dark"]{--phase:#818cf8;--phase-hi:#a5b4fc;--phase-soft:rgba(129,140,248,.1);--phase-text:#c7d2fe}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 9 · <strong>Cost &amp; Capacity Control</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 62 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#1aada0"></span>Phase 1 · Python Foundations ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#06b6d4"></span>Phase 2 · LLM Mental Model ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#a78bfa"></span>Phase 3 · Prompt Engineering ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f06292"></span>Phase 4 · RAG + Evaluation ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#10b981"></span>Phase 5 · Tools, MCP &amp; Agents ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f59e0b"></span>Phase 6 · Memory &amp; Context ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f97316"></span>Phase 7 · Multi-Agent Orchestration ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#eab308"></span>Phase 8 · Guardrails &amp; LLMOps ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 9 · Cloud Infrastructure
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-9-1.html"><span class="sidebar__mod-num">9.1</span>Storage &amp; Data ✓</a>
+        <a class="sidebar__mod done" href="module-9-2.html"><span class="sidebar__mod-num">9.2</span>Compute ✓</a>
+        <a class="sidebar__mod done" href="module-9-3.html"><span class="sidebar__mod-num">9.3</span>Networking &amp; Access ✓</a>
+        <a class="sidebar__mod done" href="module-9-4.html"><span class="sidebar__mod-num">9.4</span>AI-Specific Services ✓</a>
+        <a class="sidebar__mod done" href="module-9-5.html"><span class="sidebar__mod-num">9.5</span>Deployment &amp; Realtime ✓</a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">9.6</span>Cost &amp; Capacity</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 09</span>
+        <span class="tag tag--level">Advanced</span>
+        <span class="tag tag--week">Week 26</span>
+        <span class="tag" style="background:var(--phase-soft);color:var(--phase-text);border-color:var(--phase-soft)">Final Module</span>
+      </div>
+      <h1 class="mod-head__title">Cost <em>&amp; Capacity Control</em></h1>
+      <p class="mod-head__sub">The system runs. Now make it run cheaply and not fall over under load. LLM applications fail under concurrency in ways that traditional web applications don't — the bottleneck is usually your application server, not the LLM API. This final module covers semantic cache hit rate as the key cost KPI, model routing to avoid over-spending on simple queries, prompt compression, max-token caps, and load testing with Locust to find your breaking point before users do.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~20 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>4 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li><strong>Cache hit rate is your cost KPI:</strong> a 40% hit rate means 40% of requests are served for ~$0 in model cost — track it on your dashboard and treat a drop as an incident</li>
+          <li><strong>Model routing:</strong> classify query complexity (simple/medium/complex) and route to Haiku/Sonnet/Opus accordingly — the 80% of simple queries run at 10× lower cost without quality loss</li>
+          <li><strong>Prompt compression reduces both cost and latency:</strong> drop low-information tokens before the LLM call, not after — every token you remove saves money and speeds up TTFT</li>
+          <li><strong>Agents fall over at concurrency, not at single-request load:</strong> 50 concurrent users with 30-second agent runs means 1500 seconds of active agent work — Locust reveals this before you deploy</li>
+          <li><strong>Rate-limit at the gateway, not the model:</strong> your API Gateway rate limit protects your infra; the model provider's rate limit protects theirs — you need both, and they're independent</li>
+        </ul>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="cache-hit-rate">Semantic cache hit rate as a KPI <a class="anchor" href="#cache-hit-rate">#</a></h2>
+        <p>The semantic cache from module 6.4 is your most powerful cost lever. A query that hits the cache costs zero model tokens — only the embedding call (~$0.00002). Monitor cache hit rate as a first-class KPI alongside latency and error rate.</p>
+        <p>Target ranges: &lt;20% hit rate means your cache threshold is too strict or your TTL too short. &gt;70% hit rate is excellent for FAQ-heavy applications. 30–50% is typical for general-purpose assistants. A sudden drop in hit rate often means a new type of user query — investigate whether the cache should be expanded or the threshold adjusted.</p>
+
+        <h2 id="model-routing">Model routing — cheap for simple, expensive for complex <a class="anchor" href="#model-routing">#</a></h2>
+        <p>Not every query needs your most capable model. A "what is your return policy?" question doesn't need Claude Sonnet — it needs Claude Haiku at 10× lower cost. Route by complexity classification before invoking the main agent.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">model_router.py — complexity-based model selection</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+<span class="kw">from</span> enum <span class="kw">import</span> Enum
+
+<span class="kw">class</span> <span class="tp">Complexity</span>(<span class="tp">Enum</span>):
+    SIMPLE  = <span class="st">"simple"</span>   <span class="cm"># factual lookup, FAQ — Haiku</span>
+    MEDIUM  = <span class="st">"medium"</span>   <span class="cm"># multi-step reasoning, synthesis — Sonnet</span>
+    COMPLEX = <span class="st">"complex"</span>  <span class="cm"># deep research, code generation, long output — Opus/Sonnet Max</span>
+
+<span class="kw">class</span> <span class="tp">RoutingDecision</span>(<span class="tp">BaseModel</span>):
+    complexity: <span class="tp">Complexity</span>
+    reason: <span class="tp">str</span>
+
+MODEL_MAP = {
+    <span class="tp">Complexity</span>.SIMPLE:  <span class="st">"claude-haiku-4-5-20251001"</span>,      <span class="cm"># $0.80/$4.00 per MTok</span>
+    <span class="tp">Complexity</span>.MEDIUM:  <span class="st">"claude-sonnet-4-6-20250219"</span>,     <span class="cm"># $3.00/$15.00 per MTok</span>
+    <span class="tp">Complexity</span>.COMPLEX: <span class="st">"claude-opus-4-7-20250514"</span>,       <span class="cm"># $15.00/$75.00 per MTok</span>
+}
+
+router_llm = haiku_llm.<span class="fn">with_structured_output</span>(<span class="tp">RoutingDecision</span>)
+
+ROUTER_SYSTEM = <span class="st">"""Classify the complexity of this user query.
+simple: factual single-answer, FAQ, definition lookup
+medium: requires reasoning, multi-step, summarisation
+complex: open-ended research, code generation, long analysis"""</span>
+
+<span class="kw">def</span> <span class="fn">route_query</span>(user_message: <span class="tp">str</span>) -&gt; <span class="tp">str</span>:
+    <span class="cm"># Use Haiku to classify — cheaper than the task it's routing</span>
+    decision: <span class="tp">RoutingDecision</span> = router_llm.<span class="fn">invoke</span>([
+        {<span class="st">"role"</span>: <span class="st">"system"</span>, <span class="st">"content"</span>: ROUTER_SYSTEM},
+        {<span class="st">"role"</span>: <span class="st">"user"</span>,   <span class="st">"content"</span>: user_message},
+    ])
+    model = MODEL_MAP[decision.complexity]
+    <span class="fn">log_info</span>(<span class="st">"ModelRouter"</span>, <span class="st">"route_query"</span>,
+             <span class="st">f"routed to {decision.complexity.value}: {model}"</span>)
+    <span class="kw">return</span> model</code></pre>
+        </div>
+
+        <h2 id="prompt-compression">Prompt compression <a class="anchor" href="#prompt-compression">#</a></h2>
+        <p>Every token in the prompt costs money and adds to TTFT (time to first token). Compression techniques from module 6.6 apply directly here: drop boilerplate system prompt sections that are never triggered for a given query, summarise tool results before appending them, and trim message history to a token budget. A typical RAG system can reduce input tokens by 30–50% with no quality loss.</p>
+
+        <h2 id="load-testing">Load testing with Locust <a class="anchor" href="#load-testing">#</a></h2>
+        <p>Agents fail differently under load than regular web APIs. A single request takes 5–30 s. 50 concurrent users means 50 simultaneous long-lived connections. Your FastAPI server runs out of worker threads long before the LLM rate limit is hit. Find this out with Locust before users do.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">locustfile.py — load testing an agent streaming endpoint</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">from</span> locust <span class="kw">import</span> HttpUser, task, between
+<span class="kw">import</span> json, random
+
+TEST_MESSAGES = [
+    <span class="st">"What is your return policy?"</span>,
+    <span class="st">"How do I integrate your API with Python?"</span>,
+    <span class="st">"Summarise the key differences between your Enterprise and Growth plans."</span>,
+    <span class="st">"I need help debugging a webhook that's not firing."</span>,
+]
+
+<span class="kw">class</span> <span class="tp">AgentUser</span>(<span class="tp">HttpUser</span>):
+    wait_time = <span class="fn">between</span>(<span class="nm">2</span>, <span class="nm">8</span>)   <span class="cm"># realistic inter-request pause (seconds)</span>
+
+    @<span class="fn">task</span>
+    <span class="kw">def</span> <span class="fn">chat_stream</span>(self):
+        message = random.<span class="fn">choice</span>(TEST_MESSAGES)
+
+        <span class="cm"># Use stream=True to consume SSE without buffering the full response</span>
+        <span class="kw">with</span> self.client.<span class="fn">post</span>(
+            <span class="st">"/chat/stream"</span>,
+            json={<span class="st">"message"</span>: message},
+            stream=<span class="kw">True</span>,
+            catch_response=<span class="kw">True</span>,
+            timeout=<span class="nm">60</span>,
+        ) <span class="kw">as</span> response:
+            <span class="kw">if</span> response.status_code != <span class="nm">200</span>:
+                response.<span class="fn">failure</span>(<span class="st">f"Got {response.status_code}"</span>)
+                <span class="kw">return</span>
+
+            chunks_received = <span class="nm">0</span>
+            <span class="kw">for</span> line <span class="kw">in</span> response.<span class="fn">iter_lines</span>():
+                <span class="kw">if</span> line.<span class="fn">startswith</span>(<span class="st">b"data: "</span>):
+                    data = json.<span class="fn">loads</span>(line[<span class="nm">6</span>:])
+                    <span class="kw">if</span> data[<span class="st">"type"</span>] == <span class="st">"done"</span>:
+                        <span class="kw">break</span>
+                    chunks_received += <span class="nm">1</span>
+
+            <span class="kw">if</span> chunks_received == <span class="nm">0</span>:
+                response.<span class="fn">failure</span>(<span class="st">"No tokens received"</span>)
+            <span class="kw">else</span>:
+                response.<span class="fn">success</span>()
+
+<span class="cm"># Run: locust -f locustfile.py --host=http://your-alb-url</span>
+<span class="cm"># Start with 10 users, ramp to 100 over 2 minutes</span>
+<span class="cm"># Watch: response time percentiles, failure rate, Fargate CPU/memory</span></code></pre>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">The concurrency bottleneck is your app server, not the LLM</strong>
+            Uvicorn with 2 workers handles ~100 concurrent requests comfortably. At 200 concurrent users with 20-second average response times that's 4000 request-seconds of work — you'll need 4 Fargate tasks at minimum, plus API Gateway rate limiting to smooth out spikes. Run Locust first, then size your service accordingly.
+          </div>
+        </div>
+
+        <div class="callout callout--success reveal">
+          <span class="callout__icon">★</span>
+          <div>
+            <strong class="callout__title">Course complete — 62 modules, 26 weeks</strong>
+            You've covered the entire AI Engineer Roadmap: Python and LLM foundations, prompt engineering, RAG and evaluation, tools and agents with MCP, memory and context engineering, multi-agent orchestration with LangGraph, guardrails and LLMOps, and cloud infrastructure on AWS. The system you can now build: a production multi-agent RAG pipeline — three-layer guardrails, semantic caching, persistent memory, LangSmith tracing, streaming to a chat UI, deployed on ECS Fargate behind API Gateway — that you can cost-optimise with model routing and load-test with Locust. That's the full stack.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">You've completed the roadmap</div>
+            <div class="cta-block__sub">All 62 modules across 9 phases and 26 weeks. The skills covered take you from Python fundamentals to deploying production multi-agent systems on AWS. Build something real — that's where the learning compounds.</div>
+          </div>
+          <a class="cta-block__btn" href="../../index.html">Back to overview →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#cache-hit-rate">Cache hit rate</a></li>
+      <li><a class="toc__link" href="#model-routing">Model routing</a></li>
+      <li><a class="toc__link" href="#prompt-compression">Prompt compression</a></li>
+      <li><a class="toc__link" href="#load-testing">Load testing</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){const h=document.documentElement;const dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');localStorage.setItem('ae-theme',dark?'light':'dark');document.getElementById('themeIcon').textContent=dark?'☀':'☾';document.getElementById('themeLabel').textContent=dark?'Light':'Dark';}
+(function(){const t=localStorage.getItem('ae-theme');if(t){document.documentElement.setAttribute('data-theme',t);const dark=t==='dark';document.getElementById('themeIcon').textContent=dark?'☾':'☀';document.getElementById('themeLabel').textContent=dark?'Dark':'Light';}})();
+function copyCode(btn){const code=btn.closest('.code-wrap').querySelector('pre code');navigator.clipboard.writeText(code.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{es.forEach(e=>{const id=e.target.id;if(!id)return;const link=document.querySelector(`.toc__link[href="#${id}"]`);if(!link)return;if(e.isIntersecting){document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));link.classList.add('active');}});},{rootMargin:'-20% 0px -70% 0px'});document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

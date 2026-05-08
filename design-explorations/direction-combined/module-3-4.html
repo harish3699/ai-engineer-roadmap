@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 3.4 Core Techniques · by Harish Mondepu</title>
+<meta name="description" content="Zero-shot, few-shot, role prompting, COSTAR framework, chain-of-thought, and iterative refinement — the canonical prompt engineering techniques with worked examples."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#7c3aed;--phase-hi:#8865a3;--phase-soft:rgba(124,58,237,.1);--phase-text:#7c3aed}
+[data-theme="dark"]{--phase:#a78bfa;--phase-hi:#c4b5fd;--phase-soft:rgba(167,139,250,.1);--phase-text:#c4b5fd}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 3 · <strong>Core Techniques</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 17 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#1aada0"></span>
+        Phase 1 · Python Foundations ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65">
+        <span class="sidebar__phase-indicator" style="background:#06b6d4"></span>
+        Phase 2 · LLM Mental Model ✓
+      </button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 3 · Prompt Engineering
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-3-1.html"><span class="sidebar__mod-num">3.1</span>UI vs API<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-3-2.html"><span class="sidebar__mod-num">3.2</span>Calling LLMs via API<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod done" href="module-3-3.html"><span class="sidebar__mod-num">3.3</span>Prompt Anatomy<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">3.4</span>Core Techniques<span class="sidebar__check">✓</span></a>
+        <a class="sidebar__mod" href="module-3-5.html"><span class="sidebar__mod-num">3.5</span>Applied Patterns<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-3-6.html"><span class="sidebar__mod-num">3.6</span>Advanced Reasoning<span class="sidebar__check"></span></a>
+        <a class="sidebar__mod" href="module-3-7.html"><span class="sidebar__mod-num">3.7</span>Prompts in Production<span class="sidebar__check"></span></a>
+      </div>
+    </div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#e85a7a"></span>Phase 4 · RAG + Evaluation</button></div>
+    <div class="sidebar__phase"><button class="sidebar__phase-btn"><span class="sidebar__phase-indicator" style="background:#10b981;opacity:.6"></span>Phase 5–9 · Agents &amp; Deployment</button></div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 03</span>
+        <span class="tag tag--level">Practical</span>
+        <span class="tag tag--week">Week 6</span>
+      </div>
+      <h1 class="mod-head__title">Core <em>Techniques</em></h1>
+      <p class="mod-head__sub">Prompt engineering has a short list of canonical techniques that cover 90% of real-world use cases. Zero-shot gets you started. Few-shot teaches the model your format. Role prompting sets the context. COSTAR gives your prompt complete specification. Chain-of-thought unlocks multi-step reasoning. Iterative refinement closes the feedback loop. Learn these six and you can tackle almost any task you'll encounter in production.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~30 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>1 video · 1 recording script</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>3 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>Zero-shot works for well-defined tasks with clear verbs; reach for few-shot the moment output format or style needs to be precise</li>
+          <li>Few-shot examples are not just helpful — they are the fastest, most token-efficient way to teach a model an entirely new output schema</li>
+          <li>Role prompting goes beyond "you are X" — a rich persona with goals, knowledge, and communication style measurably improves output quality</li>
+          <li>COSTAR (Context · Objective · Style · Tone · Audience · Response) is a complete specification framework — if a prompt keeps underperforming, run COSTAR on it and find the missing dimension</li>
+          <li>Chain-of-thought is a one-sentence addition ("Think step by step") that can double accuracy on multi-step tasks — zero cost, high return</li>
+          <li>Iterative refinement turns the LLM into a reviewer of its own output — a two-call pattern that improves quality without changing the model</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Modules 3.1 – 3.3 complete</li>
+            <li><div class="meta-list__dot">!</div>Anthropic SDK installed and API key set</li>
+            <li><div class="meta-list__dot">!</div>Familiar with the four-question system prompt framework</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Choose the right technique for a given task</li>
+            <li><div class="meta-list__dot">2</div>Write effective few-shot examples that teach format, not just content</li>
+            <li><div class="meta-list__dot">3</div>Apply the COSTAR framework to diagnose and fix a weak prompt</li>
+            <li><div class="meta-list__dot">4</div>Implement a two-call iterative refinement loop</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="video-block reveal">
+        <div class="video-block__header">
+          <div class="video-block__title">Prompt Engineering Guide — OpenAI</div>
+          <div class="video-block__source">
+            <span class="yt-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 5 12 5 12 5s-6 0-7.7.3a2.7 2.7 0 0 0-1.9 1.9C2 8.9 2 12 2 12s0 3.1.4 4.8a2.7 2.7 0 0 0 1.9 1.9C6 19 12 19 12 19s6 0 7.7-.3a2.7 2.7 0 0 0 1.9-1.9C22 15.1 22 12 22 12s0-3.1-.4-4.8ZM10 15V9l5.2 3L10 15Z"/></svg>YouTube</span>
+            <span>· search "prompt engineering techniques zero-shot few-shot chain of thought"</span>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube.com/embed/1bUy-1hGZpI" title="Prompt Engineering Techniques" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="video-caption">▶ Core prompt engineering techniques — from zero-shot to chain-of-thought</div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="technique-map">Technique selection map <a class="anchor" href="#technique-map">#</a></h2>
+        <p>The six techniques are not competing alternatives — they layer on top of each other. The decision of which to use is determined by the task type and what the model is getting wrong.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">When to reach for each technique</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem;font-size:13px">
+            <div style="display:grid;grid-template-columns:140px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:700;color:var(--phase-text)">Zero-shot</div>
+              <div style="color:var(--fg)">Well-defined task, clear verb, simple output. Start here. Works ~70% of the time on capable models.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:140px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:700;color:#10b981">Few-shot</div>
+              <div style="color:var(--fg)">Format or style must be precise. Custom schemas. When zero-shot output shape is wrong but content is right.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:140px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:700;color:#f59e0b">Role prompting</div>
+              <div style="color:var(--fg)">Output needs a specific perspective, expertise level, or communication style. Add to system prompt.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:140px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:700;color:#e85a7a">COSTAR</div>
+              <div style="color:var(--fg)">Prompt keeps underperforming and you don't know why. Run the checklist — find the missing dimension.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:140px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:700;color:#06b6d4">Chain-of-thought</div>
+              <div style="color:var(--fg)">Multi-step reasoning, maths, logic, complex decisions. Add "Think step by step" — free accuracy gain.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:140px 1fr;gap:1rem;padding:.6rem;background:var(--surface-0);border-radius:6px;align-items:center">
+              <div style="font-weight:700;color:var(--phase-text)">Iterative refinement</div>
+              <div style="color:var(--fg)">Output quality ceiling too low. Use a second LLM call to review and rewrite. Adds latency and cost but reliably lifts quality.</div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="zero-shot-few-shot">Zero-shot and few-shot <a class="anchor" href="#zero-shot-few-shot">#</a></h2>
+        <p><strong>Zero-shot</strong> means giving the model a task with no examples — just an instruction. It works well when the task is unambiguous and the output format is standard. <strong>Few-shot</strong> adds 2–5 worked examples before the real input. The examples teach the model your exact format, label set, or style — far more efficiently than a long written description of what you want.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">zero_vs_few_shot.py — sentiment classification with both approaches</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic
+client = anthropic.<span class="fn">Anthropic</span>()
+
+reviews = [
+    <span class="st">"The onboarding was smooth but billing support took 3 days to respond."</span>,
+    <span class="st">"Absolutely love the product. Switched from a competitor and never looking back."</span>,
+    <span class="st">"It works, I guess. Nothing special."</span>,
+]
+
+<span class="cm"># ── Zero-shot: instruction only ───────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">classify_zero_shot</span>(text: <span class="tp">str</span>) -> <span class="tp">str</span>:
+    resp = client.messages.<span class="fn">create</span>(
+        model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+        max_tokens=<span class="nm">16</span>,
+        system=<span class="st">"Classify the customer review sentiment as POSITIVE, NEGATIVE, or MIXED. One word only."</span>,
+        messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: text}],
+    )
+    <span class="kw">return</span> resp.content[<span class="nm">0</span>].text.<span class="fn">strip</span>()
+
+<span class="cm"># ── Few-shot: examples teach the exact output schema ──────────────────</span>
+FEW_SHOT_EXAMPLES = [
+    {<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: <span class="st">"Fast delivery but the packaging was damaged."</span>},
+    {<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: <span class="st">'{"label":"MIXED","confidence":0.85,"reason":"positive delivery, negative packaging"}'</span>},
+    {<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: <span class="st">"Best purchase I've made this year. 10/10."</span>},
+    {<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: <span class="st">'{"label":"POSITIVE","confidence":0.99,"reason":"strong positive superlative"}'</span>},
+    {<span class="st">"role"</span>: <span class="st">"user"</span>,      <span class="st">"content"</span>: <span class="st">"Cancelled after the price increase. Disappointed."</span>},
+    {<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: <span class="st">'{"label":"NEGATIVE","confidence":0.92,"reason":"cancellation due to pricing"}'</span>},
+]
+
+<span class="kw">def</span> <span class="fn">classify_few_shot</span>(text: <span class="tp">str</span>) -> <span class="tp">str</span>:
+    resp = client.messages.<span class="fn">create</span>(
+        model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+        max_tokens=<span class="nm">64</span>,
+        system=<span class="st">"Classify customer review sentiment. Output JSON only — no other text."</span>,
+        messages=FEW_SHOT_EXAMPLES + [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: text}],
+    )
+    <span class="kw">return</span> resp.content[<span class="nm">0</span>].text.<span class="fn">strip</span>()
+
+<span class="kw">for</span> review <span class="kw">in</span> reviews:
+    <span class="fn">print</span>(<span class="st">f"Zero-shot: {classify_zero_shot(review)}"</span>)
+    <span class="fn">print</span>(<span class="st">f"Few-shot : {classify_few_shot(review)}"</span>)
+    <span class="fn">print</span>()</code></pre>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div>
+            <strong class="callout__title">Few-shot example quality beats quantity</strong>
+            Two excellent examples outperform eight mediocre ones. Each example should cover a distinct input type, use the exact output schema you need, and avoid edge cases that would confuse the model. Keep examples in the messages array as alternating user/assistant pairs — not as a wall of text in the system prompt.
+          </div>
+        </div>
+
+        <h2 id="role-prompting">Role prompting <a class="anchor" href="#role-prompting">#</a></h2>
+        <p>Role prompting assigns a persona to the model. The basic version — "you are a helpful assistant" — barely changes behaviour. An effective role prompt specifies expertise level, communication style, and the goal the persona is trying to achieve. The model uses the persona to calibrate vocabulary, depth, assumptions, and tone.</p>
+
+        <!-- Weak vs strong role prompt -->
+        <div class="compare reveal" style="margin:1.5rem 0">
+          <div class="compare__col compare__col--wrong">
+            <div class="compare__label">Weak role prompt</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8;padding:.8rem;background:var(--surface-0);border-radius:6px">
+              "You are a senior developer.<br>Help the user with their code."
+            </div>
+            <div style="font-size:12px;color:var(--fg-dim);margin-top:.5rem">Vague expertise level. No communication constraints. No stated goal.</div>
+          </div>
+          <div class="compare__col compare__col--right">
+            <div class="compare__label">Strong role prompt</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8;padding:.8rem;background:var(--surface-0);border-radius:6px">
+              "You are a principal backend engineer<br>with 10 years of Python experience.<br>Your goal: find bugs and explain them<br>so a junior developer can fix and learn.<br>Style: direct, specific, no jargon."
+            </div>
+            <div style="font-size:12px;color:var(--fg-dim);margin-top:.5rem">Expertise level, goal, target audience, and style all specified.</div>
+          </div>
+        </div>
+
+        <h2 id="costar">COSTAR framework <a class="anchor" href="#costar">#</a></h2>
+        <p>COSTAR is a six-dimensional checklist for prompt specification. When a prompt keeps underperforming, run each dimension — the missing or underspecified one is usually the cause. Each letter is a question you must answer before the model can do its best work.</p>
+
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem">COSTAR — six dimensions of a complete prompt</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem">
+            <div style="display:grid;grid-template-columns:28px 100px 1fr;gap:.8rem;align-items:start;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:900;font-size:18px;color:var(--phase-text)">C</div>
+              <div style="font-weight:700;font-size:12.5px;padding-top:2px">Context</div>
+              <div style="font-size:13px;color:var(--fg-dim)">Background the model needs to make good decisions. "We're a B2B SaaS company, Q3 revenue report, audience is the board."</div>
+            </div>
+            <div style="display:grid;grid-template-columns:28px 100px 1fr;gap:.8rem;align-items:start;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:900;font-size:18px;color:var(--phase-text)">O</div>
+              <div style="font-weight:700;font-size:12.5px;padding-top:2px">Objective</div>
+              <div style="font-size:13px;color:var(--fg-dim)">The precise task — a verb + output type. "Write a 3-paragraph executive summary." Not "help me with the report."</div>
+            </div>
+            <div style="display:grid;grid-template-columns:28px 100px 1fr;gap:.8rem;align-items:start;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:900;font-size:18px;color:var(--phase-text)">S</div>
+              <div style="font-weight:700;font-size:12.5px;padding-top:2px">Style</div>
+              <div style="font-size:13px;color:var(--fg-dim)">Writing style or format. "Formal business prose. No bullet points. Active voice." Can reference an author or brand voice.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:28px 100px 1fr;gap:.8rem;align-items:start;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:900;font-size:18px;color:var(--phase-text)">T</div>
+              <div style="font-weight:700;font-size:12.5px;padding-top:2px">Tone</div>
+              <div style="font-size:13px;color:var(--fg-dim)">Emotional register. "Confident but not aggressive. Acknowledge challenges without alarming." Distinct from style.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:28px 100px 1fr;gap:.8rem;align-items:start;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:900;font-size:18px;color:var(--phase-text)">A</div>
+              <div style="font-weight:700;font-size:12.5px;padding-top:2px">Audience</div>
+              <div style="font-size:13px;color:var(--fg-dim)">Who is reading this. "Non-technical board members familiar with SaaS metrics but not with infrastructure." Calibrates vocabulary.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:28px 100px 1fr;gap:.8rem;align-items:start;padding:.6rem;background:var(--surface-0);border-radius:6px">
+              <div style="font-weight:900;font-size:18px;color:var(--phase-text)">R</div>
+              <div style="font-weight:700;font-size:12.5px;padding-top:2px">Response</div>
+              <div style="font-size:13px;color:var(--fg-dim)">Exact output format. "Three paragraphs, 80 words each. End with a one-sentence call to action." This is module 3.3's format section.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">costar.py — COSTAR applied to an executive summary task</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic
+client = anthropic.<span class="fn">Anthropic</span>()
+
+<span class="cm"># ── COSTAR prompt for executive summary generation ────────────────────</span>
+SYSTEM = <span class="st">"""## Context
+You are writing for AcmeCorp, a B2B SaaS company. The data is from the Q3 2025 board report.
+The company grew revenue 18% YoY but missed its 25% target.
+
+## Objective
+Write an executive summary of the Q3 financial results.
+
+## Style
+Formal business prose. No bullet points. Active voice. Use specific numbers.
+
+## Tone
+Confident but not dismissive of the miss. Acknowledge challenges, pivot to action.
+
+## Audience
+Non-technical board members. Familiar with ARR and churn but not with engineering terms.
+
+## Response format
+Exactly three paragraphs. Each paragraph 60–80 words. No headers. No markdown."""</span>
+
+user_data = <span class="st">"""Q3 2025 Results:
+- Revenue: $4.2M (target: $5.25M, growth 18% YoY vs 25% target)
+- New ARR: $820K (down from $1.1M in Q2)
+- Churn: 3.2% (up from 2.8%)
+- Gross margin: 74% (stable)
+- 3 enterprise deals closed; 2 slipped to Q4
+- Headcount: 47 (added 6 engineers)"""</span>
+
+resp = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-sonnet-4-6"</span>,
+    max_tokens=<span class="nm">512</span>,
+    system=SYSTEM,
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">f"&lt;data&gt;\n{user_data}\n&lt;/data&gt;"</span>}],
+)
+<span class="fn">print</span>(resp.content[<span class="nm">0</span>].text)</code></pre>
+        </div>
+
+        <h2 id="chain-of-thought">Chain-of-thought <a class="anchor" href="#chain-of-thought">#</a></h2>
+        <p>Chain-of-thought (CoT) prompting asks the model to reason through a problem step by step before giving its final answer. The mechanism: the model's intermediate reasoning tokens become additional context that improves the final token prediction. For multi-step tasks — maths, logic, decision-making — CoT reliably improves accuracy with zero added cost beyond the reasoning tokens.</p>
+
+        <div class="callout callout--note">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">CoT is one sentence, not a technique overhaul</strong>
+            The simplest CoT trigger is adding "Think step by step before giving your final answer." to your system prompt or user message. That single instruction activates the behaviour. Module 3.6 covers advanced variants — self-consistency, least-to-most, and self-refine — for cases where basic CoT is not sufficient.
+          </div>
+        </div>
+
+        <!-- CoT comparison diagram -->
+        <div class="diagram-block reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:1.4rem">
+          <div style="font-size:11px;font-weight:700;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem">Without CoT vs with CoT</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;font-size:12.5px">
+            <div>
+              <div style="font-weight:700;color:var(--fg-dim);margin-bottom:.4rem;font-size:11px">WITHOUT CoT</div>
+              <div style="background:var(--surface-0);border-radius:6px;padding:.8rem;font-family:'JetBrains Mono',monospace;line-height:1.9;font-size:11px">
+                <span style="color:#10b981">User:</span> "If I have 3 contracts at<br>
+                $12K/yr each and one churns,<br>
+                what % of ARR do I lose?"<br><br>
+                <span style="color:var(--phase-text)">Model:</span> "You lose 25%."<br>
+                <span style="color:#e85a7a">← wrong (should be 33.3%)</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-weight:700;color:var(--phase-text);margin-bottom:.4rem;font-size:11px">WITH CoT</div>
+              <div style="background:var(--surface-0);border-radius:6px;padding:.8rem;font-family:'JetBrains Mono',monospace;line-height:1.9;font-size:11px">
+                <span style="color:#10b981">User:</span> "…Think step by step."<br><br>
+                <span style="color:var(--phase-text)">Model:</span> "Total ARR = 3 × $12K<br>
+                = $36K. Lost ARR = $12K.<br>
+                Loss % = 12/36 = 33.3%."<br>
+                <span style="color:#10b981">← correct</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="iterative-refinement">Iterative refinement <a class="anchor" href="#iterative-refinement">#</a></h2>
+        <p>When a single-pass response quality ceiling is too low, use the model to review and improve its own output. The two-call refinement pattern: first call generates a draft; second call reviews it against specific criteria and rewrites. This separates generation from evaluation — two cognitive modes where using different prompts measurably outperforms a single complex prompt.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">iterative_refinement.py — generate then critique and rewrite</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> anthropic
+client = anthropic.<span class="fn">Anthropic</span>()
+
+task = <span class="st">"Write a cold email subject line for a B2B SaaS product that reduces AWS costs by 30%."</span>
+
+<span class="cm"># ── Call 1: generate draft ────────────────────────────────────────────</span>
+draft_resp = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+    max_tokens=<span class="nm">128</span>,
+    system=<span class="st">"You are a B2B copywriter. Generate 3 subject line options."</span>,
+    messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: task}],
+)
+draft = draft_resp.content[<span class="nm">0</span>].text
+<span class="fn">print</span>(<span class="st">"Draft:\n"</span>, draft)
+
+<span class="cm"># ── Call 2: critique then rewrite ─────────────────────────────────────</span>
+refinement_resp = client.messages.<span class="fn">create</span>(
+    model=<span class="st">"claude-haiku-4-5-20251001"</span>,
+    max_tokens=<span class="nm">256</span>,
+    system=<span class="st">"""You are a conversion copywriting critic.
+Evaluate subject lines on: specificity, urgency, and avoiding spam triggers.
+Then produce one improved version per option."""</span>,
+    messages=[
+        {<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">f"&lt;draft_options&gt;\n{draft}\n&lt;/draft_options&gt;\n\nCritique each, then rewrite."</span>},
+    ],
+)
+<span class="fn">print</span>(<span class="st">"\nRefined:\n"</span>, refinement_resp.content[<span class="nm">0</span>].text)
+
+<span class="cm"># ── Pattern variants ──────────────────────────────────────────────────</span>
+<span class="cm"># - Use a stronger model (Sonnet) for the refinement call only</span>
+<span class="cm"># - Pass explicit rubric criteria in the critic system prompt</span>
+<span class="cm"># - Run 2–3 rounds for high-stakes content (diminishing returns after 3)</span>
+<span class="cm"># - Structured critique: ask critic to return JSON {score, issues, rewrite}</span></code></pre>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout__icon">⚠</span>
+          <div>
+            <strong class="callout__title">Refinement loops have diminishing returns</strong>
+            Two calls reliably improve quality. Three calls marginally so. Beyond three, you are usually just adding latency and cost with no measurable gain. If three rounds still fall short, the problem is usually the task specification or missing context — not a lack of refinement iterations. Fix the prompt first, then add refinement.
+          </div>
+        </div>
+
+      </div><!-- /prose -->
+
+      <details class="script-block reveal">
+        <summary>
+          <div class="script-icon">🎬</div>
+          <div>
+            <div style="font-size:14px;font-weight:600">Recording Script — Module 3.4: Core Techniques</div>
+            <div style="font-size:12px;font-weight:400;color:var(--fg-dim);margin-top:.15rem">~30 min · live code + worked examples</div>
+          </div>
+          <span class="script-badge">SCRIPT</span>
+        </summary>
+        <div class="script-body">
+          <div class="script-line" style="font-size:11px;font-weight:700;color:var(--fg-faint);padding-bottom:.4rem"><span>TIMESTAMP</span><span>ACTION</span><span>NARRATION</span></div>
+          <div class="script-line"><span class="script-ts">0:00 – 2:00</span><span class="script-action">INTRO</span><span class="script-narration">"Six techniques. These aren't theoretical — they're the six things I reach for in every production prompt I write. By the end of this module you'll have a decision framework for choosing between them."</span></div>
+          <div class="script-line"><span class="script-ts">2:00 – 10:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run zero_vs_few_shot.py. "Zero-shot: one word back, correct, but I can't parse a confidence score from it. Few-shot: structured JSON with label, confidence, and reason — the exact schema I need downstream. Notice the examples in the messages array? They teach the format, not just the content. I could write 500 words explaining what I want or I could show 3 examples. Show beats tell."</span></div>
+          <div class="script-line"><span class="script-ts">10:00 – 16:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Show the weak vs strong role prompt side-by-side. Run the same code review task with both. "With the weak prompt: generic advice. With the strong prompt: specific line numbers, explanation at junior level, no jargon." Then run costar.py. Walk through each letter in the SYSTEM string. "If I delete the Audience line — watch what changes." Delete it, run, show the response uses more technical language.</span></div>
+          <div class="script-line"><span class="script-ts">16:00 – 22:00</span><span class="script-action">DIAGRAM</span><span class="script-narration">Show the CoT without/with comparison. "Same question. Without CoT: wrong. With 'think step by step': the model shows its work and arrives at the right answer. The reasoning tokens are not wasted tokens — they're additional context that improves the final prediction." Ask it to "think step by step then give only the final number on the last line" — clean output with reasoning done in one call.</span></div>
+          <div class="script-line"><span class="script-ts">22:00 – 30:00</span><span class="script-action">LIVE CODE</span><span class="script-narration">Run iterative_refinement.py. "Call 1 with Haiku: 3 subject lines, reasonable but generic. Call 2 with a critic system prompt: it scores each, explains the issue, rewrites. The final versions are noticeably sharper." Discuss the variant: use Haiku for drafting, Sonnet for critiquing. "You get Sonnet-quality output at Haiku + Sonnet blended cost, which is cheaper than calling Sonnet twice."</span></div>
+        </div>
+      </details>
+
+      <div class="prose">
+        <h2 id="self-check">Self-check <a class="anchor" href="#self-check">#</a></h2>
+      </div>
+
+      <div class="selfcheck reveal">
+        <details class="selfcheck__q">
+          <summary>You need to extract structured JSON from 500 support tickets per day. Zero-shot gives inconsistent field names. What technique should you reach for first and why?</summary>
+          <div class="selfcheck__a">Few-shot. The problem is output format inconsistency, not content quality — the model understands the task but doesn't know your exact schema. Add 3–5 worked examples as alternating user/assistant message pairs, each showing the exact JSON structure you want. Two excellent examples with your target field names and types will enforce the schema far more reliably than any amount of textual description. If few-shot still produces occasional schema violations, pair it with assistant prefilling (start the response with <code>'{' </code>) as a backup.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>A prompt keeps producing responses that are technically correct but written at the wrong expertise level for the audience. Which COSTAR dimension is missing?</summary>
+          <div class="selfcheck__a"><strong>Audience (A)</strong>. The model needs to know who is reading the output to calibrate vocabulary, assumed knowledge, and explanation depth. Adding a specific audience description — "mid-level product managers with no engineering background" versus "senior backend engineers" — will shift the vocabulary and assumption level significantly. You may also need to check Style (S) for any conflicting instructions that override the audience calibration.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>You add "Think step by step" to a prompt and the model now reasons correctly but the response is too long — the user only needs the final answer. How do you keep CoT accuracy without verbose output?</summary>
+          <div class="selfcheck__a">Keep the CoT instruction but add an output constraint: "Think step by step internally, then output only your final answer on the last line with the prefix 'Answer:'". This gives the model its reasoning tokens (which improve accuracy) but constrains what appears in the visible response. Alternatively, use XML tags: "Think step by step inside &lt;thinking&gt; tags, then give your final answer inside &lt;answer&gt; tags" and extract only the &lt;answer&gt; content. Module 3.6 covers the extended thinking API parameter which moves reasoning entirely off the visible response.</div>
+        </details>
+        <details class="selfcheck__q">
+          <summary>What is the cost-efficiency argument for the iterative refinement pattern? When should you NOT use it?</summary>
+          <div class="selfcheck__a"><strong>Cost case for using it:</strong> Draft with Haiku, critique with Sonnet. Haiku generates the raw material cheaply; Sonnet's stronger reasoning handles evaluation and rewriting. The blended cost (Haiku + Sonnet × shorter critic call) is usually lower than calling Sonnet twice, while quality matches or exceeds two Sonnet calls.<br/><br/><strong>When NOT to use it:</strong> (1) Latency-sensitive endpoints — two serial LLM calls roughly doubles response time; (2) When the root problem is missing context or a poorly specified task — no amount of refinement fixes a bad prompt; (3) Simple tasks — zero-shot extraction or classification does not need refinement and adding it wastes tokens; (4) More than three rounds — diminishing returns make additional rounds economically unjustifiable.</div>
+        </details>
+      </div>
+
+      <div class="next-mod reveal">
+        <div>
+          <div class="next-mod__label">Up next</div>
+          <div class="next-mod__title">3.5 · Applied Prompt Patterns</div>
+          <p class="next-mod__desc">Extraction, classification, transformation, generation, and task decomposition — five production patterns with reusable templates for the use cases you'll encounter most often.</p>
+        </div>
+        <a class="next-btn" href="module-3-5.html">Continue →</a>
+      </div>
+
+      <div class="author reveal">
+        <div class="author__photo"><img src="https://portfolio-app-theta-one.vercel.app/harish-profile.jpg" alt="Harish Mondepu" onerror="this.parentElement.innerHTML='H';this.parentElement.style.cssText='display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--phase-text)'" /></div>
+        <div>
+          <div class="author__name">Harish Mondepu</div>
+          <div class="author__title">Salesforce Engineer · AI Enthusiast</div>
+          <div class="author__bio">9+ years building production enterprise systems. 16× Salesforce certified. Building the AI engineering roadmap I wish had existed when I started.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="On this page">
+    <div class="toc__label">On this page</div>
+    <a href="#technique-map">Technique selection map</a>
+    <a href="#zero-shot-few-shot">Zero-shot &amp; few-shot</a>
+    <a href="#role-prompting">Role prompting</a>
+    <a href="#costar">COSTAR framework</a>
+    <a href="#chain-of-thought">Chain-of-thought</a>
+    <a href="#iterative-refinement">Iterative refinement</a>
+    <a href="#self-check">Self-check</a>
+    <div class="toc__divider"></div>
+    <div class="toc__meta">Module 3.4 / 62<br/>Phase 3 · Week 6<br/>Author: Harish Mondepu<br/>Updated: 2026-05-07</div>
+  </aside>
+</div>
+
+<script>
+(function(){const s=localStorage.getItem('ae-theme');if(s)document.documentElement.dataset.theme=s})();
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('ae-theme',n);document.getElementById('themeIcon').textContent=n==='dark'?'☾':'☀';document.getElementById('themeLabel').textContent=n==='dark'?'Dark':'Light'}
+function copyCode(btn){const pre=btn.closest('.code-wrap').querySelector('pre');navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='✓ Copied';btn.classList.add('done');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('done')},2000)})}
+const io=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')}),{threshold:0.12,rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>

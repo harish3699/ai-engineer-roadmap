@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent Engineer Roadmap · 7.6 A2A — Agent-to-Agent Protocol · by Harish Mondepu</title>
+<meta name="description" content="Google's Agent-to-Agent protocol — agent discovery via capability cards, cross-framework delegation, task lifecycle, and when A2A beats direct function calls."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="module-styles.css"/>
+<style>
+:root{--phase:#c2410c;--phase-hi:#ea580c;--phase-soft:rgba(234,88,12,.1);--phase-text:#c2410c}
+[data-theme="dark"]{--phase:#f97316;--phase-hi:#fb923c;--phase-soft:rgba(249,115,22,.1);--phase-text:#fed7aa}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="../../index.html"><span class="nav__brand-dot"></span>Agent Engineer</a>
+  <span class="nav__sep">/</span>
+  <span class="nav__crumb">Phase 7 · <strong>A2A Protocol</strong></span>
+  <div class="nav__right">
+    <span class="nav__progress">module 50 / 62</span>
+    <div class="nav__search" role="button" tabindex="0">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+      Search <kbd class="nav__kbd">⌘K</kbd>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span class="theme-toggle__icon" id="themeIcon">☾</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="Course navigation">
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#1aada0"></span>Phase 1 · Python Foundations ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#06b6d4"></span>Phase 2 · LLM Mental Model ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#a78bfa"></span>Phase 3 · Prompt Engineering ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f06292"></span>Phase 4 · RAG + Evaluation ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#10b981"></span>Phase 5 · Tools, MCP &amp; Agents ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" style="opacity:.65"><span class="sidebar__phase-indicator" style="background:#f59e0b"></span>Phase 6 · Memory &amp; Context ✓</button>
+    </div>
+    <div class="sidebar__phase">
+      <button class="sidebar__phase-btn" data-active="true" style="color:var(--phase-text)">
+        <span class="sidebar__phase-indicator" style="background:var(--phase-hi)"></span>
+        Phase 7 · Multi-Agent Orchestration
+      </button>
+      <div class="sidebar__modules">
+        <a class="sidebar__mod done" href="module-7-1.html"><span class="sidebar__mod-num">7.1</span>When Multi-Agent? ✓</a>
+        <a class="sidebar__mod done" href="module-7-2.html"><span class="sidebar__mod-num">7.2</span>LangGraph Fundamentals ✓</a>
+        <a class="sidebar__mod done" href="module-7-3.html"><span class="sidebar__mod-num">7.3</span>Common Patterns ✓</a>
+        <a class="sidebar__mod done" href="module-7-4.html"><span class="sidebar__mod-num">7.4</span>Agent-as-Tool ✓</a>
+        <a class="sidebar__mod done" href="module-7-5.html"><span class="sidebar__mod-num">7.5</span>State Management ✓</a>
+        <a class="sidebar__mod active" href="#"><span class="sidebar__mod-num">7.6</span>A2A Protocol</a>
+        <a class="sidebar__mod" href="module-7-7.html"><span class="sidebar__mod-num">7.7</span>Frameworks Compared</a>
+        <a class="sidebar__mod" href="module-7-8.html"><span class="sidebar__mod-num">7.8</span>Debugging Multi-Agent</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content" id="main">
+    <div class="phase-bar"></div>
+    <div class="mod-head">
+      <div class="mod-head__tags">
+        <span class="tag tag--phase">Phase 07</span>
+        <span class="tag tag--level">Expert</span>
+        <span class="tag tag--week">Week 22</span>
+      </div>
+      <h1 class="mod-head__title">A2A — <em>Agent-to-Agent Protocol</em></h1>
+      <p class="mod-head__sub">A2A (Agent-to-Agent) is an open protocol proposed by Google in April 2025 for standardising how agents discover and communicate with each other across different frameworks and organisations. Where MCP standardises how agents interact with <em>tools</em>, A2A standardises how agents interact with <em>other agents</em>. An agent publishes an Agent Card (a JSON descriptor of its capabilities), and other agents can discover it, delegate tasks to it, and receive structured responses — regardless of whether the remote agent is built in LangGraph, CrewAI, AutoGen, or a custom framework.</p>
+      <div class="mod-head__meta">
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>~20 min read</span>
+        <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>3 code examples</span>
+        <span>Last updated 2026-05-07</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="takeaways reveal">
+        <div class="takeaways__label">Key Takeaways</div>
+        <ul class="takeaways__list">
+          <li>A2A solves the cross-framework agent communication problem — two agents built in different frameworks (LangGraph + CrewAI) can delegate tasks to each other without custom integration code</li>
+          <li>Every A2A agent publishes an <strong>Agent Card</strong> at <code>/.well-known/agent.json</code> — a JSON descriptor of its name, description, capabilities, and supported modalities</li>
+          <li>The A2A task lifecycle: <code>submitted → working → input-required → completed/failed</code> — agents can stream intermediate updates and request additional input mid-task</li>
+          <li>A2A is complementary to MCP: MCP = agent ↔ tools; A2A = agent ↔ agent. They operate at different levels and are typically used together</li>
+          <li>A2A is still early (released April 2025) — the spec is stable but the ecosystem is maturing. Use it when you have genuine cross-framework or cross-organisation agent delegation needs</li>
+        </ul>
+      </div>
+
+      <div class="meta-grid reveal">
+        <div class="meta-card meta-card--prereq">
+          <div class="meta-card__label">Prerequisites</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">!</div>Module 5.3 — MCP protocol (analogous concept at tool level)</li>
+            <li><div class="meta-list__dot">!</div>Module 7.2 — LangGraph (you understand what an agent can do)</li>
+            <li><div class="meta-list__dot">!</div><code>pip install a2a-sdk</code> (Google's reference implementation)</li>
+          </ul>
+        </div>
+        <div class="meta-card meta-card--outcomes">
+          <div class="meta-card__label">Learning Outcomes</div>
+          <ul class="meta-list">
+            <li><div class="meta-list__dot">1</div>Explain the A2A protocol and how it differs from MCP</li>
+            <li><div class="meta-list__dot">2</div>Define an Agent Card for a LangGraph agent</li>
+            <li><div class="meta-list__dot">3</div>Send a task to a remote A2A agent and handle the task lifecycle</li>
+            <li><div class="meta-list__dot">4</div>State when A2A is justified vs when a direct function call is sufficient</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="prose">
+
+        <h2 id="mcp-vs-a2a">MCP vs A2A — two different problems <a class="anchor" href="#mcp-vs-a2a">#</a></h2>
+        <div class="reveal" style="margin:1.5rem 0;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+          <div style="padding:.6rem 1rem;background:var(--phase-soft);border-bottom:1px solid var(--border);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--phase-text)">Protocol Comparison</div>
+          <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:0">
+            <div style="padding:.5rem .8rem;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--fg-dim)"></div>
+            <div style="padding:.5rem .8rem;border-bottom:1px solid var(--border);border-left:1px solid var(--border);font-size:11px;font-weight:700;color:var(--phase-text)">MCP</div>
+            <div style="padding:.5rem .8rem;border-bottom:1px solid var(--border);border-left:1px solid var(--border);font-size:11px;font-weight:700;color:var(--phase-text)">A2A</div>
+            <div style="padding:.5rem .8rem;border-bottom:1px solid var(--border);font-size:12px;font-weight:600">Problem solved</div>
+            <div style="padding:.5rem .8rem;border-bottom:1px solid var(--border);border-left:1px solid var(--border);font-size:12px">Agent ↔ Tool communication</div>
+            <div style="padding:.5rem .8rem;border-bottom:1px solid var(--border);border-left:1px solid var(--border);font-size:12px">Agent ↔ Agent communication</div>
+            <div style="padding:.5rem .8rem;border-bottom:1px solid var(--border);font-size:12px;font-weight:600">Discovery mechanism</div>
+            <div style="padding:.5rem .8rem;border-bottom:1px solid var(--border);border-left:1px solid var(--border);font-size:12px">Tool schemas (JSON Schema)</div>
+            <div style="padding:.5rem .8rem;border-bottom:1px solid var(--border);border-left:1px solid var(--border);font-size:12px">Agent Cards (JSON at well-known URL)</div>
+            <div style="padding:.5rem .8rem;border-bottom:1px solid var(--border);font-size:12px;font-weight:600">Transport</div>
+            <div style="padding:.5rem .8rem;border-bottom:1px solid var(--border);border-left:1px solid var(--border);font-size:12px">stdio or HTTP+SSE</div>
+            <div style="padding:.5rem .8rem;border-bottom:1px solid var(--border);border-left:1px solid var(--border);font-size:12px">HTTP + SSE (streaming)</div>
+            <div style="padding:.5rem .8rem;font-size:12px;font-weight:600">Cross-framework?</div>
+            <div style="padding:.5rem .8rem;border-left:1px solid var(--border);font-size:12px">Yes</div>
+            <div style="padding:.5rem .8rem;border-left:1px solid var(--border);font-size:12px">Yes — primary goal</div>
+          </div>
+        </div>
+
+        <h2 id="agent-card">Agent Card <a class="anchor" href="#agent-card">#</a></h2>
+        <p>Every A2A agent advertises its capabilities via an Agent Card — a JSON document served at <code>/.well-known/agent.json</code> relative to the agent's base URL. Client agents fetch this to discover what the agent can do before sending it a task.</p>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">json</span><span class="code-file">agent.json — Agent Card for a research specialist agent</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code>{
+  <span class="st">"name"</span>: <span class="st">"Research Specialist"</span>,
+  <span class="st">"description"</span>: <span class="st">"Web research agent. Searches multiple sources, synthesises findings, returns structured reports."</span>,
+  <span class="st">"url"</span>: <span class="st">"https://research-agent.internal/a2a"</span>,
+  <span class="st">"version"</span>: <span class="st">"1.0.0"</span>,
+  <span class="st">"capabilities"</span>: {
+    <span class="st">"streaming"</span>: <span class="kw">true</span>,
+    <span class="st">"pushNotifications"</span>: <span class="kw">false</span>
+  },
+  <span class="st">"defaultInputModes"</span>: [<span class="st">"text/plain"</span>],
+  <span class="st">"defaultOutputModes"</span>: [<span class="st">"application/json"</span>, <span class="st">"text/plain"</span>],
+  <span class="st">"skills"</span>: [
+    {
+      <span class="st">"id"</span>: <span class="st">"web-research"</span>,
+      <span class="st">"name"</span>: <span class="st">"Web Research"</span>,
+      <span class="st">"description"</span>: <span class="st">"Search the web and synthesise findings on a topic"</span>,
+      <span class="st">"tags"</span>: [<span class="st">"research"</span>, <span class="st">"web-search"</span>, <span class="st">"synthesis"</span>],
+      <span class="st">"examples"</span>: [<span class="st">"Research the latest developments in quantum computing"</span>]
+    }
+  ]
+}</code></pre>
+        </div>
+
+        <h2 id="task-lifecycle">Task lifecycle and client implementation <a class="anchor" href="#task-lifecycle">#</a></h2>
+
+        <div class="code-wrap reveal">
+          <div class="code-head"><span><span class="code-lang">python</span><span class="code-file">a2a_client.py — delegating a task to a remote A2A agent</span></span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code><span class="kw">import</span> httpx, json, uuid
+
+<span class="kw">async def</span> <span class="fn">delegate_to_agent</span>(agent_url: <span class="tp">str</span>, task_message: <span class="tp">str</span>) -> <span class="tp">str</span>:
+    <span class="kw">async with</span> httpx.<span class="tp">AsyncClient</span>() <span class="kw">as</span> client:
+        <span class="cm"># 1. Discover agent capabilities</span>
+        card = (<span class="kw">await</span> client.<span class="fn">get</span>(<span class="st">f"{agent_url}/.well-known/agent.json"</span>)).<span class="fn">json</span>()
+        <span class="fn">print</span>(<span class="st">f"Delegating to: {card['name']}"</span>)
+
+        <span class="cm"># 2. Submit task</span>
+        task_id = <span class="tp">str</span>(uuid.<span class="fn">uuid4</span>())
+        payload = {
+            <span class="st">"jsonrpc"</span>: <span class="st">"2.0"</span>, <span class="st">"method"</span>: <span class="st">"tasks/send"</span>, <span class="st">"id"</span>: task_id,
+            <span class="st">"params"</span>: {
+                <span class="st">"id"</span>: task_id,
+                <span class="st">"message"</span>: {<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"parts"</span>: [{<span class="st">"type"</span>: <span class="st">"text"</span>, <span class="st">"text"</span>: task_message}]},
+            },
+        }
+        response = <span class="kw">await</span> client.<span class="fn">post</span>(<span class="st">f"{agent_url}/a2a"</span>, json=payload)
+        task = response.<span class="fn">json</span>()[<span class="st">"result"</span>]
+
+        <span class="cm"># 3. Poll until complete (or stream if agent supports SSE)</span>
+        <span class="kw">while</span> task[<span class="st">"status"</span>][<span class="st">"state"</span>] == <span class="st">"working"</span>:
+            poll = <span class="kw">await</span> client.<span class="fn">post</span>(<span class="st">f"{agent_url}/a2a"</span>, json={
+                <span class="st">"jsonrpc"</span>: <span class="st">"2.0"</span>, <span class="st">"method"</span>: <span class="st">"tasks/get"</span>, <span class="st">"id"</span>: task_id,
+                <span class="st">"params"</span>: {<span class="st">"id"</span>: task_id},
+            })
+            task = poll.<span class="fn">json</span>()[<span class="st">"result"</span>]
+
+        <span class="cm"># 4. Extract result</span>
+        <span class="kw">if</span> task[<span class="st">"status"</span>][<span class="st">"state"</span>] == <span class="st">"completed"</span>:
+            <span class="kw">return</span> task[<span class="st">"artifacts"</span>][<span class="nm">0</span>][<span class="st">"parts"</span>][<span class="nm">0</span>][<span class="st">"text"</span>]
+        <span class="kw">raise</span> <span class="tp">RuntimeError</span>(<span class="st">f"Task failed: {task['status']}"</span>)</code></pre>
+        </div>
+
+        <h2 id="when-a2a">When A2A is the right choice <a class="anchor" href="#when-a2a">#</a></h2>
+
+        <div class="callout callout--info">
+          <span class="callout__icon">ℹ</span>
+          <div>
+            <strong class="callout__title">Use A2A when — and only when</strong>
+            <ul style="margin:.4rem 0 0 1rem;padding:0">
+              <li><strong>Cross-framework delegation:</strong> you need to call a CrewAI agent from LangGraph, or an AutoGen agent from a custom Python workflow — without knowing the other framework</li>
+              <li><strong>Cross-organisation agents:</strong> the sub-agent is owned and deployed by another team or vendor — you only have their A2A endpoint URL, not access to their code</li>
+              <li><strong>Long-running async tasks:</strong> the sub-agent takes minutes or hours and needs to stream progress updates while you wait</li>
+            </ul>
+            <strong>Don't use A2A for</strong> agents within the same codebase — direct function calls (agent-as-tool or LangGraph nodes) are simpler, faster, and fully observable.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="cta-block reveal">
+        <div class="cta-block__inner">
+          <div class="cta-block__text">
+            <div class="cta-block__title">Next: Frameworks Compared</div>
+            <div class="cta-block__sub">Module 7.7 compares the major multi-agent frameworks — LangGraph, CrewAI, AutoGen, Pydantic AI, and OpenAI Swarm — so you can make an informed choice and stick to it.</div>
+          </div>
+          <a class="cta-block__btn" href="module-7-7.html">Module 7.7 →</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <aside class="toc" aria-label="Table of contents">
+    <div class="toc__label">On this page</div>
+    <ul class="toc__list" id="tocList">
+      <li><a class="toc__link" href="#mcp-vs-a2a">MCP vs A2A</a></li>
+      <li><a class="toc__link" href="#agent-card">Agent Card</a></li>
+      <li><a class="toc__link" href="#task-lifecycle">Task lifecycle</a></li>
+      <li><a class="toc__link" href="#when-a2a">When to use A2A</a></li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+function toggleTheme(){const h=document.documentElement;const dark=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',dark?'light':'dark');localStorage.setItem('ae-theme',dark?'light':'dark');document.getElementById('themeIcon').textContent=dark?'☀':'☾';document.getElementById('themeLabel').textContent=dark?'Light':'Dark';}
+(function(){const t=localStorage.getItem('ae-theme');if(t){document.documentElement.setAttribute('data-theme',t);const dark=t==='dark';document.getElementById('themeIcon').textContent=dark?'☾':'☀';document.getElementById('themeLabel').textContent=dark?'Dark':'Light';}})();
+function copyCode(btn){const code=btn.closest('.code-wrap').querySelector('pre code');navigator.clipboard.writeText(code.innerText).then(()=>{btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',2000);});}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const tocIO=new IntersectionObserver(es=>{es.forEach(e=>{const id=e.target.id;if(!id)return;const link=document.querySelector(`.toc__link[href="#${id}"]`);if(!link)return;if(e.isIntersecting){document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));link.classList.add('active');}});},{rootMargin:'-20% 0px -70% 0px'});document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
+</script>
+</body>
+</html>
