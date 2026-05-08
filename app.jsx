@@ -507,7 +507,7 @@ function App() {
           <div className="instructor__body">
             <div className="instructor__label">Your Instructor</div>
             <h3 className="instructor__name">Harish Mondepu</h3>
-            <div className="instructor__role">AI Systems Engineer · Salesforce Architect</div>
+            <div className="instructor__role">Salesforce Engineer · AI Enthusiast · Data Driver</div>
             <p className="instructor__bio">
               I spent <span>9+ years building production enterprise systems</span> across healthcare, SaaS,
               manufacturing, and financial services before making the move into AI engineering. I hold
