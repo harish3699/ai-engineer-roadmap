@@ -389,45 +389,63 @@ function App() {
       <main id="main">
       {/* HERO */}
       <header className="hero" data-screen-label="01 Hero">
-        <div className="hero__blob" />
-        <div className="hero__blob-2" />
-        <div className="hero__blob-3" />
-        <div className="hero__eyebrow">
-          <span className="hero__eyebrow-dot" />
-          The 2026 Edition · 26 Weeks · 9 Phases
-        </div>
-        <h1 className="hero__title">
-          The only roadmap<br />
-          you need to become a<br />
-          <span className="hero__title-100x">100× AI Engineer</span> <em>in 2026.</em>
-        </h1>
-        <p className="hero__sub">
-          A complete, production-grade journey from <em>script kid to agent engineer</em>.
-          Every module grounded in real enterprise AI engineering — from Python fundamentals
-          all the way to multi-agent systems shipping in regulated domains.
-        </p>
-        <div className="hero__actions">
-          <button className="hero__cta" type="button" onClick={scrollToAgenda}>
-            Explore the roadmap
-            <span aria-hidden="true">↓</span>
-          </button>
-        </div>
-        <div className="hero__stats">
-          <div>
-            <div className="hero__stat-num">{window.ROADMAP.length}</div>
-            <div className="hero__stat-label">Phases</div>
+        <div className="hero__grid-bg" aria-hidden="true" />
+        <div className="hero__inner">
+          <div className="hero__left">
+            <div className="hero__eyebrow">
+              <span className="hero__eyebrow-tag">agent-engineer</span>
+              <span className="hero__eyebrow-sep" aria-hidden="true" />
+              2026 · 26 Weeks · 9 Phases
+            </div>
+            <h1 className="hero__title">
+              Build AI systems<br />
+              that actually <em>ship.</em>
+            </h1>
+            <p className="hero__sub">
+              The complete engineering path from Python fundamentals to production
+              multi-agent systems. Every module built from real deployments —
+              <em> no theory padding, no slides-only content.</em>
+            </p>
+            <div className="hero__actions">
+              <button className="hero__cta hero__cta--primary" type="button" onClick={scrollToAgenda}>
+                Explore the roadmap
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+              <button className="hero__cta hero__cta--ghost" type="button" onClick={() => setSearchOpen(true)}>
+                Browse modules
+              </button>
+            </div>
+            <div className="hero__stats">
+              <div className="hero__stat">
+                <div className="hero__stat-num">{window.ROADMAP.length}</div>
+                <div className="hero__stat-label">Phases</div>
+              </div>
+              <div className="hero__stat-sep" aria-hidden="true" />
+              <div className="hero__stat">
+                <div className="hero__stat-num">{totalSections}</div>
+                <div className="hero__stat-label">Modules</div>
+              </div>
+              <div className="hero__stat-sep" aria-hidden="true" />
+              <div className="hero__stat">
+                <div className="hero__stat-num">26</div>
+                <div className="hero__stat-label">Weeks</div>
+              </div>
+              <div className="hero__stat-sep" aria-hidden="true" />
+              <div className="hero__stat">
+                <div className="hero__stat-num">{window.CAPSTONES.length}</div>
+                <div className="hero__stat-label">Capstones</div>
+              </div>
+            </div>
           </div>
-          <div>
-            <div className="hero__stat-num">{totalSections}</div>
-            <div className="hero__stat-label">Modules</div>
-          </div>
-          <div>
-            <div className="hero__stat-num">26</div>
-            <div className="hero__stat-label">Weeks</div>
-          </div>
-          <div>
-            <div className="hero__stat-num">{window.CAPSTONES.length}</div>
-            <div className="hero__stat-label">Capstones</div>
+          <div className="hero__right" aria-hidden="true">
+            <div className="hero__phase-grid">
+              {window.ROADMAP.map((p) => (
+                <div key={p.id} className="hero__phase-chip" data-color={p.color}>
+                  <span className="hero__phase-chip-num">{String(p.id).padStart(2, '0')}</span>
+                  <span className="hero__phase-chip-name">{p.short}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </header>
@@ -437,7 +455,7 @@ function App() {
         <div className="agenda__head">
           <h2 className="agenda__title">What we'll <em>cover.</em></h2>
           <div className="agenda__sub">
-            A complete production-grade journey. Every module grounded in real enterprise AI engineering.
+            Every module grounded in real deployments — not slides, not theory.
           </div>
         </div>
         <div className="agenda__grid agenda__grid--phases">
@@ -489,7 +507,7 @@ function App() {
           <div className="instructor__body">
             <div className="instructor__label">Your Instructor</div>
             <h3 className="instructor__name">Harish Mondepu</h3>
-            <div className="instructor__role">Salesforce Engineer · AI Enthusiast · Enterprise Architect</div>
+            <div className="instructor__role">AI Systems Engineer · Salesforce Architect</div>
             <p className="instructor__bio">
               I spent <span>9+ years building production enterprise systems</span> across healthcare, SaaS,
               manufacturing, and financial services before making the move into AI engineering. I hold
@@ -500,7 +518,7 @@ function App() {
               this is where you start.
             </p>
             <div className="instructor__chips">
-              <span className="instructor__chip">9+ Yrs Enterprise Arch</span>
+              <span className="instructor__chip">9+ Yrs Engineering</span>
               <span className="instructor__chip">16× Salesforce Certified</span>
               <span className="instructor__chip">LangGraph</span>
               <span className="instructor__chip">Agentic AI</span>
