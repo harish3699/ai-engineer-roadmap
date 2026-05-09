@@ -279,7 +279,7 @@ pre{background:var(--bg-code);padding:1.2rem 1.5rem;overflow-x:auto;font-family:
 
 /* SCROLL REVEAL */
 .reveal{opacity:0;transform:translateY(14px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
-.reveal.in{opacity:1;transform:none}
+.reveal.in,.reveal.done,.reveal.revealed{opacity:1;transform:none}
 
 /* RESPONSIVE */
 @media(max-width:768px){.mod-head,.body{padding-left:1.25rem;padding-right:1.25rem}.mod-head__title{font-size:1.9rem}}
