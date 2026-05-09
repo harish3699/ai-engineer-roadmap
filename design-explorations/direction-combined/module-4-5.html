@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
@@ -572,5 +572,6 @@ document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 const tocIO=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));const a=document.querySelector(`.toc a[href="#${x.target.id}"]`);if(a)a.classList.add('active')}}),{rootMargin:'-20% 0px -70% 0px'});
 document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
 </script>
+<script src="/chat-widget.js"></script>
 </body>
 </html>

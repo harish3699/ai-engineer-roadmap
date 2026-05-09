@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
@@ -251,5 +251,6 @@ function copyCode(btn){const code=btn.closest('.code-wrap').querySelector('pre c
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('revealed')}),{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 const tocIO=new IntersectionObserver(es=>{es.forEach(e=>{const id=e.target.id;if(!id)return;const link=document.querySelector(`.toc__link[href="#${id}"]`);if(!link)return;if(e.isIntersecting){document.querySelectorAll('.toc__link').forEach(l=>l.classList.remove('active'));link.classList.add('active');}});},{rootMargin:'-20% 0px -70% 0px'});document.querySelectorAll('h2[id]').forEach(h=>tocIO.observe(h));
 </script>
+<script src="/chat-widget.js"></script>
 </body>
 </html>
