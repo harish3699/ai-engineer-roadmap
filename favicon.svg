@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <clipPath id="c">
+      <rect width="32" height="32" rx="5"/>
+    </clipPath>
+  </defs>
+  <rect width="32" height="32" rx="5" fill="#111111"/>
+  <rect width="5" height="32" fill="#e53e3e" clip-path="url(#c)"/>
+  <text x="19" y="21" font-family="'Arial Black',Arial,sans-serif" font-size="13" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="-0.5">HM</text>
+</svg>
