@@ -6,13 +6,15 @@ The site covers a 26-week learning path across Python foundations, LLM mental mo
 
 ## Live Site
 
+https://ai-engineer-roadmap-pi.vercel.app/
+
 GitHub Pages:
 
-https://ch-balaji.github.io/ai-engineer-roadmap/
+https://ai-engineer-roadmap-pi.vercel.app/
 
 ## About
 
-This roadmap is created by Balaji Chippada, an AI/ML practitioner and tutor who has worked across traditional machine learning, production-scale agentic AI systems, and AI/data science education.
+This roadmap is created by Harish Mondepu, an AI/ML practitioner and tutor who has worked across traditional machine learning, production-scale agentic AI systems, and AI/data science education.
 
 The curriculum is designed around one idea:
 
